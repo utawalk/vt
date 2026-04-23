@@ -1,0 +1,4739 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>VTuber事務所シミュレーション</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #04040e;
+      color: #fff;
+      font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Noto Sans JP', Meiryo, sans-serif;
+      overflow: hidden;
+      height: 100dvh;
+      width: 100vw;
+      user-select: none;
+    }
+
+    /* ── Canvas background ── */
+    #bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+
+    /* ── Frame decoration ── */
+    #frame {
+      position: fixed;
+      inset: 12px;
+      border: 1px solid rgba(176, 96, 255, 0.18);
+      border-radius: 10px;
+      pointer-events: none;
+      z-index: 2;
+    }
+    #frame::before {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(0, 229, 255, 0.07);
+      border-radius: 7px;
+    }
+
+    /* Scanlines */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px);
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── Screens ── */
+    .screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 10;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.7s ease;
+    }
+    .screen.active {
+      opacity: 1;
+      pointer-events: all;
+      z-index: 20;  /* アクティブな画面を常に最前面に */
+    }
+
+    /* ════════════════════════
+       TITLE SCREEN
+    ════════════════════════ */
+    #titleScreen { text-align: center; gap: 0; }
+
+    .title-eyebrow {
+      font-size: clamp(0.6rem, 1.8vw, 0.8rem);
+      letter-spacing: 0.45em;
+      color: #a898cc;
+      margin-bottom: 18px;
+      text-transform: uppercase;
+    }
+
+    .title-main {
+      font-size: clamp(2.2rem, 6vw, 4.2rem);
+      font-weight: 900;
+      line-height: 1.15;
+      background: linear-gradient(135deg, #d080ff 0%, #80d0ff 50%, #b060ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 28px rgba(176,96,255,0.65));
+      margin-bottom: 6px;
+    }
+
+    .title-en {
+      font-size: clamp(0.6rem, 1.6vw, 0.85rem);
+      letter-spacing: 0.3em;
+      color: #8878aa;
+      margin-bottom: 56px;
+      text-transform: uppercase;
+    }
+
+    .btn-start {
+      position: relative;
+      background: transparent;
+      border: 2px solid rgba(176, 96, 255, 0.7);
+      color: #c080ff;
+      font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+      padding: 14px 56px;
+      border-radius: 50px;
+      cursor: pointer;
+      letter-spacing: 0.3em;
+      font-family: inherit;
+      overflow: hidden;
+      transition: color 0.3s, box-shadow 0.3s, background 0.3s;
+    }
+    .btn-start::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(176,96,255,0.25), transparent);
+      transition: left 0.5s;
+    }
+    .btn-start:hover::before { left: 100%; }
+    .btn-start:hover {
+      color: #fff;
+      background: rgba(176,96,255,0.15);
+      box-shadow: 0 0 22px rgba(176,96,255,0.6), 0 0 50px rgba(176,96,255,0.2);
+    }
+    .btn-start:active { transform: scale(0.97); }
+
+    /* Press-any-key blink */
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+    .press-hint {
+      margin-top: 32px;
+      font-size: 0.72rem;
+      letter-spacing: 0.25em;
+      color: #8070a8;
+      animation: blink 2.2s ease-in-out infinite;
+    }
+
+    /* ════════════════════════
+       PROLOGUE SCREEN
+    ════════════════════════ */
+    #prologueScreen { justify-content: flex-end; padding-bottom: clamp(20px, 5vh, 50px); }
+
+    .bg-scene-label {
+      position: absolute;
+      top: 20px; left: 50%; transform: translateX(-50%);
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      color: rgba(176,96,255,0.75);
+      text-transform: uppercase;
+    }
+
+    /* Progress dots */
+    .prog-dots {
+      display: flex;
+      gap: 7px;
+      margin-bottom: 14px;
+    }
+    .prog-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: rgba(176,96,255,0.2);
+      transition: background 0.4s, box-shadow 0.4s;
+    }
+    .prog-dot.lit {
+      background: #b060ff;
+      box-shadow: 0 0 8px rgba(176,96,255,0.9);
+    }
+
+    /* Dialogue window */
+    .dlog-window {
+      width: 100%;
+      max-width: 680px;
+      background: rgba(6,4,18,0.88);
+      border: 1px solid rgba(176,96,255,0.35);
+      border-radius: 18px;
+      padding: clamp(18px,4vw,28px) clamp(20px,4vw,32px);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 40px rgba(176,96,255,0.12), inset 0 0 40px rgba(0,0,0,0.4);
+    }
+
+    .dlog-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+      min-height: 58px;
+    }
+    .dlog-icon {
+      width: 58px; height: 58px;
+      flex-shrink: 0;
+    }
+    .dlog-icon.hidden { opacity: 0; }
+    .dlog-speaker {
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      color: #c080ff;
+      text-shadow: 0 0 8px rgba(176,96,255,0.7);
+    }
+
+    .dlog-text {
+      font-size: clamp(0.92rem, 2.2vw, 1.02rem);
+      line-height: 2;
+      color: #ddd8f0;
+      min-height: 78px;
+      white-space: pre-wrap;
+    }
+
+    .dlog-footer {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+    .btn-next {
+      background: transparent;
+      border: 1px solid rgba(0,229,255,0.45);
+      color: #50c8e8;
+      font-size: 0.85rem;
+      padding: 9px 28px;
+      border-radius: 30px;
+      cursor: pointer;
+      letter-spacing: 0.2em;
+      font-family: inherit;
+      transition: all 0.25s;
+    }
+    .btn-next:hover {
+      background: rgba(0,229,255,0.12);
+      box-shadow: 0 0 14px rgba(0,229,255,0.35);
+      color: #80e8ff;
+    }
+    .btn-next:disabled {
+      opacity: 0.25;
+      pointer-events: none;
+    }
+
+    /* ════════════════════════
+       NAMING SCREEN
+    ════════════════════════ */
+    #namingScreen { gap: 18px; }
+
+    .naming-dlog {
+      width: 100%;
+      max-width: 680px;
+      background: rgba(6,4,18,0.88);
+      border: 1px solid rgba(176,96,255,0.35);
+      border-radius: 18px;
+      padding: clamp(16px,3.5vw,24px) clamp(18px,4vw,30px);
+      backdrop-filter: blur(12px);
+    }
+    .naming-dlog .dlog-header { margin-bottom: 10px; }
+
+    .naming-form {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    .form-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.3em;
+      color: rgba(160,140,200,0.6);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    .office-input {
+      width: 100%;
+      background: rgba(6,4,20,0.9);
+      border: 2px solid rgba(176,96,255,0.45);
+      color: #fff;
+      font-size: clamp(1.1rem, 3.5vw, 1.6rem);
+      padding: 14px 22px;
+      border-radius: 12px;
+      text-align: center;
+      outline: none;
+      font-family: inherit;
+      letter-spacing: 0.08em;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      margin-bottom: 22px;
+    }
+    .office-input:focus {
+      border-color: #b060ff;
+      box-shadow: 0 0 22px rgba(176,96,255,0.38);
+    }
+    .office-input::placeholder {
+      color: rgba(170,155,210,0.55);
+      font-size: clamp(0.8rem, 2.2vw, 1rem);
+    }
+
+    .btn-confirm {
+      background: linear-gradient(135deg, rgba(176,96,255,0.9), rgba(80,180,255,0.9));
+      border: none;
+      color: #fff;
+      font-size: clamp(0.9rem, 2.4vw, 1.05rem);
+      padding: 13px 46px;
+      border-radius: 50px;
+      cursor: pointer;
+      letter-spacing: 0.25em;
+      font-family: inherit;
+      font-weight: bold;
+      transition: all 0.3s;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    .btn-confirm.ready {
+      opacity: 1;
+      pointer-events: all;
+      box-shadow: 0 0 22px rgba(176,96,255,0.45);
+    }
+    .btn-confirm.ready:hover {
+      box-shadow: 0 0 32px rgba(176,96,255,0.75), 0 0 60px rgba(176,96,255,0.25);
+      transform: translateY(-2px);
+    }
+    .btn-confirm.ready:active { transform: scale(0.97); }
+
+    /* ════════════════════════
+       COMPLETE SCREEN
+    ════════════════════════ */
+    #completeScreen { text-align: center; gap: 0; }
+
+    @keyframes popIn {
+      0%   { transform: scale(0.5); opacity: 0; }
+      70%  { transform: scale(1.12); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .complete-star {
+      font-size: clamp(3rem, 10vw, 5rem);
+      margin-bottom: 18px;
+      animation: popIn 0.6s ease forwards;
+      filter: drop-shadow(0 0 22px rgba(176,96,255,0.9));
+    }
+
+    .complete-label {
+      font-size: clamp(0.85rem, 2vw, 1rem);
+      letter-spacing: 0.3em;
+      color: rgba(176,140,220,0.7);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .complete-name {
+      font-size: clamp(1.6rem, 5.5vw, 2.8rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, #d080ff, #80d0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 16px rgba(176,96,255,0.6));
+      margin-bottom: 24px;
+      line-height: 1.2;
+    }
+
+    .complete-msg {
+      font-size: clamp(0.82rem, 2vw, 0.95rem);
+      color: rgba(205,195,232,0.92);
+      line-height: 2;
+      max-width: 460px;
+      margin: 0 auto 32px;
+      white-space: pre-wrap;
+    }
+
+    .btn-go {
+      background: transparent;
+      border: 2px solid rgba(0,229,255,0.55);
+      color: #60d8f8;
+      font-size: clamp(0.85rem, 2.2vw, 0.98rem);
+      padding: 12px 42px;
+      border-radius: 50px;
+      cursor: pointer;
+      letter-spacing: 0.25em;
+      font-family: inherit;
+      transition: all 0.3s;
+    }
+    .btn-go:hover {
+      background: rgba(0,229,255,0.12);
+      box-shadow: 0 0 22px rgba(0,229,255,0.45);
+      color: #a0eeff;
+    }
+    .btn-go:active { transform: scale(0.97); }
+
+    /* ════════════════════════
+       HUB SCREEN
+    ════════════════════════ */
+    #hubScreen {
+      justify-content: flex-start;
+      padding-top: clamp(60px, 10vh, 90px);
+      padding-bottom: 60px;
+      gap: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .hub-header {
+      text-align: center;
+      margin-bottom: clamp(22px, 4vh, 36px);
+    }
+    .hub-office-name {
+      font-size: clamp(1.1rem, 3vw, 1.7rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, #d080ff, #80d0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 10px rgba(176,96,255,0.5));
+      letter-spacing: 0.06em;
+    }
+    .hub-subtitle {
+      font-size: 0.68rem;
+      letter-spacing: 0.3em;
+      color: rgba(180,160,220,0.85);
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    /* ── プロデュースメニューボタン ── */
+    .produce-menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(176,96,255,0.10);
+      border: 1px solid rgba(176,96,255,0.35);
+      border-radius: 24px;
+      padding: 10px 24px;
+      color: #d0c8f0;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: bold;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: background 0.22s, border-color 0.22s, box-shadow 0.22s;
+      margin-bottom: 6px;
+      width: 100%;
+      max-width: 680px;
+      justify-content: space-between;
+    }
+    .produce-menu-btn:hover {
+      background: rgba(176,96,255,0.20);
+      border-color: rgba(176,96,255,0.65);
+      box-shadow: 0 0 18px rgba(176,96,255,0.18);
+    }
+    .produce-menu-btn:active { transform: scale(0.98); }
+    .pmb-label { display: flex; align-items: center; gap: 8px; }
+    .pmb-icon { font-size: 1rem; }
+    .pmb-arrow {
+      font-size: 0.65rem;
+      color: rgba(176,96,255,0.7);
+      transition: transform 0.35s ease;
+      display: inline-block;
+    }
+    .produce-menu-btn.open .pmb-arrow { transform: rotate(180deg); }
+
+    /* ── プロデュースパネル（折りたたみ） ── */
+    .hub-produce-panel {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.42s ease, opacity 0.35s ease;
+      opacity: 0;
+      width: 100%;
+      max-width: 680px;
+      margin-bottom: 0;
+    }
+    .hub-produce-panel.open {
+      max-height: 1200px;
+      opacity: 1;
+      overflow: visible;
+      margin-bottom: 8px;
+    }
+
+    .hub-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      width: 100%;
+      max-width: 680px;
+      padding-bottom: 4px;
+    }
+
+    .hub-card {
+      background: rgba(6,4,18,0.82);
+      border: 1px solid rgba(176,96,255,0.25);
+      border-radius: 16px;
+      padding: 22px 20px;
+      cursor: pointer;
+      transition: all 0.25s;
+      backdrop-filter: blur(10px);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hub-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(176,96,255,0.06), transparent);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .hub-card:hover::before { opacity: 1; }
+    .hub-card:hover {
+      border-color: rgba(176,96,255,0.55);
+      box-shadow: 0 0 22px rgba(176,96,255,0.18);
+      transform: translateY(-3px);
+    }
+    .hub-card:active { transform: translateY(0) scale(0.97); }
+    .hub-card.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .hub-card-icon { font-size: 2rem; margin-bottom: 10px; }
+    .hub-card-title {
+      font-size: 0.9rem;
+      font-weight: bold;
+      letter-spacing: 0.1em;
+      color: #d0c8f0;
+      margin-bottom: 5px;
+    }
+    .hub-card-desc {
+      font-size: 0.68rem;
+      color: rgba(190,175,225,0.85);
+      line-height: 1.7;
+    }
+    .hub-card-cost {
+      font-size: 0.72rem;
+      color: #80e8ff;
+      margin-top: 8px;
+      letter-spacing: 0.05em;
+    }
+    .hub-card-remain {
+      font-size: 0.65rem;
+      color: #b060ff;
+      margin-top: 6px;
+      letter-spacing: 0.05em;
+    }
+
+    /* 1期生スロット */
+    .hub-roster {
+      width: 100%;
+      max-width: 680px;
+      margin-top: 20px;
+    }
+    .hub-roster-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: rgba(185,165,225,0.85);
+      text-align: center;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .hub-roster-slots {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .roster-slot {
+      width: 70px; height: 70px;
+      border-radius: 50%;
+      border: 1px dashed rgba(176,96,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.55rem;
+      letter-spacing: 0.1em;
+      color: rgba(170,150,210,0.7);
+      text-align: center;
+      transition: all 0.4s;
+      overflow: hidden;
+      background: rgba(6,4,18,0.5);
+    }
+    .roster-slot.filled {
+      border: 2px solid rgba(176,96,255,0.5);
+      box-shadow: 0 0 12px rgba(176,96,255,0.25);
+    }
+    .roster-slot svg { width: 100%; height: 100%; }
+
+    /* ════════════════════════
+       AUDITION SCREEN
+    ════════════════════════ */
+    #auditionScreen {
+      justify-content: flex-start;
+      padding-top: clamp(50px, 8vh, 70px);
+      gap: 0;
+    }
+
+    .aud-header {
+      text-align: center;
+      margin-bottom: clamp(16px, 3vh, 26px);
+      width: 100%;
+    }
+    .aud-title {
+      font-size: clamp(1rem, 3vw, 1.4rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, #ffcc60, #ff80c0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 12px rgba(255,160,60,0.5));
+      letter-spacing: 0.12em;
+      margin-bottom: 4px;
+    }
+    .aud-subtitle {
+      font-size: 0.68rem;
+      color: rgba(220,185,130,0.85);
+      letter-spacing: 0.2em;
+    }
+    .aud-instruction {
+      font-size: 0.75rem;
+      color: rgba(200,185,235,0.9);
+      letter-spacing: 0.08em;
+      margin-top: 6px;
+    }
+    .aud-select-count {
+      display: inline-block;
+      background: rgba(176,96,255,0.2);
+      border: 1px solid rgba(176,96,255,0.4);
+      border-radius: 20px;
+      padding: 2px 12px;
+      font-size: 0.72rem;
+      color: #c080ff;
+      margin-left: 6px;
+    }
+
+    /* Candidate cards grid */
+    .candidates-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      width: 100%;
+      max-width: 860px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 700px) {
+      .candidates-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    @media (max-width: 420px) {
+      .candidates-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .cand-card {
+      background: rgba(6,4,18,0.85);
+      border: 1px solid rgba(176,96,255,0.2);
+      border-radius: 14px;
+      padding: 14px 10px 12px;
+      cursor: pointer;
+      transition: all 0.22s;
+      backdrop-filter: blur(8px);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cand-card:hover {
+      border-color: rgba(176,96,255,0.5);
+      transform: translateY(-4px);
+      box-shadow: 0 6px 24px rgba(176,96,255,0.18);
+    }
+    .cand-card.selected {
+      border-color: rgba(255,200,60,0.75);
+      box-shadow: 0 0 20px rgba(255,180,40,0.3);
+      background: rgba(30,18,4,0.9);
+    }
+    .cand-card.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 7px; right: 9px;
+      font-size: 0.85rem;
+      color: #ffc040;
+      text-shadow: 0 0 8px rgba(255,180,40,0.9);
+    }
+    .cand-card.maxed:not(.selected) {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .cand-icon {
+      width: 68px; height: 68px;
+      margin: 0 auto 9px;
+    }
+    .cand-icon svg { width: 100%; height: 100%; }
+
+    .cand-name {
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: #e8dff8;
+      margin-bottom: 2px;
+      letter-spacing: 0.06em;
+    }
+    .cand-type {
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      margin-bottom: 7px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      display: inline-block;
+    }
+    .cand-quote {
+      font-size: 0.62rem;
+      color: rgba(200,188,232,0.9);
+      line-height: 1.6;
+      margin-bottom: 8px;
+      min-height: 38px;
+    }
+
+    /* ステータスバー */
+    .cand-stats { display: flex; flex-direction: column; gap: 4px; }
+    .stat-row { display: flex; align-items: center; gap: 5px; }
+    .stat-label {
+      font-size: 0.5rem;
+      color: rgba(185,168,220,0.85);
+      letter-spacing: 0.08em;
+      width: 28px;
+      flex-shrink: 0;
+    }
+    .stat-bar {
+      flex: 1;
+      height: 4px;
+      background: rgba(80,60,120,0.3);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .stat-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.8s ease;
+    }
+
+    /* 採用ボタン */
+    .aud-footer {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn-hire {
+      background: linear-gradient(135deg, rgba(255,190,50,0.9), rgba(255,100,150,0.9));
+      border: none;
+      color: #fff;
+      font-size: clamp(0.85rem, 2.2vw, 1rem);
+      padding: 12px 38px;
+      border-radius: 50px;
+      cursor: pointer;
+      letter-spacing: 0.2em;
+      font-family: inherit;
+      font-weight: bold;
+      transition: all 0.3s;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .btn-hire.ready {
+      opacity: 1;
+      pointer-events: all;
+      box-shadow: 0 0 22px rgba(255,160,50,0.5);
+    }
+    .btn-hire.ready:hover {
+      box-shadow: 0 0 32px rgba(255,160,50,0.75);
+      transform: translateY(-2px);
+    }
+    .btn-back-hub {
+      background: transparent;
+      border: 1px solid rgba(160,120,220,0.6);
+      color: rgba(190,165,235,0.9);
+      font-size: 0.78rem;
+      padding: 10px 24px;
+      border-radius: 30px;
+      cursor: pointer;
+      letter-spacing: 0.15em;
+      font-family: inherit;
+      transition: all 0.25s;
+    }
+    .btn-back-hub:hover {
+      border-color: rgba(176,96,255,0.5);
+      color: #c080ff;
+    }
+
+    /* ════════════════════════
+       DEBUT ANNOUNCEMENT SCREEN
+    ════════════════════════ */
+    #debutScreen {
+      text-align: center;
+      gap: 0;
+    }
+
+    .debut-eyebrow {
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      color: rgba(255,180,60,0.6);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .debut-title {
+      font-size: clamp(1.4rem, 4.5vw, 2.4rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, #ffcc60, #ff80c0, #c060ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 18px rgba(255,160,60,0.6));
+      margin-bottom: 4px;
+    }
+    .debut-gen-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      color: rgba(225,190,130,0.88);
+      margin-bottom: clamp(18px, 4vh, 30px);
+      text-transform: uppercase;
+    }
+
+    .debut-cards {
+      display: flex;
+      gap: clamp(12px, 3vw, 22px);
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: clamp(20px, 4vh, 34px);
+    }
+
+    @keyframes debutCardIn {
+      0%   { opacity: 0; transform: translateY(30px) scale(0.9); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .debut-card {
+      background: rgba(6,4,18,0.88);
+      border-radius: 18px;
+      padding: 20px 16px 16px;
+      width: clamp(110px, 22vw, 160px);
+      text-align: center;
+      opacity: 0;
+      backdrop-filter: blur(12px);
+    }
+
+    .debut-card-icon {
+      width: 80px; height: 80px;
+      margin: 0 auto 10px;
+    }
+    .debut-card-icon svg { width: 100%; height: 100%; }
+    .debut-card-name {
+      font-size: 0.88rem;
+      font-weight: bold;
+      color: #f0e8ff;
+      margin-bottom: 3px;
+    }
+    .debut-card-type {
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      color: rgba(200,180,240,0.88);
+    }
+
+    .btn-to-hub {
+      background: transparent;
+      border: 2px solid rgba(176,96,255,0.55);
+      color: #c080ff;
+      font-size: clamp(0.85rem, 2.2vw, 0.98rem);
+      padding: 12px 42px;
+      border-radius: 50px;
+      cursor: pointer;
+      letter-spacing: 0.25em;
+      font-family: inherit;
+      transition: all 0.3s;
+    }
+    .btn-to-hub:hover {
+      background: rgba(176,96,255,0.12);
+      box-shadow: 0 0 22px rgba(176,96,255,0.45);
+      color: #e0b0ff;
+    }
+
+    /* ════════════════════════
+       GAWA SCREEN
+    ════════════════════════ */
+    #gawaScreen { justify-content: center; }
+
+    .gawa-step {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 700px;
+      gap: 0;
+    }
+    .gawa-step.active { display: flex; }
+
+    /* Step 0: 制作中 */
+    .gawa-prog-icon {
+      font-size: 3.2rem;
+      margin-bottom: 20px;
+      animation: floatPen 2s ease-in-out infinite;
+    }
+    @keyframes floatPen {
+      0%,100% { transform: translateY(0) rotate(-6deg); }
+      50%      { transform: translateY(-10px) rotate(6deg); }
+    }
+    .gawa-prog-title {
+      font-size: clamp(1rem, 3vw, 1.5rem);
+      font-weight: bold;
+      color: #d0c8f0;
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+    .gawa-prog-sub {
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      color: rgba(200,185,235,0.85);
+      margin-bottom: 36px;
+    }
+    .gawa-prog-bar-wrap {
+      width: min(360px, 80vw);
+      height: 7px;
+      background: rgba(176,96,255,0.12);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .gawa-prog-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #b060ff, #60c0ff);
+      border-radius: 4px;
+      box-shadow: 0 0 8px rgba(176,96,255,0.6);
+    }
+
+    /* Step 1: 完成・魂選択 */
+    .gawa-reveal-title {
+      font-size: clamp(1rem, 3.2vw, 1.5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, #ffcc60, #ff80c0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 10px rgba(255,160,60,.5));
+      letter-spacing: 0.1em;
+      margin-bottom: clamp(14px,3vh,22px);
+    }
+    .gawa-step1-body {
+      display: flex;
+      gap: clamp(14px,4vw,28px);
+      width: 100%;
+      align-items: flex-start;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .gawa-img-frame {
+      flex-shrink: 0;
+      width: clamp(110px,26vw,168px);
+      border-radius: 11px;
+      overflow: hidden;
+      border: 1px solid rgba(176,96,255,0.4);
+      box-shadow: 0 0 28px rgba(176,96,255,0.18);
+    }
+    .gawa-img-frame svg { width:100%; display:block; }
+
+    .gawa-soul-panel { flex:1; min-width:200px; }
+    .gawa-soul-panel-ttl {
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      color: rgba(200,185,235,0.85);
+      margin-bottom: 10px;
+    }
+    .gawa-soul-list { display:flex; flex-direction:column; gap:7px; }
+    .gawa-soul-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(6,4,18,0.82);
+      border: 1px solid rgba(176,96,255,0.2);
+      border-radius: 10px;
+      padding: 7px 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .gawa-soul-item:hover {
+      border-color: rgba(176,96,255,0.5);
+      background: rgba(28,10,48,0.88);
+    }
+    .gawa-soul-item.selected {
+      border-color: rgba(255,200,60,0.75);
+      background: rgba(28,18,4,0.92);
+      box-shadow: 0 0 12px rgba(255,180,40,.25);
+    }
+    .gawa-soul-item.taken {
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    .gawa-si-icon { width:44px; height:44px; flex-shrink:0; }
+    .gawa-si-icon svg { width:100%; height:100%; }
+    .gawa-si-name { font-size:0.84rem; font-weight:bold; color:#e8dff8; }
+    .gawa-si-type { font-size:0.6rem; color:rgba(185,168,220,0.85); letter-spacing:.1em; }
+    .gawa-si-check { margin-left:auto; font-size:.95rem; color:#ffc040; opacity:0; transition:opacity .2s; }
+    .gawa-soul-item.selected .gawa-si-check { opacity:1; }
+
+    .gawa-step1-footer { display:flex; justify-content:flex-end; margin-top:14px; width:100%; }
+    .btn-gawa-soul-ok {
+      background: linear-gradient(135deg,rgba(176,96,255,.88),rgba(80,180,255,.88));
+      border:none; color:#fff;
+      font-size: clamp(.85rem,2.2vw,.98rem);
+      padding:11px 34px; border-radius:50px;
+      cursor:pointer; letter-spacing:.2em;
+      font-family:inherit; font-weight:bold;
+      transition:all .3s; opacity:.35; pointer-events:none;
+    }
+    .btn-gawa-soul-ok.ready { opacity:1; pointer-events:all; box-shadow:0 0 20px rgba(176,96,255,.4); }
+    .btn-gawa-soul-ok.ready:hover { box-shadow:0 0 30px rgba(176,96,255,.7); transform:translateY(-2px); }
+
+    /* Step 2: VTuber命名 */
+    .gawa-name-row {
+      display:flex; gap:clamp(14px,4vw,26px);
+      align-items:center; justify-content:center;
+      flex-wrap:wrap; width:100%; margin-bottom:16px;
+    }
+    .gawa-name-thumbs {
+      display:flex; flex-direction:column;
+      align-items:center; gap:8px;
+    }
+    .gawa-name-gawa-thumb {
+      width:clamp(78px,18vw,108px);
+      border-radius:8px; overflow:hidden;
+      border:1px solid rgba(176,96,255,.35);
+    }
+    .gawa-name-gawa-thumb svg { width:100%; display:block; }
+    .gawa-name-soul-thumb { width:50px; height:50px; }
+    .gawa-name-soul-thumb svg { width:100%; height:100%; }
+    .gawa-name-plus { font-size:1.4rem; color:rgba(176,96,255,.6); }
+    .gawa-name-form { flex:1; min-width:220px; display:flex; flex-direction:column; gap:8px; }
+    .gawa-name-label {
+      font-size:.7rem; letter-spacing:.25em;
+      color:rgba(185,165,225,.85);
+    }
+    .vtuber-name-input {
+      width:100%;
+      background:rgba(6,4,20,.9);
+      border:2px solid rgba(176,96,255,.45);
+      color:#fff; font-size:clamp(1rem,3vw,1.4rem);
+      padding:12px 18px; border-radius:10px;
+      outline:none; font-family:inherit; letter-spacing:.08em;
+      transition:border-color .3s,box-shadow .3s;
+    }
+    .vtuber-name-input:focus {
+      border-color:#b060ff; box-shadow:0 0 18px rgba(176,96,255,.35);
+    }
+    .vtuber-name-input::placeholder { color:rgba(170,155,210,.4); }
+    .btn-vtuber-born {
+      background:linear-gradient(135deg,rgba(255,180,50,.9),rgba(255,80,150,.9));
+      border:none; color:#fff;
+      font-size:clamp(.9rem,2.4vw,1.05rem);
+      padding:13px 38px; border-radius:50px;
+      cursor:pointer; letter-spacing:.22em;
+      font-family:inherit; font-weight:bold;
+      transition:all .3s; opacity:.35; pointer-events:none; margin-top:6px;
+    }
+    .btn-vtuber-born.ready { opacity:1; pointer-events:all; box-shadow:0 0 22px rgba(255,150,50,.5); }
+    .btn-vtuber-born.ready:hover { box-shadow:0 0 32px rgba(255,150,50,.75); transform:translateY(-2px); }
+
+    /* ════════════════════════
+       VTUBER BORN SCREEN
+    ════════════════════════ */
+    #vtuberBornScreen { text-align:center; gap:0; }
+
+    @keyframes vtuberCardIn {
+      0%   { opacity:0; transform:scale(.85) translateY(22px); }
+      65%  { transform:scale(1.04) translateY(-4px); }
+      100% { opacity:1; transform:scale(1) translateY(0); }
+    }
+    .vborn-eyebrow {
+      font-size:.65rem; letter-spacing:.4em;
+      color:rgba(255,200,60,.75); text-transform:uppercase; margin-bottom:8px;
+    }
+    .vborn-title {
+      font-size:clamp(1.6rem,5vw,2.8rem); font-weight:900;
+      background:linear-gradient(135deg,#ffcc40,#ff80c0,#c060ff);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      filter:drop-shadow(0 0 20px rgba(255,180,60,.6));
+      margin-bottom:clamp(16px,3vh,26px);
+    }
+    .vtuber-profile-card {
+      background:rgba(6,4,18,.9);
+      border:1px solid rgba(176,96,255,.4);
+      border-radius:20px;
+      padding:clamp(14px,4vw,24px);
+      display:flex; gap:clamp(14px,4vw,26px);
+      align-items:center;
+      max-width:540px; width:100%;
+      text-align:left; backdrop-filter:blur(12px);
+      box-shadow:0 0 40px rgba(176,96,255,.15);
+      margin-bottom:clamp(18px,4vh,30px);
+      opacity:0;
+    }
+    .vtuber-profile-card.reveal { animation:vtuberCardIn .7s ease forwards; }
+    .vborn-gawa-frame {
+      width:clamp(90px,20vw,140px); flex-shrink:0;
+      border-radius:10px; overflow:hidden;
+      border:1px solid rgba(176,96,255,.35);
+      box-shadow:0 0 16px rgba(176,96,255,.2);
+    }
+    .vborn-gawa-frame svg { width:100%; display:block; }
+    .vborn-info { flex:1; }
+    .vborn-gen { font-size:.6rem; letter-spacing:.25em; color:rgba(190,170,230,.7); margin-bottom:6px; text-transform:uppercase; }
+    .vborn-name {
+      font-size:clamp(1.3rem,4vw,2rem); font-weight:900;
+      background:linear-gradient(135deg,#d080ff,#80d0ff);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      filter:drop-shadow(0 0 12px rgba(176,96,255,.5));
+      line-height:1.1; margin-bottom:12px;
+    }
+    .vborn-soul-row { display:flex; align-items:center; gap:10px; }
+    .vborn-soul-mini { width:40px; height:40px; flex-shrink:0; }
+    .vborn-soul-mini svg { width:100%; height:100%; }
+    .vborn-soul-label { font-size:.58rem; letter-spacing:.2em; color:rgba(176,140,220,.65); display:block; margin-bottom:2px; }
+    .vborn-soul-name { font-size:.82rem; font-weight:bold; color:#d0c8f0; }
+    .vborn-soul-type { font-size:.6rem; color:rgba(185,168,220,.8); }
+    .btn-hub-from-born {
+      background:transparent;
+      border:2px solid rgba(176,96,255,.55); color:#c080ff;
+      font-size:clamp(.85rem,2.2vw,.98rem);
+      padding:12px 42px; border-radius:50px;
+      cursor:pointer; letter-spacing:.25em; font-family:inherit; transition:all .3s;
+    }
+    .btn-hub-from-born:hover { background:rgba(176,96,255,.12); box-shadow:0 0 22px rgba(176,96,255,.45); color:#e0b0ff; }
+
+    /* ════════════════════════
+       HAMBURGER MENU
+    ════════════════════════ */
+    #menuBtn {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 500;
+      background: rgba(4,3,16,0.88);
+      border: 1px solid rgba(176,96,255,0.32);
+      color: rgba(190,170,235,0.9);
+      font-size: 0.7rem;
+      padding: 9px 22px;
+      border-radius: 24px;
+      cursor: pointer;
+      letter-spacing: 0.22em;
+      font-family: inherit;
+      backdrop-filter: blur(14px);
+      transition: border-color 0.22s, color 0.22s, box-shadow 0.22s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+    #menuBtn:hover {
+      border-color: rgba(176,96,255,0.65);
+      color: #d0b0ff;
+      box-shadow: 0 0 18px rgba(176,96,255,0.3);
+    }
+    #menuBtn .menu-icon {
+      font-size: 0.85rem;
+      line-height: 1;
+    }
+
+    #menuPanel {
+      position: fixed;
+      bottom: 58px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 499;
+      background: rgba(6,3,20,0.94);
+      border: 1px solid rgba(176,96,255,0.35);
+      border-radius: 12px;
+      padding: 6px 0;
+      min-width: 180px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5), 0 0 20px rgba(176,96,255,0.1);
+      opacity: 0;
+      transform: translateX(-50%) translateY(6px) scale(0.97);
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+    #menuPanel.open {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+      pointer-events: all;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      font-size: 0.82rem;
+      letter-spacing: 0.12em;
+      color: rgba(200,185,235,0.9);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .menu-item:hover {
+      background: rgba(176,96,255,0.12);
+      color: #d8b8ff;
+    }
+    .menu-item:active { background: rgba(176,96,255,0.2); }
+    .menu-item .mi-icon { font-size: 1rem; flex-shrink: 0; }
+    .menu-item.danger { color: rgba(255,130,130,0.88); }
+    .menu-item.danger:hover { background: rgba(255,60,60,0.1); color: #ff9090; }
+    .menu-separator {
+      height: 1px;
+      background: rgba(176,96,255,0.18);
+      margin: 4px 12px;
+    }
+
+    /* リセット確認モーダル */
+    #resetOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      backdrop-filter: blur(4px);
+    }
+    #resetOverlay.open { opacity: 1; pointer-events: all; }
+
+    #resetModal {
+      background: rgba(8,4,24,0.97);
+      border: 1px solid rgba(255,80,80,0.4);
+      border-radius: 18px;
+      padding: 30px 28px 24px;
+      max-width: 340px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(255,60,60,0.15);
+      transform: scale(0.94);
+      transition: transform 0.2s;
+    }
+    #resetOverlay.open #resetModal { transform: scale(1); }
+    .reset-modal-icon { font-size: 2.2rem; margin-bottom: 12px; }
+    .reset-modal-title {
+      font-size: 1rem; font-weight: bold;
+      color: #ff9090; letter-spacing: 0.1em; margin-bottom: 8px;
+    }
+    .reset-modal-desc {
+      font-size: 0.78rem; color: rgba(200,180,210,0.8);
+      line-height: 1.8; margin-bottom: 22px;
+    }
+    .reset-modal-btns { display: flex; gap: 10px; justify-content: center; }
+    .btn-reset-cancel {
+      background: transparent;
+      border: 1px solid rgba(176,96,255,0.4);
+      color: rgba(190,170,235,0.85);
+      font-size: 0.82rem; padding: 9px 24px;
+      border-radius: 30px; cursor: pointer;
+      font-family: inherit; letter-spacing: 0.15em;
+      transition: all 0.2s;
+    }
+    .btn-reset-cancel:hover { background: rgba(176,96,255,0.1); color: #c8a0ff; }
+    .btn-reset-confirm {
+      background: rgba(200,40,40,0.85);
+      border: 1px solid rgba(255,80,80,0.5);
+      color: #fff; font-size: 0.82rem;
+      padding: 9px 24px; border-radius: 30px;
+      cursor: pointer; font-family: inherit;
+      letter-spacing: 0.15em; transition: all 0.2s;
+    }
+    .btn-reset-confirm:hover {
+      background: rgba(220,50,50,0.95);
+      box-shadow: 0 0 16px rgba(255,60,60,0.4);
+    }
+
+    /* スタイル設定トースト */
+    @keyframes styleToastAnim {
+      0%   { opacity:0; transform:translateX(-50%) translateY(8px) scale(.95); }
+      18%  { opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
+      78%  { opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
+      100% { opacity:0; transform:translateX(-50%) translateY(-8px) scale(.96); }
+    }
+    #styleToast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(6,3,22,.94);
+      border: 1px solid rgba(176,96,255,.55);
+      border-radius: 30px;
+      padding: 10px 28px;
+      font-size: .82rem;
+      letter-spacing: .18em;
+      color: #d8b8ff;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 600;
+      backdrop-filter: blur(12px);
+      white-space: nowrap;
+    }
+    #styleToast.show {
+      animation: styleToastAnim 1.8s ease forwards;
+    }
+
+    @keyframes savedPulse {
+      0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
+      80%  { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    }
+    #saveToast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(6, 22, 14, 0.92);
+      border: 1px solid rgba(100, 220, 180, 0.55);
+      border-radius: 30px;
+      padding: 9px 28px;
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      color: #80ffcc;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 600;
+      backdrop-filter: blur(10px);
+      white-space: nowrap;
+    }
+    #saveToast.show {
+      animation: savedPulse 1.6s ease forwards;
+    }
+
+    /* ════════════════════════
+       EVENT MODAL
+    ════════════════════════ */
+    #eventModal {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(4,4,14,0.72);
+      backdrop-filter: blur(5px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+    #eventModal.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .event-card {
+      background: rgba(6,4,20,0.97);
+      border-radius: 22px;
+      padding: 34px 28px 28px;
+      max-width: 360px;
+      width: 88%;
+      text-align: center;
+      transform: translateY(-24px) scale(0.93);
+      transition: transform 0.42s cubic-bezier(0.34,1.46,0.64,1);
+      position: relative;
+      overflow: hidden;
+    }
+    #eventModal.show .event-card {
+      transform: translateY(0) scale(1);
+    }
+    .event-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.07;
+      pointer-events: none;
+    }
+    .event-card.good {
+      border: 1px solid rgba(255,204,40,0.55);
+      box-shadow: 0 0 50px rgba(255,200,40,0.18), inset 0 0 40px rgba(255,200,40,0.04);
+    }
+    .event-card.good::before {
+      background: radial-gradient(ellipse at 50% 0%, rgba(255,200,40,0.15), transparent 70%);
+    }
+    .event-card.bad {
+      border: 1px solid rgba(255,60,80,0.5);
+      box-shadow: 0 0 50px rgba(255,50,70,0.18), inset 0 0 40px rgba(255,50,70,0.04);
+    }
+    .event-card.bad::before {
+      background: radial-gradient(ellipse at 50% 0%, rgba(255,50,70,0.12), transparent 70%);
+    }
+    .event-badge {
+      font-size: 0.58rem;
+      letter-spacing: 0.32em;
+      padding: 4px 14px;
+      border-radius: 30px;
+      display: inline-block;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+    .event-card.good .event-badge {
+      background: rgba(255,204,40,0.12);
+      color: #ffd84a;
+      border: 1px solid rgba(255,204,40,0.35);
+    }
+    .event-card.bad .event-badge {
+      background: rgba(255,60,80,0.12);
+      color: #ff5566;
+      border: 1px solid rgba(255,60,80,0.35);
+    }
+    .event-icon { font-size: 3rem; line-height: 1; margin-bottom: 10px; }
+    .event-title {
+      font-size: 1.1rem;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+    .event-card.good .event-title { color: #ffe880; }
+    .event-card.bad  .event-title { color: #ff8898; }
+    .event-ch-tag {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin-bottom: 14px;
+      padding: 9px 14px;
+      border-radius: 14px;
+      text-align: left;
+    }
+    .event-card.good .event-ch-tag {
+      background: rgba(255,204,40,0.07);
+      border: 1px solid rgba(255,204,40,0.22);
+    }
+    .event-card.bad .event-ch-tag {
+      background: rgba(255,60,80,0.07);
+      border: 1px solid rgba(255,60,80,0.22);
+    }
+    .event-ch-gawa {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: rgba(20,10,40,0.6);
+    }
+    .event-ch-gawa svg { width: 100%; height: 100%; display: block; }
+    .event-ch-info { display: flex; flex-direction: column; gap: 2px; }
+    .event-ch-sublabel {
+      font-size: 0.54rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+    }
+    .event-card.good .event-ch-sublabel { color: rgba(255,204,40,0.6); }
+    .event-card.bad  .event-ch-sublabel { color: rgba(255,80,90,0.6); }
+    .event-ch-vtname {
+      font-size: 0.9rem;
+      font-weight: bold;
+      letter-spacing: 0.06em;
+      color: #e0d8f8;
+    }
+    .event-desc {
+      font-size: 0.78rem;
+      color: rgba(200,185,235,0.85);
+      line-height: 1.75;
+      margin-bottom: 16px;
+    }
+    .event-effect {
+      font-size: 0.84rem;
+      font-weight: bold;
+      letter-spacing: 0.04em;
+      margin-bottom: 24px;
+      padding: 11px 14px;
+      border-radius: 12px;
+      line-height: 1.6;
+    }
+    .event-card.good .event-effect {
+      background: rgba(255,200,40,0.1);
+      color: #ffdf60;
+    }
+    .event-card.bad .event-effect {
+      background: rgba(255,55,75,0.1);
+      color: #ff8090;
+    }
+    .event-dismiss {
+      background: rgba(176,96,255,0.12);
+      border: 1px solid rgba(176,96,255,0.4);
+      border-radius: 14px;
+      color: #d0c8f0;
+      font-family: inherit;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      padding: 10px 36px;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .event-dismiss:hover {
+      background: rgba(176,96,255,0.26);
+      box-shadow: 0 0 16px rgba(176,96,255,0.2);
+    }
+
+    /* タイトル画面：つづきからボタン */
+    .btn-continue-save {
+      position: relative;
+      background: transparent;
+      border: 1px solid rgba(100, 220, 180, 0.55);
+      color: rgba(140, 240, 200, 0.9);
+      font-size: clamp(0.8rem, 2vw, 0.95rem);
+      padding: 10px 38px;
+      border-radius: 50px;
+      cursor: pointer;
+      letter-spacing: 0.25em;
+      font-family: inherit;
+      margin-top: 14px;
+      transition: all 0.3s;
+      display: none;
+    }
+    .btn-continue-save.visible { display: inline-block; }
+    .btn-continue-save:hover {
+      background: rgba(100, 220, 180, 0.1);
+      box-shadow: 0 0 18px rgba(100, 220, 180, 0.4);
+      color: #a0ffe0;
+    }
+    .save-date-hint {
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      color: rgba(100, 200, 160, 0.6);
+      margin-top: 6px;
+      display: none;
+    }
+    .save-date-hint.visible { display: block; }
+
+    /* ════════════════════════
+       HUB CHANNEL SECTION
+    ════════════════════════ */
+    .hub-ch-section {
+      width: 100%;
+      max-width: 680px;
+      margin-top: 20px;
+      margin-bottom: 28px;
+    }
+    .hub-ch-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: rgba(185,165,225,.85);
+      text-align: center;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    .hub-ch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+      gap: 14px;
+    }
+    .ch-card {
+      background: rgba(6,4,18,.85);
+      border: 1px solid rgba(176,96,255,.25);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.25s;
+      backdrop-filter: blur(8px);
+    }
+    .ch-card:hover {
+      border-color: rgba(176,96,255,.55);
+      box-shadow: 0 0 22px rgba(176,96,255,.18);
+      transform: translateY(-3px);
+    }
+    .ch-card:active { transform: translateY(0) scale(.97); }
+    .ch-card-thumb {
+      width: 100%;
+      aspect-ratio: 16/9;
+      overflow: hidden;
+      display: block;
+      line-height: 0;
+    }
+    .ch-card-thumb svg { width: 100%; height: 100%; display: block; }
+    .ch-card-info {
+      padding: 9px 12px 11px;
+    }
+    .ch-card-name {
+      font-size: 0.82rem;
+      font-weight: bold;
+      color: #d0c8f0;
+      margin-bottom: 3px;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ch-card-latest {
+      font-size: 0.65rem;
+      color: rgba(185,168,220,.82);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+    .ch-card-views {
+      font-size: 0.62rem;
+      color: rgba(140,220,255,.75);
+    }
+
+    /* ════════════════════════
+       CHANNEL SCREEN
+    ════════════════════════ */
+    #channelScreen {
+      justify-content: flex-start;
+      padding-top: clamp(50px, 8vh, 70px);
+      gap: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .ch-screen-header {
+      width: 100%;
+      max-width: 680px;
+      margin-bottom: clamp(14px,3vh,22px);
+    }
+    .ch-back-row { margin-bottom: 12px; }
+    .btn-ch-back {
+      background: transparent;
+      border: 1px solid rgba(160,120,220,.5);
+      color: rgba(185,160,230,.88);
+      font-size: .76rem;
+      padding: 7px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      letter-spacing: .15em;
+      font-family: inherit;
+      transition: all .22s;
+    }
+    .btn-ch-back:hover { border-color: rgba(176,96,255,.55); color: #c080ff; }
+
+    .ch-vtuber-card {
+      display: flex;
+      gap: clamp(12px,3vw,22px);
+      align-items: center;
+      background: rgba(6,4,18,.82);
+      border: 1px solid rgba(176,96,255,.28);
+      border-radius: 14px;
+      padding: clamp(12px,3vw,18px);
+      backdrop-filter: blur(10px);
+    }
+    .ch-gawa-mini {
+      width: clamp(70px,15vw,100px);
+      flex-shrink: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(176,96,255,.3);
+    }
+    .ch-gawa-mini svg { width: 100%; display: block; }
+    .ch-info-name {
+      font-size: clamp(1.1rem,3.5vw,1.6rem);
+      font-weight: 900;
+      background: linear-gradient(135deg,#d080ff,#80d0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 8px rgba(176,96,255,.4));
+      line-height: 1.1;
+      margin-bottom: 6px;
+    }
+    .ch-info-soul {
+      font-size: .72rem;
+      color: rgba(185,165,225,.85);
+      letter-spacing: .1em;
+      margin-bottom: 8px;
+    }
+    .ch-info-stats { display: flex; gap: 18px; flex-wrap: wrap; }
+    .ch-stat { display: flex; flex-direction: column; align-items: flex-start; }
+    .ch-stat-val {
+      font-size: .98rem;
+      font-weight: bold;
+      color: #80e8ff;
+      font-variant-numeric: tabular-nums;
+    }
+    .ch-stat-label {
+      font-size: .55rem;
+      letter-spacing: .15em;
+      color: rgba(140,220,255,.6);
+      text-transform: uppercase;
+    }
+
+    .ch-videos-header {
+      width: 100%;
+      max-width: 680px;
+      font-size: .65rem;
+      letter-spacing: .3em;
+      color: rgba(185,165,225,.85);
+      text-align: center;
+      margin: clamp(14px,3vh,22px) 0 12px;
+      text-transform: uppercase;
+    }
+    .ch-video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+      gap: 14px;
+      width: 100%;
+      max-width: 680px;
+      margin-bottom: 36px;
+    }
+    .ch-vid-card {
+      background: rgba(6,4,18,.85);
+      border: 1px solid rgba(176,96,255,.2);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: all .22s;
+      backdrop-filter: blur(8px);
+    }
+    .ch-vid-card:hover {
+      border-color: rgba(176,96,255,.5);
+      box-shadow: 0 0 16px rgba(176,96,255,.15);
+      transform: translateY(-2px);
+    }
+    .ch-vid-thumb {
+      width: 100%;
+      aspect-ratio: 16/9;
+      overflow: hidden;
+      line-height: 0;
+    }
+    .ch-vid-thumb svg { width: 100%; height: 100%; display: block; }
+    .ch-vid-info { padding: 8px 10px 10px; }
+    .ch-vid-title {
+      font-size: .78rem;
+      font-weight: bold;
+      color: #d8d0f0;
+      margin-bottom: 4px;
+      line-height: 1.45;
+    }
+    .ch-vid-views {
+      font-size: .62rem;
+      color: rgba(140,220,255,.72);
+    }
+
+    /* ════════════════════════
+       STREAMING STYLE SELECTOR
+    ════════════════════════ */
+    .ch-style-section {
+      width: 100%;
+      max-width: 680px;
+      margin-bottom: clamp(14px,3vh,22px);
+    }
+    .ch-style-header {
+      font-size: .65rem;
+      letter-spacing: .3em;
+      color: rgba(185,165,225,.85);
+      text-align: center;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .ch-style-hint {
+      font-size: .78rem;
+      color: rgba(190,170,230,.82);
+      text-align: center;
+      margin-bottom: 14px;
+      letter-spacing: .06em;
+      min-height: 1.4em;
+      transition: color .4s;
+    }
+    .ch-style-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 9px;
+    }
+    @media (max-width: 560px) {
+      .ch-style-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 360px) {
+      .ch-style-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .style-opt {
+      background: rgba(6,4,18,.82);
+      border: 1px solid rgba(176,96,255,.22);
+      border-radius: 12px;
+      padding: 13px 7px 11px;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color .22s, background .22s, box-shadow .22s, transform .18s;
+      position: relative;
+      overflow: hidden;
+    }
+    .style-opt:hover {
+      border-color: rgba(176,96,255,.5);
+      background: rgba(22,10,44,.9);
+      transform: translateY(-2px);
+    }
+    .style-opt:active { transform: translateY(0) scale(.96); }
+    .style-opt.active .style-opt-check {
+      position: absolute;
+      top: 5px; right: 7px;
+      font-size: .68rem;
+      display: block;
+    }
+    @keyframes styleSet {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.1) translateY(-3px); }
+      100% { transform: scale(1); }
+    }
+    .style-opt.just-set { animation: styleSet .38s ease; }
+    .style-opt-icon  { font-size: 1.55rem; margin-bottom: 5px; line-height: 1; }
+    .style-opt-label {
+      font-size: .68rem;
+      font-weight: bold;
+      color: #d0c8f0;
+      letter-spacing: .05em;
+      margin-bottom: 4px;
+    }
+    .style-opt-desc {
+      font-size: .54rem;
+      color: rgba(185,168,220,.75);
+      line-height: 1.55;
+    }
+    .style-opt-check { display: none; }
+
+    /* ────── Gawa Step3 recap ────── */
+    .gawa-step3-recap {
+      display: flex;
+      align-items: center;
+      gap: clamp(8px,2vw,14px);
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      width: 100%;
+      max-width: 680px;
+      background: rgba(6,4,18,.75);
+      border: 1px solid rgba(176,96,255,.2);
+      border-radius: 14px;
+      padding: 12px 18px;
+    }
+    .gawa-step3-gawa {
+      width: clamp(50px,11vw,70px);
+      flex-shrink: 0;
+      border-radius: 7px;
+      overflow: hidden;
+      border: 1px solid rgba(176,96,255,.35);
+    }
+    .gawa-step3-gawa svg { width:100%; display:block; }
+    .gawa-step3-soul { width:38px; height:38px; flex-shrink:0; }
+    .gawa-step3-soul svg { width:100%; height:100%; }
+    .gawa-step3-arrow { font-size:1.1rem; color:rgba(176,96,255,.55); }
+    .gawa-step3-vtname {
+      font-size: clamp(.9rem,2.8vw,1.25rem);
+      font-weight: 900;
+      background: linear-gradient(135deg,#d080ff,#80d0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 8px rgba(176,96,255,.4));
+      letter-spacing: .06em;
+    }
+
+    /* ────── VTuber Born — channel section ────── */
+    #vtuberBornScreen { overflow-y: auto; overflow-x: hidden; }
+    .vborn-ch-section {
+      background: rgba(4,6,20,.9);
+      border: 1px solid rgba(0,229,255,.28);
+      border-radius: 16px;
+      padding: clamp(14px,3vw,20px) clamp(16px,4vw,28px);
+      width: 100%;
+      max-width: 540px;
+      text-align: center;
+      backdrop-filter: blur(12px);
+      margin-bottom: clamp(16px,3vh,24px);
+      opacity: 0;
+      box-shadow: 0 0 30px rgba(0,229,255,.07);
+    }
+    .vborn-ch-section.reveal {
+      animation: vtuberCardIn .65s ease .42s forwards;
+    }
+    .vborn-ch-eyebrow {
+      font-size: .6rem;
+      letter-spacing: .38em;
+      color: rgba(0,229,255,.6);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .vborn-ch-title {
+      font-size: clamp(.95rem,3.2vw,1.4rem);
+      font-weight: 900;
+      background: linear-gradient(135deg,#60e8ff,#9090ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 12px rgba(0,229,255,.38));
+      margin-bottom: 10px;
+      line-height: 1.2;
+    }
+    .vborn-ch-style {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: .84rem;
+      font-weight: bold;
+      padding: 6px 18px;
+      border-radius: 20px;
+      letter-spacing: .1em;
+    }
+
+    /* Hub card style badge */
+    .ch-card-style {
+      font-size: .62rem;
+      margin-top: 3px;
+      letter-spacing: .05em;
+    }
+
+    /* ════════════════════════
+       MONEY HUD
+    ════════════════════════ */
+    #moneyHUD {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 500;
+      background: rgba(4, 3, 16, 0.82);
+      border: 1px solid rgba(0, 229, 255, 0.28);
+      border-radius: 14px;
+      padding: 9px 16px 9px 14px;
+      backdrop-filter: blur(14px);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 1px;
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: opacity 0.55s ease, transform 0.55s ease, border-color 0.4s;
+      pointer-events: none;
+      min-width: 148px;
+      box-shadow: 0 0 20px rgba(0,229,255,0.08);
+    }
+    #moneyHUD.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: all;
+    }
+
+    /* 借金モード */
+    #moneyHUD.debt {
+      border-color: rgba(255, 70, 70, 0.5);
+      box-shadow: 0 0 20px rgba(255,60,60,0.15);
+    }
+
+    .hud-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.28em;
+      color: rgba(140,230,255,0.82);
+      text-transform: uppercase;
+    }
+    #moneyHUD.debt .hud-label {
+      color: rgba(255,120,120,0.6);
+    }
+
+    .hud-amount {
+      font-size: clamp(1rem, 2.8vw, 1.25rem);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #80e8ff;
+      text-shadow: 0 0 12px rgba(0,229,255,0.6);
+      font-variant-numeric: tabular-nums;
+      transition: color 0.4s, text-shadow 0.4s;
+      line-height: 1;
+    }
+    #moneyHUD.debt .hud-amount {
+      color: #ff6060;
+      text-shadow: 0 0 12px rgba(255,60,60,0.7);
+    }
+
+    /* 借金バッジ */
+    .hud-debt-badge {
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255,60,60,0.2);
+      border: 1px solid rgba(255,60,60,0.5);
+      color: #ff8080;
+      display: none;
+    }
+    #moneyHUD.debt .hud-debt-badge { display: block; }
+
+    /* フラッシュアニメーション */
+    @keyframes moneyUp {
+      0%   { transform: scale(1); }
+      30%  { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+    @keyframes moneyDown {
+      0%   { transform: scale(1); }
+      30%  { transform: scale(0.92); }
+      100% { transform: scale(1); }
+    }
+    .hud-amount.flash-up   { animation: moneyUp   0.35s ease; }
+    .hud-amount.flash-down { animation: moneyDown 0.35s ease; }
+
+    /* 差額ポップアップ */
+    .hud-delta {
+      position: absolute;
+      right: 16px;
+      top: -22px;
+      font-size: 0.82rem;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+      pointer-events: none;
+      opacity: 0;
+    }
+    @keyframes deltaFloat {
+      0%   { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-24px); }
+    }
+    .hud-delta.show { animation: deltaFloat 1.1s ease forwards; }
+
+    /* ════════════════════════
+       SUBS HUD
+    ════════════════════════ */
+    #subsHUD {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 500;
+      background: rgba(4,3,16,0.82);
+      border: 1px solid rgba(176,96,255,0.28);
+      border-radius: 14px;
+      padding: 9px 16px 9px 14px;
+      backdrop-filter: blur(14px);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1px;
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+      pointer-events: none;
+      min-width: 130px;
+      box-shadow: 0 0 20px rgba(176,96,255,0.08);
+    }
+    #subsHUD.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .subs-hud-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.28em;
+      color: rgba(176,140,220,0.75);
+      text-transform: uppercase;
+    }
+    .subs-hud-amount {
+      font-size: clamp(1rem, 2.8vw, 1.25rem);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #c880ff;
+      text-shadow: 0 0 12px rgba(176,96,255,0.55);
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .subs-hud-delta {
+      font-size: 0.62rem;
+      color: rgba(200,160,255,0.75);
+      letter-spacing: 0.04em;
+      min-height: 0.8em;
+      transition: opacity 0.3s;
+    }
+
+    /* ════════════════════════
+       DATE HUD
+    ════════════════════════ */
+    #dateHUD {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-6px);
+      z-index: 500;
+      background: rgba(4,3,16,.82);
+      border: 1px solid rgba(176,96,255,.22);
+      border-radius: 14px;
+      padding: 7px 18px;
+      backdrop-filter: blur(14px);
+      text-align: center;
+      opacity: 0;
+      transition: opacity .55s ease, transform .55s ease;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: 0 0 16px rgba(176,96,255,.06);
+    }
+    #dateHUD.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .date-label {
+      font-size: .5rem;
+      letter-spacing: .3em;
+      color: rgba(176,140,220,.62);
+      text-transform: uppercase;
+      margin-bottom: 1px;
+    }
+    .date-value {
+      font-size: clamp(.7rem,2vw,.84rem);
+      font-weight: bold;
+      color: rgba(210,195,245,.92);
+      letter-spacing: .04em;
+      font-variant-numeric: tabular-nums;
+    }
+    /* 週次収益ポップ */
+    #incomePopup {
+      position: fixed;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 600;
+      background: rgba(4,18,10,.92);
+      border: 1px solid rgba(80,220,160,.5);
+      border-radius: 24px;
+      padding: 8px 22px;
+      font-size: .8rem;
+      letter-spacing: .15em;
+      color: #80ffcc;
+      pointer-events: none;
+      opacity: 0;
+      white-space: nowrap;
+      backdrop-filter: blur(10px);
+    }
+    @keyframes incomePopAnim {
+      0%   { opacity:0; transform:translateX(-50%) translateY(4px); }
+      15%  { opacity:1; transform:translateX(-50%) translateY(0); }
+      75%  { opacity:1; transform:translateX(-50%) translateY(0); }
+      100% { opacity:0; transform:translateX(-50%) translateY(-8px); }
+    }
+    #incomePopup.show { animation: incomePopAnim 2.4s ease forwards; }
+  </style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<div id="frame"></div>
+
+<!-- ⑤ メインハブ画面 -->
+<div class="screen" id="hubScreen">
+  <div class="hub-header">
+    <div class="hub-office-name" id="hubOfficeName"></div>
+    <div class="hub-subtitle">OFFICE MANAGEMENT</div>
+  </div>
+  <button class="produce-menu-btn" id="btnProduceMenu">
+    <span class="pmb-label"><span class="pmb-icon">🎛️</span>プロデュースメニュー</span>
+    <span class="pmb-arrow">▼</span>
+  </button>
+  <div class="hub-produce-panel" id="hubProducePanel">
+    <div class="hub-grid">
+      <div class="hub-card" id="hubAuditionBtn">
+        <div class="hub-card-icon">🎤</div>
+        <div class="hub-card-title">魂オーディション</div>
+        <div class="hub-card-desc">魂候補生を5人募集。<br>最大3人を採用できます</div>
+        <div class="hub-card-cost">費用：¥300,000</div>
+      </div>
+      <div class="hub-card disabled" id="hubGawaBtn">
+        <div class="hub-card-icon">🎨</div>
+        <div class="hub-card-title">ガワを発注</div>
+        <div class="hub-card-desc">イラストレーターに<br>ガワの制作を依頼します</div>
+        <div class="hub-card-cost">費用：¥500,000</div>
+        <div class="hub-card-remain" id="gawaRemainBadge"></div>
+      </div>
+      <div class="hub-card disabled">
+        <div class="hub-card-icon">📺</div>
+        <div class="hub-card-title">配信スケジュール</div>
+        <div class="hub-card-desc">タレントの配信を<br>管理します</div>
+        <div class="hub-card-cost">近日公開</div>
+      </div>
+      <div class="hub-card disabled">
+        <div class="hub-card-icon">🛍️</div>
+        <div class="hub-card-title">グッズ展開</div>
+        <div class="hub-card-desc">グッズを制作して<br>収益を得ます</div>
+        <div class="hub-card-cost">近日公開</div>
+      </div>
+    </div>
+  </div>
+  <!-- チャンネルセクション -->
+  <div class="hub-ch-section" id="hubChSection" style="display:none;">
+    <div class="hub-ch-label">── チャンネル ──</div>
+    <div class="hub-ch-grid" id="hubChGrid"></div>
+  </div>
+  <!-- 所属タレント（最下部） -->
+  <div class="hub-roster">
+    <div class="hub-roster-label">── 所属タレント ──</div>
+    <div class="hub-roster-slots" id="hubRosterSlots">
+      <div class="roster-slot">空席</div>
+      <div class="roster-slot">空席</div>
+      <div class="roster-slot">空席</div>
+    </div>
+  </div>
+</div>
+
+<!-- ⑥ オーディション画面 -->
+<div class="screen" id="auditionScreen">
+  <div class="aud-header">
+    <div class="aud-title">✦ 魂オーディション ✦</div>
+    <div class="aud-subtitle">SOUL AUDITION — 1ST GENERATION</div>
+    <div class="aud-instruction">
+      気に入った魂を選んでください
+      <span class="aud-select-count" id="audSelectCount">0 / 3</span>
+    </div>
+  </div>
+  <div class="candidates-grid" id="candidatesGrid"></div>
+  <div class="aud-footer">
+    <button class="btn-back-hub" id="btnBackHub">← もどる</button>
+    <button class="btn-hire" id="btnHire">採用を決定する</button>
+  </div>
+</div>
+
+<!-- ⑦ 1期生デビュー発表 -->
+<div class="screen" id="debutScreen">
+  <div class="debut-eyebrow">── DEBUT ANNOUNCEMENT ──</div>
+  <div class="debut-title">1期生、デビュー決定！</div>
+  <div class="debut-gen-label">FIRST GENERATION TALENTS</div>
+  <div class="debut-cards" id="debutCards"></div>
+  <button class="btn-to-hub" id="btnToHub">事務所に戻る</button>
+</div>
+
+<!-- ⑧ ガワ制作フロー -->
+<div class="screen" id="gawaScreen">
+
+  <!-- Step 0: 制作中 -->
+  <div class="gawa-step active" id="gawaStep0">
+    <div class="gawa-prog-icon">🎨</div>
+    <div class="gawa-prog-title">イラスト制作中...</div>
+    <div class="gawa-prog-sub">イラストレーターが一生懸命描いています</div>
+    <div class="gawa-prog-bar-wrap">
+      <div class="gawa-prog-fill" id="gawaProgFill"></div>
+    </div>
+  </div>
+
+  <!-- Step 1: ガワ完成・魂選択 -->
+  <div class="gawa-step" id="gawaStep1">
+    <div class="gawa-reveal-title">✦ ガワが完成しました！ ✦</div>
+    <div class="gawa-step1-body">
+      <div class="gawa-img-frame" id="gawaImgFrame"></div>
+      <div class="gawa-soul-panel">
+        <div class="gawa-soul-panel-ttl">── この子の魂を決めてください ──</div>
+        <div class="gawa-soul-list" id="gawaSoulList"></div>
+      </div>
+    </div>
+    <div class="gawa-step1-footer">
+      <button class="btn-gawa-soul-ok" id="btnGawaSoulOk">この魂にする ▶</button>
+    </div>
+  </div>
+
+  <!-- Step 2: VTuber命名 -->
+  <div class="gawa-step" id="gawaStep2">
+    <div class="gawa-reveal-title">VTuberの名前を決めましょう</div>
+    <div class="naming-dlog" style="width:100%;max-width:680px;margin-bottom:16px;">
+      <div class="dlog-header">
+        <div class="dlog-icon" id="gawaAiriIcon"></div>
+        <div><div class="dlog-speaker">アイリ</div></div>
+      </div>
+      <div class="dlog-text" id="gawaAiriText"></div>
+    </div>
+    <div class="gawa-name-row">
+      <div class="gawa-name-thumbs">
+        <div class="gawa-name-gawa-thumb" id="gawaNameThumb"></div>
+        <div class="gawa-name-plus">＋</div>
+        <div class="gawa-name-soul-thumb" id="gawaNameSoulThumb"></div>
+      </div>
+      <div class="gawa-name-form">
+        <div class="gawa-name-label">── VTuberの名前 ──</div>
+        <input class="vtuber-name-input" id="vtuberNameInput" type="text"
+               placeholder="例：夜咲 ノア" maxlength="16" autocomplete="off">
+        <button class="btn-vtuber-born" id="btnVtuberBorn">配信スタイルを決める ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: 配信スタイル選択 -->
+  <div class="gawa-step" id="gawaStep3">
+    <div class="gawa-reveal-title">配信スタイルを決めましょう</div>
+    <div class="naming-dlog" style="width:100%;max-width:680px;margin-bottom:14px;">
+      <div class="dlog-header">
+        <div class="dlog-icon" id="gawaStyleAiriIcon"></div>
+        <div><div class="dlog-speaker">アイリ</div></div>
+      </div>
+      <div class="dlog-text" id="gawaStyleAiriText"></div>
+    </div>
+    <!-- 決定内容ミニ表示 -->
+    <div class="gawa-step3-recap">
+      <div class="gawa-step3-gawa" id="gawaStep3Thumb"></div>
+      <div class="gawa-name-plus" style="font-size:.9rem">＋</div>
+      <div class="gawa-step3-soul" id="gawaStep3Soul"></div>
+      <div class="gawa-step3-arrow">→</div>
+      <div class="gawa-step3-vtname" id="gawaStep3VtName"></div>
+    </div>
+    <!-- スタイル選択グリッド -->
+    <div class="ch-style-hint" id="gawaStyleHint" style="margin-bottom:12px;">スタイルを選んでください</div>
+    <div class="ch-style-grid" style="width:100%;max-width:680px;margin-bottom:18px;" id="gawaStyleGrid"></div>
+    <div style="display:flex;justify-content:flex-end;width:100%;max-width:680px;">
+      <button class="btn-vtuber-born" id="btnOpenChannel">✦ チャンネル開設！ ✦</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ⑨ VTuber & チャンネル誕生！ -->
+<div class="screen" id="vtuberBornScreen">
+  <div class="vborn-eyebrow">── NEW VTUBER & CHANNEL DEBUT ──</div>
+  <div class="vborn-title">VTuber誕生！</div>
+  <div class="vtuber-profile-card" id="vtuberProfileCard">
+    <div class="vborn-gawa-frame" id="vbornGawaFrame"></div>
+    <div class="vborn-info">
+      <div class="vborn-gen">1ST GENERATION</div>
+      <div class="vborn-name" id="vbornName"></div>
+      <div class="vborn-soul-row">
+        <div class="vborn-soul-mini" id="vbornSoulMini"></div>
+        <div>
+          <span class="vborn-soul-label">SOUL</span>
+          <div class="vborn-soul-name" id="vbornSoulName"></div>
+          <div class="vborn-soul-type" id="vbornSoulType"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- チャンネル誕生カード -->
+  <div class="vborn-ch-section" id="vbornChSection">
+    <div class="vborn-ch-eyebrow">── CHANNEL OPEN ──</div>
+    <div class="vborn-ch-title" id="vbornChTitle"></div>
+    <div class="vborn-ch-style" id="vbornChStyle"></div>
+  </div>
+  <button class="btn-hub-from-born" id="btnHubFromBorn">事務所に戻る</button>
+</div>
+
+<!-- ⑩ チャンネル詳細画面 -->
+<div class="screen" id="channelScreen">
+  <div class="ch-screen-header">
+    <div class="ch-back-row">
+      <button class="btn-ch-back" id="btnChBack">← 事務所に戻る</button>
+    </div>
+    <div class="ch-vtuber-card">
+      <div class="ch-gawa-mini" id="chGawaMini"></div>
+      <div>
+        <div class="ch-info-name" id="chInfoName"></div>
+        <div class="ch-info-soul" id="chInfoSoul"></div>
+        <div class="ch-info-stats">
+          <div class="ch-stat">
+            <div class="ch-stat-val" id="chStatSubs">0</div>
+            <div class="ch-stat-label">登録者</div>
+          </div>
+          <div class="ch-stat">
+            <div class="ch-stat-val" id="chStatViews">0</div>
+            <div class="ch-stat-label">総視聴数</div>
+          </div>
+          <div class="ch-stat">
+            <div class="ch-stat-val" id="chStatVids">0</div>
+            <div class="ch-stat-label">動画数</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 配信スタイル -->
+  <div class="ch-style-section">
+    <div class="ch-style-header">── 配信スタイル ──</div>
+    <div class="ch-style-hint" id="chStyleHint">配信スタイルを選んでください</div>
+    <div class="ch-style-grid" id="chStyleGrid"></div>
+  </div>
+  <div class="ch-videos-header">── 動画一覧 ──</div>
+  <div class="ch-video-grid" id="chVideoGrid"></div>
+</div>
+
+<!-- 汎用メニューボタン＋パネル -->
+<button id="menuBtn">
+  <span class="menu-icon">≡</span>MENU
+</button>
+<div id="menuPanel">
+  <div class="menu-item" id="menuSave">
+    <span class="mi-icon">💾</span>セーブ
+  </div>
+  <div class="menu-separator"></div>
+  <div class="menu-item danger" id="menuReset">
+    <span class="mi-icon">🗑</span>セーブを消して初めから
+  </div>
+</div>
+
+<!-- リセット確認モーダル -->
+<div id="resetOverlay">
+  <div id="resetModal">
+    <div class="reset-modal-icon">⚠️</div>
+    <div class="reset-modal-title">本当にリセットしますか？</div>
+    <div class="reset-modal-desc">セーブデータがすべて消えます。<br>この操作は元に戻せません。</div>
+    <div class="reset-modal-btns">
+      <button class="btn-reset-cancel" id="btnResetCancel">キャンセル</button>
+      <button class="btn-reset-confirm" id="btnResetConfirm">リセットする</button>
+    </div>
+  </div>
+</div>
+
+<!-- 日付HUD -->
+<div id="dateHUD">
+  <div class="date-label">DATE</div>
+  <div class="date-value" id="dateValue">2024年4月1日（月）</div>
+</div>
+
+<!-- 週次収益ポップアップ -->
+<div id="incomePopup"></div>
+
+<!-- セーブ完了トースト -->
+<div id="saveToast">✦ セーブしました ✦</div>
+<!-- スタイル設定トースト -->
+<div id="styleToast"></div>
+
+<!-- イベントモーダル -->
+<div id="eventModal">
+  <div class="event-card" id="eventCard">
+    <div class="event-badge" id="eventBadge"></div>
+    <div class="event-icon" id="eventIcon"></div>
+    <div class="event-title" id="eventTitle"></div>
+    <div class="event-ch-tag" id="eventChTag" style="display:none;">
+      <div class="event-ch-gawa" id="eventChGawa"></div>
+      <div class="event-ch-info">
+        <div class="event-ch-sublabel">対象チャンネル</div>
+        <div class="event-ch-vtname" id="eventChVtName"></div>
+      </div>
+    </div>
+    <div class="event-desc" id="eventDesc"></div>
+    <div class="event-effect" id="eventEffect"></div>
+    <button class="event-dismiss" id="btnEventDismiss">確認</button>
+  </div>
+</div>
+
+<!-- 総登録者HUD -->
+<div id="subsHUD">
+  <div class="subs-hud-label">TOTAL SUBS</div>
+  <div class="subs-hud-amount" id="subsHudAmount">0 人</div>
+  <div class="subs-hud-delta" id="subsHudDelta"></div>
+</div>
+
+<!-- 資金HUD（常時表示） -->
+<div id="moneyHUD">
+  <div class="hud-label">FUNDS</div>
+  <div class="hud-amount" id="hudAmount">¥1,000,000</div>
+  <div class="hud-debt-badge">借　金　中</div>
+  <div class="hud-delta" id="hudDelta"></div>
+</div>
+
+<!-- ① タイトル画面 -->
+<div class="screen active" id="titleScreen">
+  <div class="title-eyebrow">── SIMULATION GAME ──</div>
+  <div class="title-main">VTuber事務所<br>シミュレーション</div>
+  <div class="title-en">VIRTUAL TALENT AGENCY</div>
+  <button class="btn-start" id="btnStart">GAME START</button>
+  <button class="btn-continue-save" id="btnContinue">つづきから</button>
+  <div class="save-date-hint" id="saveDateHint"></div>
+  <div class="press-hint">PRESS START TO BEGIN</div>
+</div>
+
+<!-- ② プロローグ画面 -->
+<div class="screen" id="prologueScreen">
+  <div class="bg-scene-label">PROLOGUE</div>
+  <div class="prog-dots" id="progDots"></div>
+  <div class="dlog-window">
+    <div class="dlog-header">
+      <div class="dlog-icon hidden" id="prologIcon"></div>
+      <div>
+        <div class="dlog-speaker" id="prologSpeaker"></div>
+      </div>
+    </div>
+    <div class="dlog-text" id="prologText"></div>
+    <div class="dlog-footer">
+      <button class="btn-next" id="btnNext" disabled>つぎへ ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- ③ 事務所名入力画面 -->
+<div class="screen" id="namingScreen">
+  <div class="naming-dlog">
+    <div class="dlog-header">
+      <div class="dlog-icon" id="namingIcon"></div>
+      <div><div class="dlog-speaker">アイリ</div></div>
+    </div>
+    <div class="dlog-text" id="namingText"></div>
+  </div>
+  <div class="naming-form">
+    <div class="form-label">── 事務所の名前を入力してください ──</div>
+    <input class="office-input" id="officeInput" type="text"
+           placeholder="例：スターライト プロダクション" maxlength="20" autocomplete="off">
+    <button class="btn-confirm" id="btnConfirm">この名前で始める</button>
+  </div>
+</div>
+
+<!-- ④ 設立完了画面 -->
+<div class="screen" id="completeScreen">
+  <div class="complete-star">🌟</div>
+  <div class="complete-label">── 事務所設立 ──</div>
+  <div class="complete-name" id="completeName"></div>
+  <div class="complete-msg" id="completeMsg"></div>
+  <button class="btn-go" id="btnGo">ゲームを開始する ▶</button>
+</div>
+
+<script>
+/* ════════════════════════════════════
+   PARTICLE BACKGROUND
+════════════════════════════════════ */
+(function(){
+  const c = document.getElementById('bg');
+  const cx = c.getContext('2d');
+  let W, H;
+  const resize = () => { W = c.width = innerWidth; H = c.height = innerHeight; };
+  resize(); addEventListener('resize', resize);
+
+  const N = 130;
+  const pts = Array.from({length:N}, () => ({
+    x: Math.random()*1000, y: Math.random()*1000,
+    vx: (Math.random()-.5)*.28, vy: (Math.random()-.5)*.28,
+    r: Math.random()*1.4+.25,
+    a: Math.random()*.6+.15,
+    hue: Math.random()>.55 ? 270 : 195
+  }));
+
+  function draw(){
+    // deep radial bg
+    const g = cx.createRadialGradient(W/2,H/2,0, W/2,H/2, Math.hypot(W,H)*.7);
+    g.addColorStop(0,'#0d0b1e'); g.addColorStop(1,'#030308');
+    cx.fillStyle = g; cx.fillRect(0,0,W,H);
+
+    for(const p of pts){
+      p.x = (p.x+p.vx+W)%W;
+      p.y = (p.y+p.vy+H)%H;
+      cx.beginPath();
+      cx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      cx.shadowBlur=10; cx.shadowColor=`hsl(${p.hue},80%,65%)`;
+      cx.fillStyle=`hsla(${p.hue},80%,68%,${p.a})`;
+      cx.fill();
+    }
+    cx.shadowBlur=0;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ════════════════════════════════════
+   SECRETARY ICON SVG
+════════════════════════════════════ */
+function secretarySVG(){
+  return `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#c060ff" stop-opacity=".18"/>
+      <stop offset="100%" stop-color="#c060ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="30" cy="30" r="28" fill="url(#glow)" stroke="rgba(176,96,255,.38)" stroke-width="1.2"/>
+  <!-- hair back -->
+  <ellipse cx="30" cy="26" rx="14.5" ry="15.5" fill="#1a0836"/>
+  <!-- cat ears -->
+  <polygon points="17,20 11,9  22,15" fill="#2d0f55"/>
+  <polygon points="17.5,19.5 12,11 21,15" fill="#c060ff" opacity=".55"/>
+  <polygon points="43,20 49,9  38,15" fill="#2d0f55"/>
+  <polygon points="42.5,19.5 48,11 39,15" fill="#c060ff" opacity=".55"/>
+  <!-- face -->
+  <ellipse cx="30" cy="31" rx="12" ry="13" fill="#f5d2be"/>
+  <!-- blush -->
+  <ellipse cx="21.5" cy="34" rx="3.5" ry="2" fill="rgba(255,130,130,.35)"/>
+  <ellipse cx="38.5" cy="34" rx="3.5" ry="2" fill="rgba(255,130,130,.35)"/>
+  <!-- eyes -->
+  <ellipse cx="25" cy="29.5" rx="3.5" ry="4" fill="#3a0e90"/>
+  <ellipse cx="35" cy="29.5" rx="3.5" ry="4" fill="#3a0e90"/>
+  <circle cx="25.8" cy="28.5" r="1.3" fill="white"/>
+  <circle cx="35.8" cy="28.5" r="1.3" fill="white"/>
+  <!-- glasses -->
+  <rect x="20.5" y="26.5" width="9" height="7" rx="2.8" fill="none" stroke="#b060ff" stroke-width="1.1" opacity=".85"/>
+  <rect x="30.5" y="26.5" width="9" height="7" rx="2.8" fill="none" stroke="#b060ff" stroke-width="1.1" opacity=".85"/>
+  <line x1="29.5" y1="30" x2="30.5" y2="30" stroke="#b060ff" stroke-width="1.1" opacity=".85"/>
+  <!-- mouth -->
+  <path d="M27 37 Q30 40.5 33 37" stroke="#d07070" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+</svg>`;
+}
+
+/* ════════════════════════════════════
+   SCREEN MANAGER
+════════════════════════════════════ */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.remove('active');
+    // フェードアウト中も後ろへ退かせる
+    s.style.zIndex = '10';
+  });
+  const target = document.getElementById(id);
+  target.style.zIndex = '20';
+  target.classList.add('active');
+}
+
+/* ════════════════════════════════════
+   TYPEWRITER
+════════════════════════════════════ */
+let twTimer = null;
+function typewrite(el, text, speed, done){
+  if(twTimer){ clearInterval(twTimer); twTimer=null; }
+  el.textContent='';
+  let i=0;
+  twTimer=setInterval(()=>{
+    el.textContent+=text[i++];
+    if(i>=text.length){ clearInterval(twTimer); twTimer=null; if(done) done(); }
+  }, speed);
+}
+
+/* ════════════════════════════════════
+   PROLOGUE DATA
+════════════════════════════════════ */
+const SCENES = [
+  {
+    narration: true,
+    text: '202X年——\n\nVTuber業界はかつてない盛り上がりを見せていた。\n大手事務所、新興プロダクション、個人勢……\nそれぞれが夢を追い、スクリーンの向こうで輝いていた。'
+  },
+  {
+    speaker: 'アイリ',
+    text: '……社長、起きていますか？\nちゃんと聞こえていますよね？'
+  },
+  {
+    speaker: 'アイリ',
+    text: '初めまして。私、アイリと申します。\n本日より、社長の秘書として働かせていただきます。\nどうぞ、よろしくお願いします！'
+  },
+  {
+    speaker: 'アイリ',
+    text: 'さっそくですが——\n社長が立ち上げるVTuber事務所の名前、まだ決まっていませんよね？\nこれから一緒に大きくしていく、とても大切な名前です。\nしっかり考えましょう！'
+  }
+];
+
+let sceneIdx = 0;
+
+function initDots(){
+  const el = document.getElementById('progDots');
+  el.innerHTML = '';
+  SCENES.forEach((_,i)=>{
+    const d = document.createElement('div');
+    d.className = 'prog-dot';
+    el.appendChild(d);
+  });
+}
+function updateDots(idx){
+  document.querySelectorAll('.prog-dot').forEach((d,i)=>{
+    d.classList.toggle('lit', i<=idx);
+  });
+}
+
+function showScene(idx){
+  const s = SCENES[idx];
+  const iconEl = document.getElementById('prologIcon');
+  const speakerEl = document.getElementById('prologSpeaker');
+  const textEl = document.getElementById('prologText');
+  const nextBtn = document.getElementById('btnNext');
+
+  nextBtn.disabled = true;
+  updateDots(idx);
+
+  if(s.narration){
+    iconEl.classList.add('hidden');
+    speakerEl.textContent='';
+  } else {
+    iconEl.classList.remove('hidden');
+    iconEl.innerHTML = secretarySVG();
+    speakerEl.textContent = s.speaker;
+  }
+
+  typewrite(textEl, s.text, 38, ()=>{ nextBtn.disabled=false; });
+}
+
+/* ════════════════════════════════════
+   NAMING SCREEN
+════════════════════════════════════ */
+function startNaming(){
+  document.getElementById('namingIcon').innerHTML = secretarySVG();
+  showScreen('namingScreen');
+  typewrite(
+    document.getElementById('namingText'),
+    'では……事務所の名前を聞かせてください！\nあなたが率いる事務所は、どんな名前で世界に羽ばたきますか？',
+    38
+  );
+  // focus input after a moment
+  setTimeout(()=>{ document.getElementById('officeInput').focus(); }, 600);
+}
+
+/* ════════════════════════════════════
+   COMPLETE SCREEN
+════════════════════════════════════ */
+function showComplete(name){
+  document.getElementById('completeName').textContent = name;
+  document.getElementById('completeMsg').textContent =
+    `「${name}」——\n素晴らしい名前ですね、社長！\n\nなお、事務所の登記費用として\n20万円を支出しました。\n\nこれからどんなVTuberが誕生し、\nどんな物語が紡がれるのか……\nアイリも全力でサポートします！`;
+  showScreen('completeScreen');
+}
+
+/* ════════════════════════════════════
+   EVENTS
+════════════════════════════════════ */
+document.getElementById('btnStart').addEventListener('click', ()=>{
+  showScreen('prologueScreen');
+  initDots();
+  sceneIdx = 0;
+  setTimeout(()=>showScene(0), 350);
+});
+
+document.getElementById('btnNext').addEventListener('click', ()=>{
+  sceneIdx++;
+  if(sceneIdx >= SCENES.length){
+    startNaming();
+  } else {
+    showScene(sceneIdx);
+  }
+});
+
+const officeInput = document.getElementById('officeInput');
+const btnConfirm  = document.getElementById('btnConfirm');
+
+officeInput.addEventListener('input', ()=>{
+  btnConfirm.classList.toggle('ready', officeInput.value.trim().length > 0);
+});
+officeInput.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && officeInput.value.trim().length>0) btnConfirm.click();
+});
+
+btnConfirm.addEventListener('click', ()=>{
+  const name = officeInput.value.trim();
+  if(!name) return;
+  showComplete(name);
+});
+
+document.getElementById('btnGo').addEventListener('click', ()=>{
+  const n = document.getElementById('completeName').textContent;
+  document.getElementById('hubOfficeName').textContent = n;
+  showScreen('hubScreen');
+  startGameTick();
+});
+
+/* ════════════════════════════════════
+   GAME STATE
+════════════════════════════════════ */
+const gameState = {
+  roster:   [],   // 採用済みタレント
+  vtubers:  [],   // 誕生したVTuber
+  channels: [],   // チャンネル
+};
+
+/* ════════════════════════════════════
+   CANDIDATE SVG ICONS
+════════════════════════════════════ */
+
+function svgNoir(){
+  // ノワール：黒猫の妖怪（ツンデレ、金色の目）
+  return `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="ng" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7000c0" stop-opacity=".2"/>
+      <stop offset="100%" stop-color="#7000c0" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="30" cy="30" r="28" fill="url(#ng)" stroke="rgba(120,0,200,.4)" stroke-width="1.2"/>
+  <!-- 妖気の霧 -->
+  <ellipse cx="30" cy="48" rx="16" ry="5" fill="rgba(120,0,200,.18)"/>
+  <!-- 体 -->
+  <ellipse cx="30" cy="36" rx="13" ry="11" fill="#0d0d14"/>
+  <!-- 頭 -->
+  <circle cx="30" cy="23" r="13" fill="#131320"/>
+  <!-- 猫耳 -->
+  <polygon points="19,17 14,7 23,13" fill="#131320"/>
+  <polygon points="19.5,16.5 15.5,9 22,13.5" fill="#5500aa" opacity=".6"/>
+  <polygon points="41,17 46,7 37,13" fill="#131320"/>
+  <polygon points="40.5,16.5 44.5,9 38,13.5" fill="#5500aa" opacity=".6"/>
+  <!-- 顔 -->
+  <ellipse cx="30" cy="24" rx="10" ry="10.5" fill="#1a1a28"/>
+  <!-- 目（金色・細目） -->
+  <ellipse cx="25" cy="22.5" rx="4" ry="3.5" fill="#f0b000"/>
+  <ellipse cx="35" cy="22.5" rx="4" ry="3.5" fill="#f0b000"/>
+  <ellipse cx="25" cy="22.5" rx="1.5" ry="3" fill="#080810"/>
+  <ellipse cx="35" cy="22.5" rx="1.5" ry="3" fill="#080810"/>
+  <circle cx="24.3" cy="21.5" r=".9" fill="rgba(255,255,255,.5)"/>
+  <circle cx="34.3" cy="21.5" r=".9" fill="rgba(255,255,255,.5)"/>
+  <!-- 口（不満そう） -->
+  <path d="M27 29 Q30 27.5 33 29" stroke="#8040a0" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+  <!-- 尻尾 -->
+  <path d="M40 42 Q52 38 50 30 Q48 24 44 26" stroke="#0d0d14" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M40 42 Q52 38 50 30 Q48 24 44 26" stroke="#5500aa" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".5"/>
+  <!-- 妖気パーティクル -->
+  <circle cx="14" cy="32" r="1.5" fill="#8800ff" opacity=".5"/>
+  <circle cx="46" cy="40" r="1" fill="#8800ff" opacity=".4"/>
+  <circle cx="18" cy="44" r="1.2" fill="#8800ff" opacity=".35"/>
+</svg>`;
+}
+
+function svgPopo(){
+  // ポポ：200歳のしゃべるオウム（物知り、単眼鏡）
+  return `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="pg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00aa60" stop-opacity=".15"/>
+      <stop offset="100%" stop-color="#00aa60" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="30" cy="30" r="28" fill="url(#pg)" stroke="rgba(0,180,80,.35)" stroke-width="1.2"/>
+  <!-- 体 -->
+  <ellipse cx="30" cy="39" rx="12" ry="10" fill="#1a6030"/>
+  <!-- 羽根（左） -->
+  <ellipse cx="18" cy="38" rx="6" ry="10" fill="#228844" transform="rotate(-15,18,38)"/>
+  <ellipse cx="18" cy="38" rx="3.5" ry="8" fill="#33bb55" opacity=".7" transform="rotate(-15,18,38)"/>
+  <!-- 羽根（右） -->
+  <ellipse cx="42" cy="38" rx="6" ry="10" fill="#116622" transform="rotate(15,42,38)"/>
+  <ellipse cx="42" cy="38" rx="3.5" ry="8" fill="#228844" opacity=".7" transform="rotate(15,42,38)"/>
+  <!-- 頭 -->
+  <circle cx="30" cy="22" r="12" fill="#228844"/>
+  <!-- トサカ -->
+  <ellipse cx="24" cy="11" rx="2.5" ry="5" fill="#ff8800" transform="rotate(-20,24,11)"/>
+  <ellipse cx="30" cy="10" rx="2.5" ry="6" fill="#ffaa00"/>
+  <ellipse cx="36" cy="11" rx="2.5" ry="5" fill="#ff4444" transform="rotate(20,36,11)"/>
+  <!-- 顔 -->
+  <ellipse cx="30" cy="23" rx="9" ry="9.5" fill="#33bb66"/>
+  <!-- 目 -->
+  <circle cx="25" cy="21" r="4" fill="#fff9e0"/>
+  <circle cx="25" cy="21" r="2.5" fill="#1a0050"/>
+  <circle cx="24" cy="20" r="1" fill="white"/>
+  <!-- 単眼鏡（右目） -->
+  <circle cx="36" cy="20" r="5" fill="none" stroke="#c8a000" stroke-width="1.5"/>
+  <circle cx="36" cy="20" r="3.2" fill="rgba(200,160,0,.1)"/>
+  <line x1="40.5" y1="24.5" x2="43" y2="27" stroke="#c8a000" stroke-width="1.5"/>
+  <circle cx="36" cy="20" r="2.2" fill="#2a1800"/>
+  <circle cx="35.2" cy="19.2" r=".9" fill="white"/>
+  <!-- くちばし -->
+  <path d="M27 28 Q30 33 33 28" fill="#e8a000"/>
+  <line x1="27" y1="28" x2="33" y2="28" stroke="#c08000" stroke-width=".8"/>
+  <!-- 足 -->
+  <line x1="26" y1="48" x2="24" y2="54" stroke="#335533" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="34" y1="48" x2="36" y2="54" stroke="#335533" stroke-width="2.5" stroke-linecap="round"/>
+</svg>`;
+}
+
+function svgLily(){
+  // リリィ：人魚（水の中から顔を出している）
+  return `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="lg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00aacc" stop-opacity=".2"/>
+      <stop offset="100%" stop-color="#00aacc" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="lclip">
+      <rect x="0" y="28" width="60" height="32"/>
+    </clipPath>
+  </defs>
+  <circle cx="30" cy="30" r="28" fill="url(#lg)" stroke="rgba(0,180,220,.35)" stroke-width="1.2"/>
+  <!-- 水面（下半分） -->
+  <ellipse cx="30" cy="38" rx="26" ry="12" fill="rgba(0,100,180,.35)" clip-path="url(#lclip)"/>
+  <ellipse cx="30" cy="36" rx="24" ry="4" fill="rgba(100,220,255,.2)"/>
+  <!-- 魚の尾びれ -->
+  <ellipse cx="30" cy="52" rx="12" ry="5" fill="#00aacc" opacity=".7"/>
+  <path d="M18 50 Q30 57 42 50" fill="#0088aa" opacity=".8"/>
+  <!-- 体（上半身） -->
+  <ellipse cx="30" cy="34" rx="10" ry="8" fill="#ffe0c8"/>
+  <!-- 髪 -->
+  <ellipse cx="30" cy="20" rx="13" ry="14" fill="#00ccee"/>
+  <!-- サイド髪 -->
+  <ellipse cx="16" cy="26" rx="5" ry="9" fill="#00bbdd" transform="rotate(10,16,26)"/>
+  <ellipse cx="44" cy="26" rx="5" ry="9" fill="#00bbdd" transform="rotate(-10,44,26)"/>
+  <!-- 顔 -->
+  <ellipse cx="30" cy="22" rx="10.5" ry="11" fill="#ffdac4"/>
+  <!-- ほっぺ -->
+  <ellipse cx="22" cy="25" rx="3.5" ry="2" fill="rgba(255,140,140,.4)"/>
+  <ellipse cx="38" cy="25" rx="3.5" ry="2" fill="rgba(255,140,140,.4)"/>
+  <!-- 目（キラキラ） -->
+  <ellipse cx="25.5" cy="21.5" rx="3.5" ry="4" fill="#003366"/>
+  <ellipse cx="34.5" cy="21.5" rx="3.5" ry="4" fill="#003366"/>
+  <circle cx="26.5" cy="20.5" r="1.4" fill="white"/>
+  <circle cx="35.5" cy="20.5" r="1.4" fill="white"/>
+  <circle cx="25" cy="22.5" r=".7" fill="rgba(255,255,255,.6)"/>
+  <circle cx="34" cy="22.5" r=".7" fill="rgba(255,255,255,.6)"/>
+  <!-- 口（笑顔） -->
+  <path d="M27 28 Q30 32 33 28" stroke="#e08070" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+  <!-- 水しぶき -->
+  <circle cx="12" cy="34" r="2" fill="rgba(100,220,255,.5)"/>
+  <circle cx="48" cy="32" r="1.5" fill="rgba(100,220,255,.5)"/>
+  <circle cx="8" cy="38" r="1.2" fill="rgba(100,220,255,.4)"/>
+  <circle cx="52" cy="38" r="1" fill="rgba(100,220,255,.4)"/>
+</svg>`;
+}
+
+function svgGonta(){
+  // ゴン太：内気な小鬼（コワい見た目だけど超ビビり）
+  return `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="gg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#cc3300" stop-opacity=".15"/>
+      <stop offset="100%" stop-color="#cc3300" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="30" cy="30" r="28" fill="url(#gg)" stroke="rgba(200,50,0,.3)" stroke-width="1.2"/>
+  <!-- ずんぐりした体 -->
+  <ellipse cx="30" cy="40" rx="16" ry="12" fill="#cc4422"/>
+  <!-- 頭（大きくて丸い） -->
+  <circle cx="30" cy="24" r="17" fill="#dd5533"/>
+  <!-- 角（2本） -->
+  <polygon points="21,10 18,2 25,8" fill="#ffaa00"/>
+  <polygon points="21,10 18,2 25,8" fill="#ff8800" opacity=".5"/>
+  <polygon points="39,10 42,2 35,8" fill="#ffaa00"/>
+  <polygon points="39,10 42,2 35,8" fill="#ff8800" opacity=".5"/>
+  <!-- 顔 -->
+  <ellipse cx="30" cy="25" rx="13.5" ry="13" fill="#ee6644"/>
+  <!-- 眉毛（ハの字＝困り顔） -->
+  <line x1="22" y1="18" x2="27" y2="20" stroke="#882200" stroke-width="2" stroke-linecap="round"/>
+  <line x1="38" y1="18" x2="33" y2="20" stroke="#882200" stroke-width="2" stroke-linecap="round"/>
+  <!-- 目（おどおど・涙目） -->
+  <ellipse cx="25" cy="23" rx="4" ry="4.5" fill="#fff0e0"/>
+  <ellipse cx="35" cy="23" rx="4" ry="4.5" fill="#fff0e0"/>
+  <ellipse cx="25" cy="23.5" rx="2.5" ry="3" fill="#441100"/>
+  <ellipse cx="35" cy="23.5" rx="2.5" ry="3" fill="#441100"/>
+  <circle cx="24.2" cy="22.5" r="1.1" fill="white"/>
+  <circle cx="34.2" cy="22.5" r="1.1" fill="white"/>
+  <!-- 汗 -->
+  <ellipse cx="40" cy="19" rx="1.5" ry="2.2" fill="rgba(100,180,255,.6)" transform="rotate(15,40,19)"/>
+  <!-- 口（困り顔） -->
+  <path d="M25 31 Q30 29 35 31" stroke="#882200" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- 牙（小さい） -->
+  <polygon points="27,31 25.5,34 28.5,31" fill="white"/>
+  <polygon points="33,31 34.5,34 31.5,31" fill="white"/>
+  <!-- 手（小さい） -->
+  <circle cx="14" cy="42" r="5" fill="#cc4422"/>
+  <circle cx="46" cy="42" r="5" fill="#cc4422"/>
+  <!-- おにぎりを持っている（料理好きの表現） -->
+  <ellipse cx="46" cy="44" rx="5" ry="4" fill="white" opacity=".85"/>
+  <polygon points="43,44 49,44 46,40" fill="#222" opacity=".15"/>
+</svg>`;
+}
+
+function svgHimari(){
+  // 橘ひまり：普通の女子高生（なぜかオーディションに迷い込んだ）
+  return `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="hg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff80c0" stop-opacity=".15"/>
+      <stop offset="100%" stop-color="#ff80c0" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="30" cy="30" r="28" fill="url(#hg)" stroke="rgba(255,120,180,.3)" stroke-width="1.2"/>
+  <!-- 制服（胴体） -->
+  <ellipse cx="30" cy="44" rx="13" ry="9" fill="#2244aa"/>
+  <rect x="28" y="36" width="4" height="12" fill="#fff" opacity=".3"/>
+  <!-- リボン -->
+  <polygon points="28,37 32,37 30,40" fill="#ff4488"/>
+  <polygon points="27,36 33,36 30,39" fill="#ff6699" opacity=".8"/>
+  <!-- 髪（ツインテール風） -->
+  <ellipse cx="30" cy="19" rx="13" ry="13" fill="#553300"/>
+  <ellipse cx="14" cy="28" rx="5" ry="11" fill="#442200" transform="rotate(-8,14,28)"/>
+  <ellipse cx="46" cy="28" rx="5" ry="11" fill="#442200" transform="rotate(8,46,28)"/>
+  <!-- ツインテールの飾り -->
+  <circle cx="10" cy="22" r="3" fill="#ff6699"/>
+  <circle cx="50" cy="22" r="3" fill="#ff6699"/>
+  <!-- 前髪 -->
+  <ellipse cx="30" cy="16" rx="11" ry="5" fill="#664400"/>
+  <!-- 顔 -->
+  <ellipse cx="30" cy="24" rx="11" ry="11.5" fill="#ffe0c8"/>
+  <!-- ほっぺ -->
+  <ellipse cx="22" cy="27" rx="3.5" ry="2.2" fill="rgba(255,140,160,.4)"/>
+  <ellipse cx="38" cy="27" rx="3.5" ry="2.2" fill="rgba(255,140,160,.4)"/>
+  <!-- 目（元気な大きい目） -->
+  <ellipse cx="25" cy="22.5" rx="4" ry="4.5" fill="#1a1a2e"/>
+  <ellipse cx="35" cy="22.5" rx="4" ry="4.5" fill="#1a1a2e"/>
+  <circle cx="26" cy="21" r="1.5" fill="white"/>
+  <circle cx="36" cy="21" r="1.5" fill="white"/>
+  <circle cx="25" cy="23.5" r=".7" fill="rgba(255,255,255,.5)"/>
+  <circle cx="35" cy="23.5" r=".7" fill="rgba(255,255,255,.5)"/>
+  <!-- 口（にっこり） -->
+  <path d="M26.5 29 Q30 33.5 33.5 29" stroke="#e07880" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- ！マーク（びっくりしてる） -->
+  <text x="44" y="15" font-size="9" fill="#ffcc00" font-weight="bold" opacity=".9">!</text>
+</svg>`;
+}
+
+/* ════════════════════════════════════
+   CANDIDATE DATA
+════════════════════════════════════ */
+const CANDIDATES = [
+  {
+    id: 'noir',
+    name: 'ノワール',
+    type: 'バケネコ',
+    typeColor: 'rgba(120,0,200,.7)',
+    typeBg: 'rgba(80,0,150,.25)',
+    quote: '……ふん。私の魅力が\nわかる人間がいるとは\n思えませんけど。',
+    stats: { talk: 70, persona: 95 },
+    svgFn: svgNoir,
+    debutColor: '#9933ff',
+  },
+  {
+    id: 'popo',
+    name: 'ポポ',
+    type: '200歳のオウム',
+    typeColor: 'rgba(0,160,60,.8)',
+    typeBg: 'rgba(0,100,40,.25)',
+    quote: 'かたじけない！ポポポ！\n余は幕末も見たぞ！\nポポポポ！',
+    stats: { talk: 95, persona: 80 },
+    svgFn: svgPopo,
+    debutColor: '#22aa55',
+  },
+  {
+    id: 'lily',
+    name: 'リリィ',
+    type: '人魚',
+    typeColor: 'rgba(0,160,220,.8)',
+    typeBg: 'rgba(0,100,160,.25)',
+    quote: 'お肉！！食べてみたい！！\nあとラーメン！！唐揚げ！！\nぜんぶ食べたいの！！',
+    stats: { talk: 75, persona: 92 },
+    svgFn: svgLily,
+    debutColor: '#00bbee',
+  },
+  {
+    id: 'gonta',
+    name: 'ゴン太',
+    type: '内気な小鬼',
+    typeColor: 'rgba(200,60,0,.8)',
+    typeBg: 'rgba(140,30,0,.25)',
+    quote: 'あの……料理配信とか\nしてもいいですか……\n迷惑だったらごめんなさい',
+    stats: { talk: 45, persona: 98 },
+    svgFn: svgGonta,
+    debutColor: '#ee5522',
+  },
+  {
+    id: 'himari',
+    name: '橘ひまり',
+    type: '普通の女子高生',
+    typeColor: 'rgba(220,60,120,.8)',
+    typeBg: 'rgba(160,30,80,.25)',
+    quote: 'え、みんなモンスターなの！？\n……まあいっか！\nよろしくね〜！',
+    stats: { talk: 82, persona: 68 },
+    svgFn: svgHimari,
+    debutColor: '#ff5599',
+  },
+];
+
+/* ════════════════════════════════════
+   HUB SCREEN
+════════════════════════════════════ */
+
+// ── プロデュースメニュー 開閉 ──
+(function() {
+  const btn   = document.getElementById('btnProduceMenu');
+  const panel = document.getElementById('hubProducePanel');
+  let overflowTimer = null;
+
+  btn.addEventListener('click', () => {
+    const isOpen = panel.classList.toggle('open');
+    btn.classList.toggle('open', isOpen);
+    clearTimeout(overflowTimer);
+
+    if (isOpen) {
+      // インラインスタイルをリセットしてからCSSクラスに任せる
+      panel.style.overflow = '';
+      // アニメ完了後にスクロールして全体を見せる
+      overflowTimer = setTimeout(() => {
+        btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    } else {
+      // 閉じるアニメ中だけ overflow: hidden をインラインで上書き
+      panel.style.overflow = 'hidden';
+      // アニメ完了後にインラインを消す（次回open時にCSSが効くように）
+      overflowTimer = setTimeout(() => {
+        panel.style.overflow = '';
+      }, 450);
+    }
+  });
+})();
+
+document.getElementById('hubAuditionBtn').addEventListener('click', ()=>{
+  if(money.value < 300000){
+    // 資金不足
+    const hud = document.getElementById('moneyHUD');
+    hud.style.animation = 'none';
+    setTimeout(()=>{
+      hud.style.border = '1px solid rgba(255,50,50,.8)';
+      hud.style.boxShadow = '0 0 20px rgba(255,50,50,.4)';
+      setTimeout(()=>{
+        hud.style.border = '';
+        hud.style.boxShadow = '';
+      }, 1200);
+    }, 10);
+    return;
+  }
+  money.add(-300000);
+  buildAuditionScreen();
+  showScreen('auditionScreen');
+});
+
+/* ════════════════════════════════════
+   AUDITION SCREEN
+════════════════════════════════════ */
+let selectedIds = new Set();
+
+function buildAuditionScreen(){
+  selectedIds.clear();
+  const grid = document.getElementById('candidatesGrid');
+  grid.innerHTML = '';
+
+  // カードを順番に遅延表示
+  CANDIDATES.forEach((c, i) => {
+    const card = document.createElement('div');
+    card.className = 'cand-card';
+    card.dataset.id = c.id;
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    card.style.transition = 'opacity 0.4s ease, transform 0.4s ease, border-color 0.2s, box-shadow 0.2s';
+
+    card.innerHTML = `
+      <div class="cand-icon">${c.svgFn()}</div>
+      <div class="cand-name">${c.name}</div>
+      <div class="cand-type" style="color:${c.typeColor};background:${c.typeBg};">${c.type}</div>
+      <div class="cand-quote">${c.quote.replace(/\n/g,'<br>')}</div>
+      <div class="cand-stats">
+        <div class="stat-row">
+          <span class="stat-label">トーク</span>
+          <div class="stat-bar">
+            <div class="stat-fill" style="width:0%;background:linear-gradient(90deg,#b060ff,#60c0ff);" data-val="${c.stats.talk}"></div>
+          </div>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">個性</span>
+          <div class="stat-bar">
+            <div class="stat-fill" style="width:0%;background:linear-gradient(90deg,#ff80c0,#ffcc60);" data-val="${c.stats.persona}"></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    card.addEventListener('click', ()=>toggleCandidate(c.id, card));
+    grid.appendChild(card);
+
+    // フェードイン
+    setTimeout(()=>{
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+      // ステータスバーアニメーション
+      setTimeout(()=>{
+        card.querySelectorAll('.stat-fill').forEach(f=>{
+          f.style.width = f.dataset.val + '%';
+        });
+      }, 200);
+    }, 80 * i + 100);
+  });
+
+  updateAuditionUI();
+}
+
+function toggleCandidate(id, card){
+  if(selectedIds.has(id)){
+    selectedIds.delete(id);
+    card.classList.remove('selected');
+  } else {
+    if(selectedIds.size >= 3) return;
+    selectedIds.add(id);
+    card.classList.add('selected');
+  }
+  updateAuditionUI();
+}
+
+function updateAuditionUI(){
+  const count = selectedIds.size;
+  document.getElementById('audSelectCount').textContent = `${count} / 3`;
+  const btnHire = document.getElementById('btnHire');
+  btnHire.classList.toggle('ready', count > 0);
+
+  // 選択上限時に非選択カードを暗く
+  document.querySelectorAll('.cand-card').forEach(card=>{
+    if(count >= 3 && !card.classList.contains('selected')){
+      card.classList.add('maxed');
+    } else {
+      card.classList.remove('maxed');
+    }
+  });
+}
+
+document.getElementById('btnHire').addEventListener('click', ()=>{
+  if(selectedIds.size === 0) return;
+  const hired = CANDIDATES.filter(c => selectedIds.has(c.id));
+  gameState.roster = hired;
+  showDebutScreen(hired);
+});
+
+document.getElementById('btnBackHub').addEventListener('click', ()=>{
+  // 資金を返金
+  money.add(300000);
+  showScreen('hubScreen');
+});
+
+/* ════════════════════════════════════
+   DEBUT ANNOUNCEMENT SCREEN
+════════════════════════════════════ */
+function showDebutScreen(talents){
+  const container = document.getElementById('debutCards');
+  container.innerHTML = '';
+
+  talents.forEach((t, i) => {
+    const card = document.createElement('div');
+    card.className = 'debut-card';
+    card.style.border = `1px solid ${t.debutColor}44`;
+    card.style.boxShadow = `0 0 20px ${t.debutColor}22`;
+    card.innerHTML = `
+      <div class="debut-card-icon">${t.svgFn()}</div>
+      <div class="debut-card-name">${t.name}</div>
+      <div class="debut-card-type">${t.type}</div>
+    `;
+    container.appendChild(card);
+
+    // 遅延フェードイン
+    setTimeout(()=>{
+      card.style.animation = `debutCardIn 0.55s ease forwards`;
+    }, 300 + i * 250);
+  });
+
+  showScreen('debutScreen');
+
+  // ハブのロースター更新
+  updateHubRoster(talents);
+}
+
+function updateHubRoster(talents){
+  const slots = document.querySelectorAll('.roster-slot');
+  slots.forEach((slot, i) => {
+    if(talents[i]){
+      const t = talents[i];
+      slot.classList.add('filled');
+      slot.style.borderColor = t.debutColor + '88';
+      slot.style.boxShadow = `0 0 12px ${t.debutColor}33`;
+      slot.innerHTML = t.svgFn();
+    }
+  });
+}
+
+document.getElementById('btnToHub').addEventListener('click', ()=>{
+  document.getElementById('hubAuditionBtn').classList.add('disabled');
+  document.getElementById('hubGawaBtn').classList.remove('disabled'); // ガワ発注を解放
+  showScreen('hubScreen');
+  updateGawaBtn();
+});
+
+/* ════════════════════════════════════
+   GAWA PLACEHOLDER SVGs
+════════════════════════════════════ */
+function gawaPlaceholder(variant) {
+  const T = [
+    { b1:'#1a0044',b2:'#050012', h1:'#7700cc',h2:'#bb44ff', eye:'#00ccff', ac:'#aa55ff', ou:'#330066', mk:'✦' },
+    { b1:'#2a0018',b2:'#100009', h1:'#cc2266',h2:'#ff6699', eye:'#ffcc00', ac:'#ff4488', ou:'#550022', mk:'♥' },
+    { b1:'#001a2a',b2:'#000a14', h1:'#006699',h2:'#44aadd', eye:'#88ffee', ac:'#00aacc', ou:'#002244', mk:'❋' },
+    { b1:'#1a1500',b2:'#080600', h1:'#886622',h2:'#ddaa44', eye:'#ff9900', ac:'#ccaa22', ou:'#332200', mk:'★' },
+  ];
+  const t = T[variant % 4];
+  const v = variant;
+  return `<svg viewBox="0 0 140 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gb${v}" x1="0%" y1="0%" x2="60%" y2="100%">
+      <stop offset="0%" stop-color="${t.b1}"/>
+      <stop offset="100%" stop-color="${t.b2}"/>
+    </linearGradient>
+    <linearGradient id="gh${v}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${t.h1}"/>
+      <stop offset="100%" stop-color="${t.h2}"/>
+    </linearGradient>
+  </defs>
+  <rect width="140" height="200" fill="url(#gb${v})" rx="8"/>
+  <rect width="140" height="200" fill="none" stroke="${t.ac}" stroke-width="1.5" stroke-opacity=".32" rx="8"/>
+  <circle cx="22" cy="28" r="1.5" fill="${t.ac}" opacity=".28"/>
+  <circle cx="118" cy="22" r="1.2" fill="${t.ac}" opacity=".22"/>
+  <circle cx="122" cy="172" r="2" fill="${t.ac}" opacity=".18"/>
+  <!-- outfit -->
+  <path d="M35 142 Q35 192 70 192 Q105 192 105 142 Q95 152 70 152 Q45 152 35 142Z" fill="${t.ou}" opacity=".85"/>
+  <path d="M52 142 Q70 162 88 142 L94 192 L46 192Z" fill="${t.ac}" opacity=".18"/>
+  <!-- ribbon -->
+  <polygon points="62,131 70,123 78,131 70,137" fill="${t.ac}" opacity=".75"/>
+  <!-- neck -->
+  <rect x="63" y="109" width="14" height="22" rx="4" fill="#f3d0bc"/>
+  <!-- hair back -->
+  <ellipse cx="70" cy="78" rx="32" ry="36" fill="url(#gh${v})"/>
+  <path d="M38 90 Q28 135 33 178 Q43 172 48 158 Q42 142 40 107Z" fill="url(#gh${v})" opacity=".88"/>
+  <path d="M102 90 Q112 135 107 178 Q97 172 92 158 Q98 142 100 107Z" fill="url(#gh${v})" opacity=".88"/>
+  <!-- face -->
+  <ellipse cx="70" cy="81" rx="24" ry="26" fill="#f8d8c0"/>
+  <!-- blush -->
+  <ellipse cx="57" cy="87" rx="7" ry="4" fill="rgba(255,130,130,.34)"/>
+  <ellipse cx="83" cy="87" rx="7" ry="4" fill="rgba(255,130,130,.34)"/>
+  <!-- brows -->
+  <path d="M56 68 Q61 65 66 68" stroke="${t.h1}" stroke-width="2" fill="none" stroke-linecap="round" opacity=".65"/>
+  <path d="M74 68 Q79 65 84 68" stroke="${t.h1}" stroke-width="2" fill="none" stroke-linecap="round" opacity=".65"/>
+  <!-- eyes -->
+  <ellipse cx="62" cy="78" rx="8.5" ry="9" fill="${t.eye}" opacity=".95"/>
+  <ellipse cx="78" cy="78" rx="8.5" ry="9" fill="${t.eye}" opacity=".95"/>
+  <ellipse cx="62" cy="79" rx="6" ry="7" fill="#101030"/>
+  <ellipse cx="78" cy="79" rx="6" ry="7" fill="#101030"/>
+  <circle cx="65" cy="75.5" r="2.8" fill="white"/>
+  <circle cx="81" cy="75.5" r="2.8" fill="white"/>
+  <circle cx="61" cy="80.5" r="1.1" fill="rgba(255,255,255,.45)"/>
+  <circle cx="77" cy="80.5" r="1.1" fill="rgba(255,255,255,.45)"/>
+  <!-- mouth -->
+  <path d="M65 93 Q70 98 75 93" stroke="#d08070" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <!-- hair front -->
+  <ellipse cx="70" cy="57" rx="26" ry="14" fill="url(#gh${v})"/>
+  <path d="M46 67 Q42 82 45 97 Q50 90 52 77Z" fill="url(#gh${v})"/>
+  <path d="M59 53 Q55 67 57 86 Q62 79 63 66Z" fill="url(#gh${v})" opacity=".9"/>
+  <path d="M81 53 Q85 67 83 86 Q78 79 77 66Z" fill="url(#gh${v})" opacity=".9"/>
+  <path d="M94 67 Q98 82 95 97 Q90 90 88 77Z" fill="url(#gh${v})"/>
+  <!-- accessory -->
+  <circle cx="85" cy="53" r="7" fill="${t.ac}" opacity=".7"/>
+  <circle cx="85" cy="53" r="4" fill="${t.h2}" opacity=".8"/>
+  <text x="82.5" y="56.5" font-size="6.5" fill="white" opacity=".75">${t.mk}</text>
+  <!-- 仮画像 stamp -->
+  <rect x="5" y="5" width="50" height="20" rx="3.5" fill="rgba(0,0,0,.65)" stroke="${t.ac}" stroke-width="1" stroke-opacity=".55"/>
+  <text x="30" y="19" text-anchor="middle" font-family="'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif" font-size="10" font-weight="bold" fill="${t.ac}" opacity=".9">仮画像</text>
+</svg>`;
+}
+
+/* ════════════════════════════════════
+   GAWA / VTUBER SYSTEM
+════════════════════════════════════ */
+const GAWA_COST = 500_000;
+let currentGawa      = null;
+let currentGawaSoul  = null;
+let pendingVtName    = '';
+let selectedGawaStyle = null;
+
+// ── ハブ：ガワ発注 ──
+document.getElementById('hubGawaBtn').addEventListener('click', () => {
+  if (money.value < GAWA_COST) { flashHudRed(); return; }
+  money.add(-GAWA_COST);
+  currentGawa     = { id: `gawa_${Date.now()}`, variant: Math.floor(Math.random() * 4) };
+  currentGawaSoul = null;
+  showGawaStep(0);
+  showScreen('gawaScreen');
+  startGawaProgress();
+});
+
+function flashHudRed() {
+  const h = document.getElementById('moneyHUD');
+  h.style.border = '1px solid rgba(255,50,50,.85)';
+  h.style.boxShadow = '0 0 22px rgba(255,50,50,.4)';
+  setTimeout(() => { h.style.border = ''; h.style.boxShadow = ''; }, 1100);
+}
+
+// ── Step 0: プログレス ──
+function startGawaProgress() {
+  const fill = document.getElementById('gawaProgFill');
+  fill.style.transition = 'none';
+  fill.style.width = '0%';
+  let pct = 0;
+  const iv = setInterval(() => {
+    pct += Math.random() * 3.5 + 1.5;
+    if (pct >= 100) {
+      pct = 100;
+      fill.style.transition = 'width .15s linear';
+      fill.style.width = '100%';
+      clearInterval(iv);
+      setTimeout(() => advanceGawaStep(1), 500);
+    } else {
+      fill.style.transition = 'width .1s linear';
+      fill.style.width = pct + '%';
+    }
+  }, 100);
+}
+
+// ── Step 1: 完成・魂選択 ──
+function buildGawaSoulList() {
+  const list = document.getElementById('gawaSoulList');
+  list.innerHTML = '';
+  const taken = new Set((gameState.vtubers || []).map(v => v.soulId));
+  const souls  = gameState.roster;
+
+  if (!souls.length) {
+    list.innerHTML = '<div style="color:rgba(200,160,200,.75);font-size:.8rem;padding:10px 0;">所属タレントがいません</div>';
+    return;
+  }
+  souls.forEach(soul => {
+    const item = document.createElement('div');
+    item.className = 'gawa-soul-item' + (taken.has(soul.id) ? ' taken' : '');
+    item.dataset.id = soul.id;
+    item.innerHTML = `
+      <div class="gawa-si-icon">${soul.svgFn()}</div>
+      <div><div class="gawa-si-name">${soul.name}</div>
+           <div class="gawa-si-type">${soul.type}</div></div>
+      <div class="gawa-si-check">✓</div>
+    `;
+    if (!taken.has(soul.id)) {
+      item.addEventListener('click', () => selectGawaSoul(soul, item));
+    }
+    list.appendChild(item);
+  });
+  updateGawaSoulBtn();
+}
+
+function selectGawaSoul(soul, item) {
+  document.querySelectorAll('.gawa-soul-item').forEach(el => el.classList.remove('selected'));
+  item.classList.add('selected');
+  currentGawaSoul = soul;
+  updateGawaSoulBtn();
+}
+function updateGawaSoulBtn() {
+  document.getElementById('btnGawaSoulOk').classList.toggle('ready', !!currentGawaSoul);
+}
+
+document.getElementById('btnGawaSoulOk').addEventListener('click', () => {
+  if (!currentGawaSoul) return;
+  advanceGawaStep(2);
+});
+
+// ── Step 2: VTuber命名 ──
+function setupGawaStep2() {
+  document.getElementById('gawaNameThumb').innerHTML    = gawaPlaceholder(currentGawa.variant);
+  document.getElementById('gawaNameSoulThumb').innerHTML = currentGawaSoul.svgFn();
+  document.getElementById('gawaAiriIcon').innerHTML      = secretarySVG();
+  typewrite(
+    document.getElementById('gawaAiriText'),
+    `ガワと魂が決まりました！\nあとは名前だけですね。${currentGawaSoul.name}さんの魂が宿る\nこの子に、どんな名前をつけますか？`,
+    38
+  );
+  const inp = document.getElementById('vtuberNameInput');
+  inp.value = '';
+  document.getElementById('btnVtuberBorn').classList.remove('ready');
+  setTimeout(() => inp.focus(), 600);
+}
+
+document.getElementById('vtuberNameInput').addEventListener('input', e => {
+  document.getElementById('btnVtuberBorn').classList.toggle('ready', e.target.value.trim().length > 0);
+});
+document.getElementById('vtuberNameInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.value.trim()) document.getElementById('btnVtuberBorn').click();
+});
+
+document.getElementById('btnVtuberBorn').addEventListener('click', () => {
+  const name = document.getElementById('vtuberNameInput').value.trim();
+  if (!name) return;
+  pendingVtName     = name;
+  selectedGawaStyle = null;
+  advanceGawaStep(3);
+});
+
+function showVtuberBorn(vt, styleObj = null) {
+  document.getElementById('vbornGawaFrame').innerHTML = gawaPlaceholder(vt.gawaVariant);
+  document.getElementById('vbornName').textContent     = vt.name;
+  document.getElementById('vbornSoulMini').innerHTML   = vt.soul.svgFn();
+  document.getElementById('vbornSoulName').textContent = vt.soul.name;
+  document.getElementById('vbornSoulType').textContent = vt.soul.type;
+
+  // チャンネル誕生カード設定
+  const chSection = document.getElementById('vbornChSection');
+  const chTitle   = document.getElementById('vbornChTitle');
+  const chStyle   = document.getElementById('vbornChStyle');
+  chSection.classList.remove('reveal');
+  void chSection.offsetWidth;
+  chTitle.textContent = `「${vt.name}チャンネル」誕生！`;
+  if (styleObj) {
+    chStyle.innerHTML  = `${styleObj.icon} ${styleObj.label}`;
+    chStyle.style.color      = styleObj.color;
+    chStyle.style.border     = `1px solid ${styleObj.color}55`;
+    chStyle.style.background = styleObj.bg;
+  } else {
+    chStyle.innerHTML = '';
+    chStyle.style.cssText = '';
+  }
+
+  showScreen('vtuberBornScreen');
+  document.getElementById('vtuberBornScreen').scrollTop = 0;
+
+  const card = document.getElementById('vtuberProfileCard');
+  card.classList.remove('reveal');
+  void card.offsetWidth;
+  setTimeout(() => {
+    card.classList.add('reveal');
+    setTimeout(() => chSection.classList.add('reveal'), 300);
+  }, 150);
+
+  // チャンネル生成（スタイル付き）
+  createChannel(vt, styleObj);
+  updateGawaBtn();
+}
+
+// ガワ発注ボタンの状態・バッジを更新
+function updateGawaBtn() {
+  const btn    = document.getElementById('hubGawaBtn');
+  const badge  = document.getElementById('gawaRemainBadge');
+  const total  = gameState.roster.length;
+  const done   = gameState.vtubers.length;
+  const taken  = new Set(gameState.vtubers.map(v => v.soulId));
+  const hasAvail = gameState.roster.some(t => !taken.has(t.id));
+
+  if (total > 0 && hasAvail) {
+    btn.classList.remove('disabled');
+  } else {
+    btn.classList.add('disabled');
+  }
+
+  if (done > 0) {
+    badge.textContent = `${done} / ${total} デビュー済み`;
+  } else {
+    badge.textContent = '';
+  }
+}
+
+// ハブのチャンネルセクションまでスクロール
+function scrollHubToChannels() {
+  const section = document.getElementById('hubChSection');
+  if (section && section.style.display !== 'none') {
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+document.getElementById('btnHubFromBorn').addEventListener('click', () => {
+  showScreen('hubScreen');
+  setTimeout(scrollHubToChannels, 400);
+});
+
+// ── Step切替 ──
+function showGawaStep(n) {
+  document.querySelectorAll('.gawa-step').forEach((el, i) => {
+    el.classList.toggle('active', i === n);
+  });
+}
+function advanceGawaStep(n) {
+  showGawaStep(n);
+  if (n === 1) {
+    document.getElementById('gawaImgFrame').innerHTML = gawaPlaceholder(currentGawa.variant);
+    buildGawaSoulList();
+  }
+  if (n === 2) setupGawaStep2();
+  if (n === 3) setupGawaStep3();
+}
+
+// ── Step 3: 配信スタイル選択 ──
+function setupGawaStep3() {
+  document.getElementById('gawaStep3Thumb').innerHTML  = gawaPlaceholder(currentGawa.variant);
+  document.getElementById('gawaStep3Soul').innerHTML   = currentGawaSoul.svgFn();
+  document.getElementById('gawaStep3VtName').textContent = pendingVtName;
+  document.getElementById('gawaStyleAiriIcon').innerHTML = secretarySVG();
+  typewrite(
+    document.getElementById('gawaStyleAiriText'),
+    `名前も決まりましたね！最後に——\n「${pendingVtName}」さんはどんな配信をしていきますか？\nスタイルを選んでください！`,
+    36
+  );
+  selectedGawaStyle = null;
+  document.getElementById('btnOpenChannel').classList.remove('ready');
+  buildGawaStyleGrid();
+}
+
+function buildGawaStyleGrid() {
+  const grid = document.getElementById('gawaStyleGrid');
+  const hint = document.getElementById('gawaStyleHint');
+  grid.innerHTML = '';
+  hint.textContent = 'スタイルを選んでください';
+  hint.style.color = '';
+
+  STREAM_STYLES.forEach(s => {
+    const opt = document.createElement('div');
+    opt.className = 'style-opt';
+    opt.dataset.sid = s.id;
+    opt.innerHTML = `
+      <div class="style-opt-icon">${s.icon}</div>
+      <div class="style-opt-label">${s.label}</div>
+      <div class="style-opt-desc">${s.desc}</div>
+      <div class="style-opt-check" style="color:${s.color}">✓</div>
+    `;
+    opt.addEventListener('click', () => {
+      // 選択解除
+      grid.querySelectorAll('.style-opt').forEach(el => {
+        el.classList.remove('active');
+        el.style.borderColor = '';
+        el.style.background  = '';
+        el.style.boxShadow   = '';
+      });
+      // アクティブ化
+      opt.classList.add('active', 'just-set');
+      opt.style.borderColor = s.color;
+      opt.style.background  = s.bg;
+      opt.style.boxShadow   = `0 0 16px ${s.color}55`;
+      opt.addEventListener('animationend', () => opt.classList.remove('just-set'), { once: true });
+
+      selectedGawaStyle = s;
+      hint.textContent = `${s.icon} ${s.label} を選択中`;
+      hint.style.color = s.color;
+      document.getElementById('btnOpenChannel').classList.add('ready');
+    });
+    grid.appendChild(opt);
+  });
+}
+
+document.getElementById('btnOpenChannel').addEventListener('click', () => {
+  if (!selectedGawaStyle) return;
+  const vt = {
+    id: `vt_${Date.now()}`,
+    name: pendingVtName,
+    soulId: currentGawaSoul.id,
+    soul: currentGawaSoul,
+    gawaVariant: currentGawa.variant,
+  };
+  gameState.vtubers.push(vt);
+  showVtuberBorn(vt, selectedGawaStyle);
+});
+
+/* ════════════════════════════════════
+   CHANNEL SYSTEM
+════════════════════════════════════ */
+let _thumbIdCounter = 0;
+
+function thumbnailSVG(gawaVariant, vtuberName, title, views) {
+  const uid = ++_thumbIdCounter;
+  const T = [
+    { b1:'#1a0044',b2:'#050012', h1:'#7700cc',h2:'#bb44ff', eye:'#00ccff', ac:'#aa55ff' },
+    { b1:'#2a0018',b2:'#100009', h1:'#cc2266',h2:'#ff6699', eye:'#ffcc00', ac:'#ff4488' },
+    { b1:'#001a2a',b2:'#000a14', h1:'#006699',h2:'#44aadd', eye:'#88ffee', ac:'#00aacc' },
+    { b1:'#1a1500',b2:'#080600', h1:'#886622',h2:'#ddaa44', eye:'#ff9900', ac:'#ccaa22' },
+  ];
+  const t = T[gawaVariant % 4];
+  const v = uid;
+  const fmtV = views >= 10000 ? `${(views/10000).toFixed(1)}万` : views >= 1000 ? `${(views/1000).toFixed(1)}K` : String(views);
+  const shortTitle = title.length > 17 ? title.slice(0,16)+'…' : title;
+  const shortName  = vtuberName.length > 7 ? vtuberName.slice(0,6)+'…' : vtuberName;
+  return `<svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" overflow="hidden">
+  <defs>
+    <linearGradient id="tb${v}" x1="0%" y1="0%" x2="60%" y2="100%">
+      <stop offset="0%" stop-color="${t.b1}"/>
+      <stop offset="100%" stop-color="${t.b2}"/>
+    </linearGradient>
+    <linearGradient id="th${v}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${t.h1}"/>
+      <stop offset="100%" stop-color="${t.h2}"/>
+    </linearGradient>
+    <linearGradient id="tov${v}" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(0,0,0,0)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.82)"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" fill="url(#tb${v})"/>
+  <!-- sparkles -->
+  <circle cx="28" cy="20" r="1.8" fill="${t.ac}" opacity=".38"/>
+  <circle cx="70" cy="44" r="1.1" fill="${t.ac}" opacity=".22"/>
+  <circle cx="48" cy="10" r="2" fill="${t.ac}" opacity=".28"/>
+  <circle cx="290" cy="28" r="1.4" fill="${t.ac}" opacity=".2"/>
+  <circle cx="308" cy="135" r="1.8" fill="${t.ac}" opacity=".18"/>
+  <!-- character hair back -->
+  <ellipse cx="212" cy="70" rx="54" ry="60" fill="url(#th${v})"/>
+  <!-- side hair -->
+  <ellipse cx="162" cy="92" rx="10" ry="36" fill="url(#th${v})" opacity=".88" transform="rotate(8,162,92)"/>
+  <ellipse cx="262" cy="92" rx="10" ry="36" fill="url(#th${v})" opacity=".88" transform="rotate(-8,262,92)"/>
+  <!-- face -->
+  <ellipse cx="212" cy="82" rx="38" ry="42" fill="#f8d8c0"/>
+  <!-- blush -->
+  <ellipse cx="190" cy="92" rx="11" ry="7" fill="rgba(255,130,130,.34)"/>
+  <ellipse cx="234" cy="92" rx="11" ry="7" fill="rgba(255,130,130,.34)"/>
+  <!-- eyes -->
+  <ellipse cx="197" cy="76" rx="13" ry="15" fill="${t.eye}" opacity=".95"/>
+  <ellipse cx="227" cy="76" rx="13" ry="15" fill="${t.eye}" opacity=".95"/>
+  <ellipse cx="197" cy="77" rx="9.5" ry="11.5" fill="#0a0820"/>
+  <ellipse cx="227" cy="77" rx="9.5" ry="11.5" fill="#0a0820"/>
+  <circle cx="202" cy="71" r="4.5" fill="white"/>
+  <circle cx="232" cy="71" r="4.5" fill="white"/>
+  <circle cx="196" cy="79" r="1.8" fill="rgba(255,255,255,.45)"/>
+  <circle cx="226" cy="79" r="1.8" fill="rgba(255,255,255,.45)"/>
+  <!-- mouth -->
+  <path d="M203 97 Q212 104 221 97" stroke="#d08070" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <!-- hair front -->
+  <ellipse cx="212" cy="48" rx="46" ry="23" fill="url(#th${v})"/>
+  <path d="M170 61 Q163 92 167 116 Q177 105 178 83Z" fill="url(#th${v})"/>
+  <path d="M254 61 Q261 92 257 116 Q247 105 246 83Z" fill="url(#th${v})"/>
+  <path d="M188 43 Q181 66 184 91 Q192 80 193 62Z" fill="url(#th${v})" opacity=".9"/>
+  <path d="M236 43 Q243 66 240 91 Q232 80 231 62Z" fill="url(#th${v})" opacity=".9"/>
+  <!-- accessory -->
+  <circle cx="235" cy="46" r="9" fill="${t.ac}" opacity=".72"/>
+  <circle cx="235" cy="46" r="5.5" fill="${t.h2}" opacity=".85"/>
+  <!-- outfit / body bottom -->
+  <path d="M170 138 Q170 180 212 180 L320 180 L320 138 Q295 148 212 148 Q192 148 170 138Z" fill="${t.b1}" opacity=".9"/>
+  <!-- bottom overlay -->
+  <rect x="0" y="110" width="320" height="70" fill="url(#tov${v})"/>
+  <!-- title text -->
+  <text x="10" y="150" font-family="'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif" font-size="13" font-weight="bold" fill="white">${shortTitle}</text>
+  <!-- views badge -->
+  <rect x="10" y="158" width="76" height="16" rx="4" fill="rgba(0,0,0,.55)"/>
+  <text x="15" y="170" font-family="'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif" font-size="10" fill="rgba(255,255,255,.85)">${fmtV}回視聴</text>
+  <!-- name badge -->
+  <rect x="8" y="8" width="108" height="20" rx="5" fill="rgba(0,0,0,.62)"/>
+  <text x="14" y="22" font-family="'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif" font-size="11" fill="${t.ac}" font-weight="bold">${shortName}</text>
+</svg>`;
+}
+
+/* ────── 配信スタイル定義 ────── */
+const STREAM_STYLES = [
+  {
+    id: 'game', label: 'ゲーム実況', icon: '🎮',
+    color: '#00e5ff', bg: 'rgba(0,150,200,.22)',
+    desc: 'ゲームを楽しく実況！\nリスナーと盛り上がれる',
+    titleFn: name => {
+      const t = [
+        `【初見】新作ゲームに挑戦する${name}`,
+        `【神回】まさかのクリア！？`,
+        `【縛り】ノーダメクリアに挑む`,
+        `朝のゆるゲー配信🎮`,
+        `視聴者参加型ゲーム大会！`,
+      ];
+      return t[Math.floor(Math.random()*t.length)];
+    },
+  },
+  {
+    id: 'song', label: '歌', icon: '🎵',
+    color: '#ff80c0', bg: 'rgba(200,60,120,.22)',
+    desc: '歌声でファンの心を掴む！\n人気曲カバーも',
+    titleFn: name => {
+      const t = [
+        `【歌ってみた】${name}が本気で歌う`,
+        `深夜のしっとりカバー🎵`,
+        `歌枠！リクエスト受付中♪`,
+        `【オリジナル】初めての歌を発表`,
+        `100曲耐久歌枠！`,
+      ];
+      return t[Math.floor(Math.random()*t.length)];
+    },
+  },
+  {
+    id: 'talk', label: 'トーク', icon: '💬',
+    color: '#b060ff', bg: 'rgba(130,60,200,.22)',
+    desc: '個性とトーク力が光る！\n雑談・コラボなど',
+    titleFn: name => {
+      const t = [
+        `${name}の深夜雑談ラジオ📻`,
+        `質問コーナー！なんでも答えます`,
+        `【コラボ】初対面でぶっちゃけトーク`,
+        `今日あったヤバい話をする`,
+        `リスナーと夜更かし雑談🌙`,
+      ];
+      return t[Math.floor(Math.random()*t.length)];
+    },
+  },
+  {
+    id: 'plan', label: '企画動画', icon: '🎬',
+    color: '#ffcc40', bg: 'rgba(200,160,0,.22)',
+    desc: '凝った企画・編集で話題に！\nバズりやすいが手間がかかる',
+    titleFn: name => {
+      const t = [
+        `【検証】噂の都市伝説を確かめた`,
+        `24時間○○縛り生活をやってみた`,
+        `【企画】視聴者1000人に全力感謝`,
+        `プロに弟子入りしてみた結果…`,
+        `○○だけで1日生活できるか？`,
+      ];
+      return t[Math.floor(Math.random()*t.length)];
+    },
+  },
+  {
+    id: 'voice', label: 'ボイス', icon: '🎙️',
+    color: '#60ffb0', bg: 'rgba(0,180,100,.22)',
+    desc: 'ボイス・ASMRで深夜帯に刺さる！\n固定ファンを獲得しやすい',
+    titleFn: name => {
+      const t = [
+        `【ASMR】${name}の囁きボイス`,
+        `深夜の癒しボイス配信🌙`,
+        `【シチュエーション】特別なシーン`,
+        `リスナーへの感謝ボイスプレゼント`,
+        `【独り言】${name}の本音を聞く`,
+      ];
+      return t[Math.floor(Math.random()*t.length)];
+    },
+  },
+];
+
+const DEBUT_TITLES = [
+  'はじめまして！デビュー配信！',
+  '自己紹介してみた！',
+  '初配信！よろしくお願いします！',
+  'デビューしました〜！',
+  'はじめまして〜！初配信です！',
+  'ついにデビュー！どうぞよろしく！',
+];
+
+function fmtNum(n) {
+  n = Math.floor(n);
+  if (n >= 100_000_000) {
+    const s = (n / 100_000_000).toFixed(1);
+    return (s.endsWith('.0') ? s.slice(0, -2) : s) + '億';
+  }
+  if (n >= 10_000) {
+    const s = (n / 10_000).toFixed(1);
+    return (s.endsWith('.0') ? s.slice(0, -2) : s) + '万';
+  }
+  return n.toLocaleString('ja-JP');
+}
+
+function createChannel(vt, styleObj = null) {
+  const views = Math.floor(Math.random() * 60000) + 8000;
+  const subs  = Math.floor(views * (0.05 + Math.random() * 0.09));
+  const title = DEBUT_TITLES[Math.floor(Math.random() * DEBUT_TITLES.length)];
+  const ch = {
+    id: `ch_${Date.now()}`,
+    vtuber: vt,
+    style: styleObj ? styleObj.id : null,
+    videos: [{
+      id: `vid_${Date.now()}`,
+      title,
+      views,
+      publishedAt: Date.now(),
+    }],
+    subscribers: subs,
+    totalViews: views,
+    createdAt: Date.now(),
+  };
+  gameState.channels.push(ch);
+  addChannelCard(ch);
+  updateSubsHUD();
+  return ch;
+}
+
+function addChannelCard(ch) {
+  const section = document.getElementById('hubChSection');
+  section.style.display = '';
+  const grid = document.getElementById('hubChGrid');
+
+  const latest = ch.videos[0];
+  const thumb  = thumbnailSVG(ch.vtuber.gawaVariant, ch.vtuber.name, latest.title, latest.views);
+
+  const card = document.createElement('div');
+  card.className = 'ch-card';
+  card.dataset.chId = ch.id;
+  card.innerHTML = `
+    <div class="ch-card-thumb">${thumb}</div>
+    <div class="ch-card-info">
+      <div class="ch-card-name">${ch.vtuber.name}</div>
+      <div class="ch-card-style" id="ch-style-badge-${ch.id}"></div>
+      <div class="ch-card-latest">${latest.title}</div>
+      <div class="ch-card-views">👥 ${fmtNum(ch.subscribers)} 人 · 🎬 ${ch.videos.length} 本</div>
+    </div>
+  `;
+  card.addEventListener('click', () => showChannelScreen(ch.id));
+  grid.appendChild(card);
+  refreshStyleBadge(ch);
+}
+
+// ハブカード上のスタイルバッジを更新
+function refreshStyleBadge(ch) {
+  const badge = document.getElementById(`ch-style-badge-${ch.id}`);
+  if (!badge) return;
+  if (ch.style) {
+    const s = STREAM_STYLES.find(x => x.id === ch.style);
+    badge.innerHTML = `<span style="color:${s.color}">${s.icon} ${s.label}</span>`;
+  } else {
+    badge.innerHTML = `<span style="color:rgba(170,150,210,.55)">スタイル未設定</span>`;
+  }
+}
+
+let _currentChannel = null;
+
+function showChannelScreen(chId) {
+  const ch = gameState.channels.find(c => c.id === chId);
+  if (!ch) return;
+  _currentChannel = ch;
+  const vt = ch.vtuber;
+
+  document.getElementById('chGawaMini').innerHTML   = gawaPlaceholder(vt.gawaVariant);
+  document.getElementById('chInfoName').textContent  = vt.name;
+  document.getElementById('chInfoSoul').textContent  = `魂：${vt.soul.name}（${vt.soul.type}）`;
+  document.getElementById('chStatSubs').textContent  = fmtNum(ch.subscribers);
+  document.getElementById('chStatViews').textContent = fmtNum(ch.totalViews);
+  document.getElementById('chStatVids').textContent  = String(ch.videos.length);
+
+  renderStyleGrid(ch);
+  renderVideoGrid(ch);
+
+  document.getElementById('channelScreen').scrollTop = 0;
+  showScreen('channelScreen');
+}
+
+// 配信スタイル選択グリッドを描画
+function renderStyleGrid(ch) {
+  const grid = document.getElementById('chStyleGrid');
+  const hint = document.getElementById('chStyleHint');
+  grid.innerHTML = '';
+
+  if (ch.style) {
+    const cur = STREAM_STYLES.find(s => s.id === ch.style);
+    hint.textContent = `現在のスタイル：${cur.icon} ${cur.label}`;
+    hint.style.color = cur.color;
+  } else {
+    hint.textContent = '配信スタイルを選んでください';
+    hint.style.color = '';
+  }
+
+  STREAM_STYLES.forEach(s => {
+    const isActive = ch.style === s.id;
+    const opt = document.createElement('div');
+    opt.className = 'style-opt' + (isActive ? ' active' : '');
+    opt.dataset.sid = s.id;
+    if (isActive) {
+      opt.style.borderColor = s.color;
+      opt.style.background  = s.bg;
+      opt.style.boxShadow   = `0 0 16px ${s.color}55`;
+    }
+    opt.innerHTML = `
+      <div class="style-opt-icon">${s.icon}</div>
+      <div class="style-opt-label">${s.label}</div>
+      <div class="style-opt-desc">${s.desc}</div>
+      <div class="style-opt-check" style="color:${s.color}">✓</div>
+    `;
+    if (!isActive) {
+      opt.addEventListener('click', () => setChannelStyle(ch, s));
+    }
+    grid.appendChild(opt);
+  });
+}
+
+// スタイルを変更する
+function setChannelStyle(ch, s) {
+  ch.style = s.id;
+
+  // グリッドを再描画（アニメ付き）
+  renderStyleGrid(ch);
+  // 設定したオプションにポップアニメ
+  const opts = document.querySelectorAll('.style-opt');
+  opts.forEach(el => {
+    if (el.dataset.sid === s.id) {
+      el.classList.add('just-set');
+      el.addEventListener('animationend', () => el.classList.remove('just-set'), { once: true });
+    }
+  });
+
+  // ハブカードのバッジ更新
+  refreshStyleBadge(ch);
+
+  // トースト
+  showStyleToast(`${s.icon} ${s.label} に設定しました`);
+}
+
+// 動画グリッドを描画
+function renderVideoGrid(ch) {
+  const vt = ch.vtuber;
+  const videoGrid = document.getElementById('chVideoGrid');
+  videoGrid.innerHTML = '';
+  ch.videos.forEach(vid => {
+    const thumb = thumbnailSVG(vt.gawaVariant, vt.name, vid.title, vid.views);
+    const vidCard = document.createElement('div');
+    vidCard.className = 'ch-vid-card';
+    vidCard.innerHTML = `
+      <div class="ch-vid-thumb">${thumb}</div>
+      <div class="ch-vid-info">
+        <div class="ch-vid-title">${vid.title}</div>
+        <div class="ch-vid-views">${fmtNum(vid.views)}回視聴</div>
+      </div>
+    `;
+    videoGrid.appendChild(vidCard);
+  });
+}
+
+document.getElementById('btnChBack').addEventListener('click', () => showScreen('hubScreen'));
+
+/* ════════════════════════════════════
+   TIME & REVENUE SYSTEM
+════════════════════════════════════ */
+const GAME_TICK_MS  = 3000;              // 3秒 = 1ゲーム日
+const GAME_ORIGIN   = new Date(2024, 3, 1);  // 2024年4月1日 スタート
+const DOW_JP        = ['日','月','火','水','木','金','土'];
+let   gameTickTimer = null;
+let   gameDayCount  = 0;
+let   gameDate      = new Date(GAME_ORIGIN.getTime());
+
+// 配信スタイルごとの日次収益レート（登録者1人あたり）
+const STYLE_DAILY_RATES = {
+  game:  3.0,   // ゲーム実況
+  song:  4.0,   // 歌
+  talk:  2.5,   // トーク
+  plan:  5.0,   // 企画動画（高単価だが後述）
+  voice: 2.0,   // ボイス
+};
+
+// 配信スタイルごとの週次登録者成長率
+const STYLE_GROWTH_RATE = {
+  game:  0.014,
+  song:  0.022,
+  talk:  0.010,
+  plan:  0.018,
+  voice: 0.012,
+};
+
+function formatGameDate(d) {
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${DOW_JP[d.getDay()]}）`;
+}
+
+function updateDateHUD() {
+  const el = document.getElementById('dateValue');
+  if (el) el.textContent = formatGameDate(gameDate);
+}
+
+// 全チャンネルの日次収益を合計
+function calcDailyRevenue() {
+  let total = 0;
+  for (const ch of (gameState.channels || [])) {
+    if (!ch.style) continue;
+    const rate     = STYLE_DAILY_RATES[ch.style] || 2.5;
+    const variance = 0.8 + Math.random() * 0.4;   // ±20%のブレ
+    total += Math.floor(ch.subscribers * rate * variance);
+  }
+  return total;
+}
+
+// 日次：登録者じわじわ増加（週次レートを7分割）
+function dailySubGrowth() {
+  let totalGain = 0;
+  for (const ch of (gameState.channels || [])) {
+    if (!ch.style) continue;
+    const weeklyRate = STYLE_GROWTH_RATE[ch.style] || 0.01;
+    const dailyRate  = weeklyRate / 7;
+    const growth     = Math.floor(ch.subscribers * dailyRate * (0.6 + Math.random() * 0.8));
+    if (growth <= 0) continue;
+    ch.subscribers += growth;
+    ch.totalViews  += Math.floor(growth * 8);
+    totalGain      += growth;
+    refreshChannelCard(ch);
+  }
+  if (totalGain > 0) updateSubsHUD(totalGain);
+}
+
+// 総登録者HUDを更新
+function updateSubsHUD(deltaGain) {
+  const hud    = document.getElementById('subsHUD');
+  const amtEl  = document.getElementById('subsHudAmount');
+  const dltEl  = document.getElementById('subsHudDelta');
+  const total  = (gameState.channels || []).reduce((s, ch) => s + (ch.subscribers || 0), 0);
+
+  if (total > 0) hud.classList.add('visible');
+  amtEl.textContent = fmtNum(total) + ' 人';
+
+  if (deltaGain && deltaGain > 0) {
+    dltEl.textContent = `▲ ${fmtNum(deltaGain)} 人`;
+    clearTimeout(dltEl._timer);
+    dltEl.style.opacity = '1';
+    dltEl._timer = setTimeout(() => { dltEl.style.opacity = '0'; }, 2500);
+  }
+}
+
+// 週次：totalViewsのみ補正（登録者は日次で処理）
+function weeklyGrowth() {
+  for (const ch of (gameState.channels || [])) {
+    if (!ch.style) continue;
+    ch.totalViews += Math.floor(ch.subscribers * 12 * (0.8 + Math.random() * 0.4));
+  }
+}
+
+// 週次収益ポップアップを表示
+function showIncomePopup(weeklyTotal) {
+  const el = document.getElementById('incomePopup');
+  el.textContent = `📺 今週の収益  ＋¥${weeklyTotal.toLocaleString('ja-JP')}`;
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+}
+
+let weeklyAccum = 0;  // 今週の累計収益
+
+// 1ゲーム日ごとに呼ばれる
+function gameTick() {
+  gameDayCount++;
+
+  // 日付を進める
+  gameDate = new Date(GAME_ORIGIN.getTime());
+  gameDate.setDate(GAME_ORIGIN.getDate() + gameDayCount);
+  updateDateHUD();
+
+  // 日次：登録者じわじわ増加
+  dailySubGrowth();
+
+  // 日次収益（毎日）
+  const dailyRev = calcDailyRevenue();
+  if (dailyRev > 0) {
+    weeklyAccum += dailyRev;
+    money.earn(dailyRev);
+  }
+
+  // 週次イベント（7日ごと）
+  if (gameDayCount % 7 === 0) {
+    weeklyGrowth();
+    if (weeklyAccum > 0) {
+      showIncomePopup(weeklyAccum);
+      weeklyAccum = 0;
+    }
+  }
+
+  // ランダムイベント（1日あたり約8%、チャンネルがあるときのみ）
+  if (gameState.channels.length > 0 && Math.random() < 0.08) {
+    // モーダルが既に開いていなければ発火
+    if (!document.getElementById('eventModal').classList.contains('show')) {
+      triggerRandomEvent();
+    }
+  }
+}
+
+function startGameTick() {
+  if (gameTickTimer) return;   // 多重起動防止
+  gameDayCount = 0;
+  weeklyAccum  = 0;
+  gameDate     = new Date(GAME_ORIGIN.getTime());
+  updateDateHUD();
+  document.getElementById('dateHUD').classList.add('visible');
+  gameTickTimer = setInterval(gameTick, GAME_TICK_MS);
+}
+
+/* ════════════════════════════════════
+   EVENT SYSTEM
+════════════════════════════════════ */
+const EVENTS = [
+  // ── GOOD ──
+  {
+    id: 'viral', type: 'good',
+    icon: '🔥', title: '動画がバズった！',
+    desc: 'SNSで爆発的に拡散され、新規ファンが殺到しています。',
+    needsChannel: true,
+    effectFn(ch) {
+      const subGain = Math.floor(ch.subscribers * (0.25 + Math.random() * 0.25));
+      ch.subscribers += subGain;
+      const earn = Math.floor(80000 + Math.random() * 120000);
+      money.earn(earn);
+      refreshChannelCard(ch);
+      return `登録者 +${fmtNum(subGain)} 人\n収益 +¥${earn.toLocaleString()}`;
+    },
+  },
+  {
+    id: 'trending', type: 'good',
+    icon: '📈', title: 'トレンドに入った！',
+    desc: '配信がランキング上位に入り、一気に注目度が上がっています。',
+    needsChannel: true,
+    effectFn(ch) {
+      const subGain = Math.floor(ch.subscribers * (0.12 + Math.random() * 0.13));
+      ch.subscribers += subGain;
+      const earn = Math.floor(40000 + Math.random() * 60000);
+      money.earn(earn);
+      refreshChannelCard(ch);
+      return `登録者 +${fmtNum(subGain)} 人\n収益 +¥${earn.toLocaleString()}`;
+    },
+  },
+  {
+    id: 'collab', type: 'good',
+    icon: '🤝', title: 'コラボが大成功！',
+    desc: 'コラボ企画が大盛況！お互いのファンが盛り上がっています。',
+    needsChannel: true,
+    effectFn(ch) {
+      const subGain = Math.floor(ch.subscribers * (0.1 + Math.random() * 0.1));
+      ch.subscribers += subGain;
+      const earn = Math.floor(50000 + Math.random() * 70000);
+      money.earn(earn);
+      refreshChannelCard(ch);
+      return `登録者 +${fmtNum(subGain)} 人\n収益 +¥${earn.toLocaleString()}`;
+    },
+  },
+  {
+    id: 'sponsor', type: 'good',
+    icon: '💼', title: 'スポンサー獲得！',
+    desc: '大手企業からスポンサーオファーが届きました。事務所の知名度が急上昇中です。',
+    needsChannel: false,
+    effectFn() {
+      const earn = Math.floor(200000 + Math.random() * 300000);
+      money.earn(earn);
+      return `収益 +¥${earn.toLocaleString()}`;
+    },
+  },
+  {
+    id: 'fanart', type: 'good',
+    icon: '🎨', title: 'ファンアートが話題に！',
+    desc: 'ファンが描いたイラストがSNSで大拡散。新しいファンが続々と流入しています。',
+    needsChannel: true,
+    effectFn(ch) {
+      const subGain = Math.floor(ch.subscribers * (0.15 + Math.random() * 0.15));
+      ch.subscribers += subGain;
+      const earn = Math.floor(15000 + Math.random() * 25000);
+      money.earn(earn);
+      refreshChannelCard(ch);
+      return `登録者 +${fmtNum(subGain)} 人\n収益 +¥${earn.toLocaleString()}`;
+    },
+  },
+  {
+    id: 'goods', type: 'good',
+    icon: '🎁', title: 'グッズが完売！',
+    desc: '限定グッズが発売直後に完売！ファンの熱量の高さが証明されました。',
+    needsChannel: false,
+    effectFn() {
+      const earn = Math.floor(150000 + Math.random() * 200000);
+      money.earn(earn);
+      return `収益 +¥${earn.toLocaleString()}`;
+    },
+  },
+  {
+    id: 'media', type: 'good',
+    icon: '📰', title: 'メディアに取り上げられた！',
+    desc: '大手メディアが事務所を特集！幅広い層に名前が知れ渡りました。',
+    needsChannel: false,
+    effectFn() {
+      const earn = Math.floor(80000 + Math.random() * 120000);
+      money.earn(earn);
+      gameState.channels.forEach(ch => {
+        const gain = Math.floor(ch.subscribers * (0.05 + Math.random() * 0.08));
+        ch.subscribers += gain;
+        refreshChannelCard(ch);
+      });
+      return `全チャンネルの登録者数アップ\n収益 +¥${earn.toLocaleString()}`;
+    },
+  },
+  // ── BAD ──
+  {
+    id: '炎上', type: 'bad',
+    icon: '😱', title: '炎上してしまった！',
+    desc: '発言の一部が切り取られて拡散…。批判コメントが殺到しています。',
+    needsChannel: true,
+    effectFn(ch) {
+      const subLoss = Math.floor(ch.subscribers * (0.12 + Math.random() * 0.15));
+      ch.subscribers = Math.max(0, ch.subscribers - subLoss);
+      const loss = Math.floor(40000 + Math.random() * 60000);
+      money.add(-loss);
+      refreshChannelCard(ch);
+      return `登録者 −${fmtNum(subLoss)} 人\n収益 −¥${loss.toLocaleString()}`;
+    },
+  },
+  {
+    id: 'slump', type: 'bad',
+    icon: '😔', title: 'スランプ中…',
+    desc: 'なかなか本調子が出ず、視聴者数が伸び悩んでいます。もう少し見守りましょう。',
+    needsChannel: true,
+    effectFn(ch) {
+      const subLoss = Math.floor(ch.subscribers * (0.04 + Math.random() * 0.05));
+      ch.subscribers = Math.max(0, ch.subscribers - subLoss);
+      const loss = Math.floor(20000 + Math.random() * 30000);
+      money.add(-loss);
+      refreshChannelCard(ch);
+      return `登録者 −${fmtNum(subLoss)} 人\n収益 −¥${loss.toLocaleString()}`;
+    },
+  },
+  {
+    id: 'health', type: 'bad',
+    icon: '🤒', title: '体調不良で活動休止',
+    desc: '体調を崩してしまい、しばらく配信をお休みすることに…。ゆっくり休んでね。',
+    needsChannel: true,
+    effectFn(ch) {
+      const subLoss = Math.floor(ch.subscribers * (0.03 + Math.random() * 0.05));
+      ch.subscribers = Math.max(0, ch.subscribers - subLoss);
+      const loss = Math.floor(25000 + Math.random() * 35000);
+      money.add(-loss);
+      refreshChannelCard(ch);
+      return `登録者 −${fmtNum(subLoss)} 人\n収益 −¥${loss.toLocaleString()}`;
+    },
+  },
+  {
+    id: 'equipment', type: 'bad',
+    icon: '🔧', title: '機材トラブル発生',
+    desc: '配信中に機材が突然故障！修理・買い替えの費用が必要です。',
+    needsChannel: false,
+    effectFn() {
+      const loss = Math.floor(60000 + Math.random() * 80000);
+      money.add(-loss);
+      return `修理費 −¥${loss.toLocaleString()}`;
+    },
+  },
+  {
+    id: 'anti', type: 'bad',
+    icon: '👿', title: 'アンチが活発化',
+    desc: 'ネガティブな書き込みが増加。ファンへの影響が出始めています。',
+    needsChannel: true,
+    effectFn(ch) {
+      const subLoss = Math.floor(ch.subscribers * (0.06 + Math.random() * 0.08));
+      ch.subscribers = Math.max(0, ch.subscribers - subLoss);
+      refreshChannelCard(ch);
+      return `登録者 −${fmtNum(subLoss)} 人`;
+    },
+  },
+  {
+    id: 'rumor', type: 'bad',
+    icon: '📋', title: '誤解が広まってしまった',
+    desc: '内容が誤解されて拡散…。誤情報の訂正対応に追われています。',
+    needsChannel: true,
+    effectFn(ch) {
+      const subLoss = Math.floor(ch.subscribers * (0.05 + Math.random() * 0.07));
+      ch.subscribers = Math.max(0, ch.subscribers - subLoss);
+      const loss = Math.floor(20000 + Math.random() * 40000);
+      money.add(-loss);
+      refreshChannelCard(ch);
+      return `登録者 −${fmtNum(subLoss)} 人\n収益 −¥${loss.toLocaleString()}`;
+    },
+  },
+];
+
+// チャンネルカードのサブスク数を更新（HUDも連動）
+function refreshChannelCard(ch) {
+  const el = document.querySelector(`[data-ch-id="${ch.id}"] .ch-card-views`);
+  if (el) el.textContent = `👥 ${fmtNum(ch.subscribers)} 人 · 🎬 ${ch.videos.length} 本`;
+  // チャンネル詳細画面が開いていれば登録者数も更新
+  const statEl = document.getElementById('chStatSubs');
+  if (statEl && document.getElementById('channelScreen').classList.contains('active')) {
+    statEl.textContent = fmtNum(ch.subscribers);
+  }
+}
+
+// イベント発生音
+function playEventSound(isGood) {
+  try {
+    const ac  = getAC();
+    const now = ac.currentTime;
+    const note = (freq, t, type, vol, dur) => {
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.connect(g); g.connect(ac.destination);
+      o.type = type; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol, now + t);
+      g.gain.exponentialRampToValueAtTime(0.001, now + t + dur);
+      o.start(now + t); o.stop(now + t + dur + 0.05);
+    };
+    if (isGood) {
+      // 明るい上昇アルペジオ
+      [[523,0],[659,0.12],[784,0.24],[1047,0.38]].forEach(([freq, t]) => {
+        note(freq, t, 'sine', 0.13, 0.35);
+      });
+    } else {
+      // 暗い下降トーン
+      [[330,0],[262,0.18],[196,0.38]].forEach(([freq, t]) => {
+        note(freq, t, 'sawtooth', 0.07, 0.45);
+      });
+    }
+  } catch(e) {}
+}
+
+// ランダムイベント発生
+function triggerRandomEvent() {
+  const isGood  = Math.random() < 0.55;
+  const pool    = EVENTS.filter(e => e.type === (isGood ? 'good' : 'bad'));
+  const ev      = pool[Math.floor(Math.random() * pool.length)];
+
+  // チャンネルが必要なのに存在しない場合はスキップ
+  if (ev.needsChannel && gameState.channels.length === 0) return;
+
+  const ch      = ev.needsChannel
+    ? gameState.channels[Math.floor(Math.random() * gameState.channels.length)]
+    : null;
+
+  const effectText = ev.effectFn(ch);
+
+  // モーダルを表示
+  const modal   = document.getElementById('eventModal');
+  const card    = document.getElementById('eventCard');
+  const badge      = document.getElementById('eventBadge');
+  const iconEl     = document.getElementById('eventIcon');
+  const titleEl    = document.getElementById('eventTitle');
+  const chTag      = document.getElementById('eventChTag');
+  const chGawa     = document.getElementById('eventChGawa');
+  const chVtName   = document.getElementById('eventChVtName');
+  const descEl     = document.getElementById('eventDesc');
+  const effEl      = document.getElementById('eventEffect');
+
+  card.className        = `event-card ${ev.type}`;
+  badge.textContent     = ev.type === 'good' ? '✦ GOOD EVENT' : '✦ BAD EVENT';
+  iconEl.textContent    = ev.icon;
+  titleEl.textContent   = ev.title;
+  descEl.textContent    = ev.desc;
+  effEl.textContent     = effectText;
+
+  if (ch) {
+    chGawa.innerHTML      = gawaPlaceholder(ch.vtuber.gawaVariant);
+    chVtName.textContent  = ch.vtuber.name;
+    chTag.style.display   = '';
+  } else {
+    chTag.style.display   = 'none';
+  }
+
+  playEventSound(ev.type === 'good');
+  modal.classList.add('show');
+}
+
+document.getElementById('btnEventDismiss').addEventListener('click', () => {
+  document.getElementById('eventModal').classList.remove('show');
+});
+
+function stopGameTick() {
+  if (gameTickTimer) { clearInterval(gameTickTimer); gameTickTimer = null; }
+}
+
+/* ════════════════════════════════════
+   SAVE / LOAD SYSTEM
+════════════════════════════════════ */
+const SAVE_KEY = 'vtsim_save_v1';
+
+function saveGame() {
+  const data = {
+    version: 1,
+    officeName: document.getElementById('hubOfficeName').textContent,
+    money: money.value,
+    rosterIds: gameState.roster.map(t => t.id),
+    auditionDone: document.getElementById('hubAuditionBtn').classList.contains('disabled'),
+    vtubers: gameState.vtubers.map(v => ({
+      id: v.id, name: v.name, soulId: v.soulId, gawaVariant: v.gawaVariant,
+    })),
+    channels: gameState.channels.map(ch => ({
+      id: ch.id,
+      vtuber: { id: ch.vtuber.id },
+      style: ch.style,
+      videos: ch.videos,
+      subscribers: ch.subscribers,
+      totalViews: ch.totalViews,
+      createdAt: ch.createdAt,
+    })),
+    savedAt: Date.now(),
+  };
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    showSaveToast();
+    playSaveSound();
+  } catch(e) {
+    alert('セーブに失敗しました。');
+  }
+}
+
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+
+function hasSave() {
+  return !!localStorage.getItem(SAVE_KEY);
+}
+
+function applyLoad(data) {
+  // 事務所名
+  document.getElementById('hubOfficeName').textContent = data.officeName;
+
+  // 資金（アニメなしで直接セット）
+  money.value = data.money;
+  money.show();
+
+  // ロースター復元
+  const hired = (data.rosterIds || [])
+    .map(id => CANDIDATES.find(c => c.id === id))
+    .filter(Boolean);
+  gameState.roster = hired;
+  if (hired.length > 0) updateHubRoster(hired);
+
+  // オーディション済み
+  if (data.auditionDone) {
+    document.getElementById('hubAuditionBtn').classList.add('disabled');
+  }
+
+  // VTuber・チャンネル復元
+  if (data.vtubers && data.vtubers.length > 0) {
+    gameState.vtubers = data.vtubers.map(v => {
+      const soul = CANDIDATES.find(c => c.id === v.soulId) || null;
+      return { ...v, soul };
+    });
+    gameState.channels = (data.channels || []);
+    gameState.channels.forEach(ch => {
+      const vt = gameState.vtubers.find(v => v.id === ch.vtuber.id);
+      if (vt) ch.vtuber = vt;
+      addChannelCard(ch);
+    });
+    updateSubsHUD();
+    document.getElementById('hubGawaBtn').classList.remove('disabled');
+    updateGawaBtn();
+  }
+
+  showScreen('hubScreen');
+  startGameTick();
+}
+
+function showSaveToast() {
+  const toast = document.getElementById('saveToast');
+  toast.classList.remove('show');
+  void toast.offsetWidth;
+  toast.classList.add('show');
+}
+
+function showStyleToast(msg) {
+  const toast = document.getElementById('styleToast');
+  toast.textContent = msg;
+  toast.classList.remove('show');
+  void toast.offsetWidth;
+  toast.classList.add('show');
+}
+
+// タイトル画面：セーブデータがあれば「つづきから」を表示
+(function initTitleSaveUI() {
+  const data = loadGame();
+  if (!data) return;
+
+  const btn = document.getElementById('btnContinue');
+  const hint = document.getElementById('saveDateHint');
+  btn.classList.add('visible');
+
+  const d = new Date(data.savedAt);
+  const fmt = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} のデータ`;
+  hint.textContent = fmt;
+  hint.classList.add('visible');
+
+  btn.addEventListener('click', () => {
+    const saved = loadGame();
+    if (saved) applyLoad(saved);
+  });
+})();
+
+/* ════════════════════════════════════
+   HAMBURGER MENU
+════════════════════════════════════ */
+const menuBtn   = document.getElementById('menuBtn');
+const menuPanel = document.getElementById('menuPanel');
+
+// パネル開閉
+menuBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  menuPanel.classList.toggle('open');
+});
+
+// パネル外クリックで閉じる
+document.addEventListener('click', e => {
+  if (!menuPanel.contains(e.target) && e.target !== menuBtn) {
+    menuPanel.classList.remove('open');
+  }
+});
+
+// セーブ
+document.getElementById('menuSave').addEventListener('click', () => {
+  menuPanel.classList.remove('open');
+  saveGame();
+});
+
+// リセット → 確認モーダルを開く
+document.getElementById('menuReset').addEventListener('click', () => {
+  menuPanel.classList.remove('open');
+  document.getElementById('resetOverlay').classList.add('open');
+});
+
+// モーダル：キャンセル
+document.getElementById('btnResetCancel').addEventListener('click', () => {
+  document.getElementById('resetOverlay').classList.remove('open');
+});
+
+// モーダル：リセット実行
+document.getElementById('btnResetConfirm').addEventListener('click', () => {
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+  location.reload();
+});
+
+// オーバーレイ背景クリックでも閉じる
+document.getElementById('resetOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('resetOverlay')) {
+    document.getElementById('resetOverlay').classList.remove('open');
+  }
+});
+
+/* ════════════════════════════════════
+   SOUND SYSTEM
+════════════════════════════════════ */
+let _ac = null;
+function getAC() {
+  if (!_ac) _ac = new (window.AudioContext || window.webkitAudioContext)();
+  if (_ac.state === 'suspended') _ac.resume();
+  return _ac;
+}
+
+// ユーザー操作後にAudioContextを初期化
+document.addEventListener('pointerdown', () => getAC(), { once: true });
+
+function playSaveSound() {
+  try {
+    const ac = getAC();
+    const now = ac.currentTime;
+    // 柔らかい上昇音「ポン・ポン・ポーン」
+    const note = (freq, t0, dur, vol) => {
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = 'sine';
+      o.connect(g); g.connect(ac.destination);
+      o.frequency.setValueAtTime(freq, t0);
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(vol, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.start(t0); o.stop(t0 + dur + 0.02);
+    };
+    note(660,  now,        0.18, 0.18);
+    note(880,  now + 0.12, 0.18, 0.16);
+    note(1320, now + 0.24, 0.40, 0.14);
+  } catch(e) {}
+}
+
+// 収益入金音（控えめな上昇音）
+function playIncomeSound() {
+  try {
+    const ac  = getAC();
+    const now = ac.currentTime;
+    const softNote = (freq, t0, dur, vol) => {
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = 'sine';
+      o.connect(g); g.connect(ac.destination);
+      o.frequency.setValueAtTime(freq, t0);
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(vol, t0 + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.start(t0); o.stop(t0 + dur + 0.02);
+    };
+    // 「ポン・ポーン」やわらかい2音
+    softNote(660, now,        0.12, 0.07);
+    softNote(880, now + 0.08, 0.20, 0.055);
+  } catch(e) {}
+}
+
+function playCharin() {
+  try {
+    const ac = getAC();
+    const now = ac.currentTime;
+
+    // metallic decaying tone helper
+    const tone = (freq, t0, dur, vol) => {
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = 'sine';
+      o.connect(g);
+      g.connect(ac.destination);
+      o.frequency.setValueAtTime(freq, t0);
+      o.frequency.exponentialRampToValueAtTime(freq * 0.86, t0 + dur);
+      g.gain.setValueAtTime(vol, t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.start(t0);
+      o.stop(t0 + dur + 0.02);
+    };
+
+    // 「チャ」── 1枚目のコイン打音
+    tone(2500, now,        0.45, 0.22);   // 基音
+    tone(3200, now + 0.01, 0.35, 0.11);   // 第2倍音
+    tone(1600, now,        0.22, 0.07);   // 低倍音
+
+    // 「リーン」── 2枚目のコインが続く
+    tone(2900, now + 0.11, 0.52, 0.17);
+    tone(3700, now + 0.12, 0.42, 0.09);
+    tone(1950, now + 0.11, 0.30, 0.06);
+
+    // 余韻の高音キラキラ
+    tone(4800, now + 0.22, 0.28, 0.05);
+    tone(5400, now + 0.26, 0.22, 0.03);
+
+  } catch(e) { /* AudioContext非対応環境は無視 */ }
+}
+
+/* ════════════════════════════════════
+   MONEY SYSTEM
+════════════════════════════════════ */
+const INITIAL_FUNDS = 5_000_000;
+
+const money = {
+  value: INITIAL_FUNDS,
+
+  // 内部：表示更新
+  _render(delta = 0) {
+    const hud      = document.getElementById('moneyHUD');
+    const amountEl = document.getElementById('hudAmount');
+    const deltaEl  = document.getElementById('hudDelta');
+
+    // 金額フォーマット
+    const abs = Math.abs(this.value);
+    const sign = this.value < 0 ? '-' : '';
+    amountEl.textContent = sign + '¥' + abs.toLocaleString('ja-JP');
+
+    // 借金モード切替
+    hud.classList.toggle('debt', this.value < 0);
+
+    // 支払い効果音
+    if (delta < 0) playCharin();
+
+    // フラッシュ
+    if (delta !== 0) {
+      const cls = delta > 0 ? 'flash-up' : 'flash-down';
+      amountEl.classList.remove('flash-up', 'flash-down');
+      void amountEl.offsetWidth; // reflow
+      amountEl.classList.add(cls);
+
+      // 差額ポップ
+      const sign2 = delta > 0 ? '+' : '';
+      deltaEl.textContent = sign2 + delta.toLocaleString('ja-JP') + '円';
+      deltaEl.style.color = delta > 0 ? '#60ffb0' : '#ff6060';
+      deltaEl.classList.remove('show');
+      void deltaEl.offsetWidth;
+      deltaEl.classList.add('show');
+    }
+  },
+
+  // 外部API: 設定
+  set(amount) {
+    const prev = this.value;
+    this.value = amount;
+    this._render(amount - prev);
+  },
+
+  // 外部API: 増減
+  add(delta) {
+    this.value += delta;
+    this._render(delta);
+  },
+
+  // 収益加算（収益専用ポップ）
+  earn(delta) {
+    this.value += delta;
+    playIncomeSound();
+    const hud      = document.getElementById('moneyHUD');
+    const amountEl = document.getElementById('hudAmount');
+    const deltaEl  = document.getElementById('hudDelta');
+    const abs = Math.abs(this.value);
+    amountEl.textContent = (this.value < 0 ? '-' : '') + '¥' + abs.toLocaleString('ja-JP');
+    hud.classList.toggle('debt', this.value < 0);
+    // 控えめなフラッシュ
+    amountEl.classList.remove('flash-up','flash-down');
+    void amountEl.offsetWidth;
+    amountEl.classList.add('flash-up');
+    // 収益ポップ（支出ポップと区別）
+    deltaEl.textContent = '📺 +' + delta.toLocaleString('ja-JP') + '円';
+    deltaEl.style.color = '#60ffb0';
+    deltaEl.classList.remove('show');
+    void deltaEl.offsetWidth;
+    deltaEl.classList.add('show');
+  },
+
+  // HUD表示開始
+  show() {
+    this._render(0);
+    document.getElementById('moneyHUD').classList.add('visible');
+  },
+
+  // HUD非表示
+  hide() {
+    document.getElementById('moneyHUD').classList.remove('visible');
+  }
+};
+
+// プロローグ開始と同時にHUDを表示
+const _origShowScreen = showScreen;
+(function patchShowScreen(){
+  const origBtnStart = document.getElementById('btnStart');
+  origBtnStart.addEventListener('click', () => {
+    // ゲーム開始時に資金を初期化して表示
+    money.value = INITIAL_FUNDS;
+    money.show();
+  }, { once: true });
+})();
+
+// 設立完了時：初期費用を差し引く演出
+(function patchComplete(){
+  const orig = document.getElementById('btnConfirm');
+  orig.addEventListener('click', () => {
+    // 事務所登記費用として少し引く演出（0.3秒後）
+    setTimeout(() => {
+      money.add(-200_000);
+    }, 900);
+  });
+})();
+</script>
+</body>
+</html>
