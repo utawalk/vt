@@ -1014,11 +1014,8 @@
     ════════════════════════ */
     #auditionScreen {
       justify-content: flex-start;
-      padding-top: clamp(50px, 8vh, 70px);
-      padding-bottom: clamp(20px, 4vh, 40px);
       gap: 0;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+      padding: 0;
     }
 
     .aud-header {
@@ -1289,11 +1286,21 @@
     #debutScreen {
       text-align: center;
       gap: 0;
+      justify-content: flex-start;
+      padding: 0;
+    }
+
+    /* スクロール用内側コンテナ（debutScreen / auditionScreen共通） */
+    .screen-scroll-inner {
+      width: 100%;
+      height: 100%;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-      justify-content: flex-start;
-      padding-top: clamp(30px, 6vh, 60px);
-      padding-bottom: clamp(20px, 4vh, 40px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: clamp(30px, 6vh, 60px) 20px clamp(20px, 4vh, 40px);
+      box-sizing: border-box;
     }
 
     .debut-eyebrow {
@@ -4390,28 +4397,32 @@
 
 <!-- ⑥ オーディション画面 -->
 <div class="screen" id="auditionScreen">
-  <div class="aud-header">
-    <div class="aud-title">✦ 魂オーディション ✦</div>
-    <div class="aud-subtitle">SOUL AUDITION — 1ST GENERATION</div>
-    <div class="aud-instruction">
-      気に入った魂を選んでください
-      <span class="aud-select-count" id="audSelectCount">0 / 3</span>
+  <div class="screen-scroll-inner">
+    <div class="aud-header">
+      <div class="aud-title">✦ 魂オーディション ✦</div>
+      <div class="aud-subtitle">SOUL AUDITION — 1ST GENERATION</div>
+      <div class="aud-instruction">
+        気に入った魂を選んでください
+        <span class="aud-select-count" id="audSelectCount">0 / 3</span>
+      </div>
     </div>
-  </div>
-  <div class="candidates-grid" id="candidatesGrid"></div>
-  <div class="aud-footer">
-    <button class="btn-back-hub" id="btnBackHub">← もどる</button>
-    <button class="btn-hire" id="btnHire">採用を決定する</button>
+    <div class="candidates-grid" id="candidatesGrid"></div>
+    <div class="aud-footer">
+      <button class="btn-back-hub" id="btnBackHub">← もどる</button>
+      <button class="btn-hire" id="btnHire">採用を決定する</button>
+    </div>
   </div>
 </div>
 
 <!-- ⑦ 1期生デビュー発表 -->
 <div class="screen" id="debutScreen">
-  <div class="debut-eyebrow">── DEBUT ANNOUNCEMENT ──</div>
-  <div class="debut-title">1期生、デビュー決定！</div>
-  <div class="debut-gen-label">FIRST GENERATION TALENTS</div>
-  <div class="debut-cards" id="debutCards"></div>
-  <button class="btn-to-hub" id="btnToHub">事務所に戻る</button>
+  <div class="screen-scroll-inner">
+    <div class="debut-eyebrow">── DEBUT ANNOUNCEMENT ──</div>
+    <div class="debut-title">1期生、デビュー決定！</div>
+    <div class="debut-gen-label">FIRST GENERATION TALENTS</div>
+    <div class="debut-cards" id="debutCards"></div>
+    <button class="btn-to-hub" id="btnToHub">事務所に戻る</button>
+  </div>
 </div>
 
 <!-- ⑧ ガワ制作フロー -->
@@ -14421,10 +14432,19 @@ function playEvhostFailureSound() {
     const lpf = ac.createBiquadFilter();
     lpf.type = 'lowpass'; lpf.frequency.value = 300;
     bs.connect(lpf); lpf.connect(bg); bg.connect(ac.destination);
-    bs.start(t0); bs.stop(t0 + 0.25);
+    bs.start(t0); bs.stop(t0 + 0.2);
 
-    // ── 下降する悲しいホーン ─
-    const hornNotes = [[392, 0], [349, 0.22], [294, 0.46], [247, 0.72]];
-    hornNotes.forEach(([freq, dt]) => {
+    // ── 下降音（失敗SE） ──
+    [[350,0.05],[280,0.20],[220,0.38],[160,0.58]].forEach(([f, dt]) => {
       const o = ac.createOscillator(), g = ac.createGain();
-      o.t
+      o.type = 'sawtooth'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.07, t0 + dt);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + dt + 0.2);
+      o.connect(g); g.connect(ac.destination);
+      o.start(t0 + dt); o.stop(t0 + dt + 0.25);
+    });
+  } catch(e) {}
+}
+</script>
+</body>
+</html>
