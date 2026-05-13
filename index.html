@@ -1015,7 +1015,10 @@
     #auditionScreen {
       justify-content: flex-start;
       padding-top: clamp(50px, 8vh, 70px);
+      padding-bottom: clamp(20px, 4vh, 40px);
       gap: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .aud-header {
@@ -1286,6 +1289,11 @@
     #debutScreen {
       text-align: center;
       gap: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      justify-content: flex-start;
+      padding-top: clamp(30px, 6vh, 60px);
+      padding-bottom: clamp(20px, 4vh, 40px);
     }
 
     .debut-eyebrow {
@@ -14419,14 +14427,4 @@ function playEvhostFailureSound() {
     const hornNotes = [[392, 0], [349, 0.22], [294, 0.46], [247, 0.72]];
     hornNotes.forEach(([freq, dt]) => {
       const o = ac.createOscillator(), g = ac.createGain();
-      o.type = 'sawtooth'; o.frequency.value = freq;
-      g.gain.setValueAtTime(0.22, t0 + dt);
-      g.gain.exponentialRampToValueAtTime(0.001, t0 + dt + 0.38);
-      o.connect(g); g.connect(ac.destination);
-      o.start(t0 + dt); o.stop(t0 + dt + 0.45);
-    });
-  } catch(e) {}
-}
-</script>
-</body>
-</html>
+      o.t
