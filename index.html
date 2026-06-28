@@ -76,32 +76,22 @@
     ════════════════════════ */
     #titleScreen { text-align: center; gap: 0; }
 
-    .title-eyebrow {
-      font-size: clamp(0.6rem, 1.8vw, 0.8rem);
-      letter-spacing: 0.45em;
+    .title-logo-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+    .title-logo-img {
+      width: min(82vw, 420px);
+      height: auto;
+      filter: drop-shadow(0 0 32px rgba(176,96,255,0.55));
+    }
+    .title-beta {
+      font-size: clamp(0.6rem, 2vw, 0.75rem);
       color: #a898cc;
-      margin-bottom: 18px;
-      text-transform: uppercase;
-    }
-
-    .title-main {
-      font-size: clamp(2.2rem, 6vw, 4.2rem);
-      font-weight: 900;
-      line-height: 1.15;
-      background: linear-gradient(135deg, #d080ff 0%, #80d0ff 50%, #b060ff 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      filter: drop-shadow(0 0 28px rgba(176,96,255,0.65));
-      margin-bottom: 6px;
-    }
-
-    .title-en {
-      font-size: clamp(0.6rem, 1.6vw, 0.85rem);
-      letter-spacing: 0.3em;
-      color: #8878aa;
-      margin-bottom: 56px;
-      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      margin-top: 4px;
     }
 
     .btn-start {
@@ -4723,6 +4713,50 @@
       position:absolute;top:5px;left:5px;z-index:4;
       font-size:.48rem;color:rgba(255,255,255,.45);
     }
+
+    /* ── カウントダウンフラッシュ ── */
+    #countdownFlash {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.7);
+      z-index: 9500;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      opacity: 0;
+    }
+    #countdownFlash.show {
+      animation: cdFlashAnim 3.5s ease-in-out forwards;
+    }
+    #countdownFlash .cd-label {
+      font-size: 1rem;
+      color: #ffd080;
+      letter-spacing: 3px;
+      text-shadow: 0 0 12px rgba(255,200,80,.8);
+    }
+    #countdownFlash .cd-number {
+      font-size: 6rem;
+      font-weight: bold;
+      color: #ff5050;
+      text-shadow: 0 0 40px #ff3030, 0 0 80px #ff1010;
+      line-height: 1;
+    }
+    #countdownFlash .cd-unit {
+      font-size: 1.4rem;
+      color: #ffd080;
+      letter-spacing: 2px;
+      text-shadow: 0 0 12px rgba(255,200,80,.8);
+    }
+    @keyframes cdFlashAnim {
+      0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+      12%  { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+      25%  { opacity: 1; transform: translate(-50%, -50%) scale(1.0); }
+      72%  { opacity: 1; transform: translate(-50%, -50%) scale(1.0); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.85); }
+    }
     </style>
 </head>
 <body>
@@ -5128,6 +5162,13 @@
   <button id="btnEndingBgm">🎵 BGM ON</button>
 </div>
 
+<!-- カウントダウンフラッシュ（残り3/2/1日） -->
+<div id="countdownFlash">
+  <div class="cd-label">ゲーム終了まで</div>
+  <div class="cd-number" id="countdownFlashNum">3</div>
+  <div class="cd-unit">日</div>
+</div>
+
 <!-- 汎用メニューボタン＋パネル -->
 <button id="menuBtn" style="display:none">
   <span class="menu-icon">≡</span>MENU
@@ -5431,9 +5472,10 @@
 
 <!-- ① タイトル画面 -->
 <div class="screen active" id="titleScreen">
-  <div class="title-eyebrow">── SIMULATION GAME ──</div>
-  <div class="title-main">VTuber事務所<br>シミュレーション</div>
-  <div class="title-en">VIRTUAL TALENT AGENCY</div>
+  <div class="title-logo-wrap">
+    <img class="title-logo-img" src="images/etc/title_logo.png" alt="VTuber事務所シミュレーション">
+    <div class="title-beta">β版</div>
+  </div>
   <button class="btn-start" id="btnStart" >GAME START</button>
   <button class="btn-continue-save" id="btnContinue">つづきから</button>
   <div class="save-date-hint" id="saveDateHint"></div>
@@ -5503,35 +5545,110 @@
 (function(){
   const c = document.getElementById('bg');
   const cx = c.getContext('2d');
-  let W, H;
+  let W, H, t = 0;
   const resize = () => { W = c.width = innerWidth; H = c.height = innerHeight; };
   resize(); addEventListener('resize', resize);
 
-  const N = 130;
+  // 通常の流れ星パーティクル（明滅あり）
+  const N = 160;
   const pts = Array.from({length:N}, () => ({
-    x: Math.random()*1000, y: Math.random()*1000,
-    vx: (Math.random()-.5)*.28, vy: (Math.random()-.5)*.28,
-    r: Math.random()*1.4+.25,
-    a: Math.random()*.6+.15,
-    hue: Math.random()>.55 ? 270 : 195
+    x:    Math.random() * 1000,
+    y:    Math.random() * 1000,
+    vx:   (Math.random() - .5) * .3,
+    vy:   (Math.random() - .5) * .3,
+    r:    Math.random() * 1.6 + .3,
+    base: Math.random() * .55 + .1,   // 基準アルファ
+    phase: Math.random() * Math.PI * 2, // 明滅位相
+    freq:  Math.random() * .04 + .015,  // 明滅速度
+    hue:  Math.random() > .5 ? 270 : (Math.random() > .5 ? 195 : 320),
+    spark: Math.random() < .2,          // 十字グロー型
   }));
 
+  // キラッと瞬くスパーク（短命・高輝度）
+  const sparks = [];
+  function spawnSpark() {
+    sparks.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 2.2 + .8,
+      a: 1,
+      hue: Math.random() > .5 ? 270 : (Math.random() > .5 ? 195 : 50),
+      life: 1,
+      decay: .018 + Math.random() * .025,
+    });
+  }
+
+  // 十字グロー（キラキラ形）描画
+  function drawCross(x, y, r, hue, alpha) {
+    const arms = r * 3.5;
+    cx.save();
+    cx.globalAlpha = alpha;
+    cx.shadowBlur = 14;
+    cx.shadowColor = `hsl(${hue},90%,70%)`;
+    // 縦横の細いライン
+    [[0,arms],[arms,0]].forEach(([dx,dy]) => {
+      const g = cx.createLinearGradient(x-dx,y-dy,x+dx,y+dy);
+      g.addColorStop(0,  `hsla(${hue},90%,80%,0)`);
+      g.addColorStop(.5, `hsla(${hue},90%,90%,${alpha})`);
+      g.addColorStop(1,  `hsla(${hue},90%,80%,0)`);
+      cx.strokeStyle = g;
+      cx.lineWidth = r * .9;
+      cx.beginPath();
+      cx.moveTo(x-dx, y-dy);
+      cx.lineTo(x+dx, y+dy);
+      cx.stroke();
+    });
+    cx.restore();
+  }
+
   function draw(){
+    t++;
     // deep radial bg
-    const g = cx.createRadialGradient(W/2,H/2,0, W/2,H/2, Math.hypot(W,H)*.7);
-    g.addColorStop(0,'#0d0b1e'); g.addColorStop(1,'#030308');
+    const g = cx.createRadialGradient(W/2,H/2,0, W/2,H/2, Math.hypot(W,H)*.72);
+    g.addColorStop(0,'#0e0c20'); g.addColorStop(1,'#030308');
     cx.fillStyle = g; cx.fillRect(0,0,W,H);
 
+    // 通常パーティクル
     for(const p of pts){
-      p.x = (p.x+p.vx+W)%W;
-      p.y = (p.y+p.vy+H)%H;
-      cx.beginPath();
-      cx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      cx.shadowBlur=10; cx.shadowColor=`hsl(${p.hue},80%,65%)`;
-      cx.fillStyle=`hsla(${p.hue},80%,68%,${p.a})`;
-      cx.fill();
+      p.x = (p.x + p.vx + W) % W;
+      p.y = (p.y + p.vy + H) % H;
+      p.phase += p.freq;
+      const alpha = Math.max(0, p.base + Math.sin(p.phase) * p.base * .75);
+
+      if (p.spark) {
+        drawCross(p.x, p.y, p.r, p.hue, alpha);
+      } else {
+        cx.beginPath();
+        cx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        cx.shadowBlur = 12;
+        cx.shadowColor = `hsl(${p.hue},80%,65%)`;
+        cx.fillStyle = `hsla(${p.hue},80%,72%,${alpha})`;
+        cx.fill();
+        cx.shadowBlur = 0;
+      }
     }
-    cx.shadowBlur=0;
+    cx.shadowBlur = 0;
+
+    // スパーク生成（一定確率）
+    if (Math.random() < .045) spawnSpark();
+
+    // スパーク描画・更新
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const s = sparks[i];
+      s.life -= s.decay;
+      s.a = Math.pow(s.life, 1.5);
+      if (s.life <= 0) { sparks.splice(i, 1); continue; }
+      drawCross(s.x, s.y, s.r, s.hue, s.a);
+      // 丸い光点も重ねる
+      cx.beginPath();
+      cx.arc(s.x, s.y, s.r * .6, 0, Math.PI*2);
+      cx.shadowBlur = 20;
+      cx.shadowColor = `hsl(${s.hue},90%,80%)`;
+      cx.fillStyle = `hsla(${s.hue},90%,92%,${s.a})`;
+      cx.fill();
+      cx.shadowBlur = 0;
+    }
+
     requestAnimationFrame(draw);
   }
   draw();
@@ -6897,6 +7014,77 @@ function playSeGraduation() {
   } catch(e) {}
 }
 
+// ⑦ カウントダウン：残り3/2/1日のゴーンベル音
+function playSeCountdownTick(daysLeft) {
+  if (!_seEnabled) return;
+  try {
+    const ac = getAC(); const t = ac.currentTime;
+    // 音量・基音：残り日数が少ないほど重く大きく
+    const vol  = daysLeft === 1 ? 0.55 : daysLeft === 2 ? 0.44 : 0.34;
+    const freq = daysLeft === 1 ? 196  : daysLeft === 2 ? 220  : 246;
+
+    // ゴーン（倍音2成分: 高倍音→基音）
+    [[freq * 3, 0.0, 0.35], [freq, 0.01, 1.0]].forEach(([f, dt, v]) => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(f, t + dt);
+      o.frequency.exponentialRampToValueAtTime(f * 0.97, t + dt + 2.5);
+      g.gain.setValueAtTime(0, t + dt);
+      g.gain.linearRampToValueAtTime(vol * v, t + dt + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dt + 3.5);
+      o.connect(g); g.connect(ac.destination);
+      o.start(t + dt); o.stop(t + dt + 3.6);
+    });
+
+    // 残り1日のみ：低音の唸り（緊張感）
+    if (daysLeft === 1) {
+      [[110, 0.3], [117, 0.45]].forEach(([f, dt]) => {
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = 'sawtooth';
+        o.frequency.value = f;
+        g.gain.setValueAtTime(0, t + dt);
+        g.gain.linearRampToValueAtTime(0.07, t + dt + 0.15);
+        g.gain.exponentialRampToValueAtTime(0.001, t + dt + 2.2);
+        o.connect(g); g.connect(ac.destination);
+        o.start(t + dt); o.stop(t + dt + 2.4);
+      });
+    }
+  } catch(e) {}
+}
+
+// ⑧ 時間切れ：ゲーム終了時の重厚サウンド
+function playSeTimeUp() {
+  if (!_seEnabled) return;
+  try {
+    const ac = getAC(); const t = ac.currentTime;
+    // ゴーン×3回（だんだん長く響く）
+    [[196, 0.0, 0.50], [196, 0.9, 0.42], [196, 1.9, 0.34]].forEach(([freq, dt, vol]) => {
+      [[freq * 3, 0.0, 0.40], [freq, 0.015, 1.0]].forEach(([f, sub, v]) => {
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(f, t + dt + sub);
+        o.frequency.exponentialRampToValueAtTime(f * 0.96, t + dt + sub + 4.0);
+        g.gain.setValueAtTime(0, t + dt + sub);
+        g.gain.linearRampToValueAtTime(vol * v, t + dt + sub + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.001, t + dt + sub + 5.0);
+        o.connect(g); g.connect(ac.destination);
+        o.start(t + dt + sub); o.stop(t + dt + sub + 5.1);
+      });
+    });
+    // 3.2秒後：Cm和音（哀愁ある終幕）
+    [[130, 0], [155, 0.06], [196, 0.12]].forEach(([f, di]) => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'sine';
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0, t + 3.2 + di);
+      g.gain.linearRampToValueAtTime(0.18, t + 3.3 + di);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 7.5);
+      o.connect(g); g.connect(ac.destination);
+      o.start(t + 3.2 + di); o.stop(t + 7.6);
+    });
+  } catch(e) {}
+}
+
 // ⑥ 収益獲得：コインのチャリン音
 
 
@@ -7251,7 +7439,7 @@ function getTickMs() { return _speedDouble ? GAME_TICK_MS / 2 : GAME_TICK_MS; }
     dissolveOverlay.classList.remove('show');
     localStorage.removeItem(SAVE_KEY);
     _gameOverShown = true;
-    stopGameTick();
+    _freezeAllGameActivity();
     _showGameOverScreen('🏳️ 事務所を解散しました。お疲れ様でした。');
     // 解散時は結果画面上の画像を非表示にする
     document.getElementById('gameOverOverlay').classList.add('dissolution');
@@ -8398,7 +8586,7 @@ function unlockAuditionBtnIfNeeded() {
 
   // この期生が3人揃っている場合 → 次の期生のマイルストーン解放を確認
   if      (gen < 2 && ms.has(100_000))   { gameState.auditionGeneration = 2; btn.classList.remove('disabled'); }
-  else if (gen < 3 && ms.has(300_000))   { gameState.auditionGeneration = 3; btn.classList.remove('disabled'); }
+  else if (gen < 3 && ms.has(500_000))   { gameState.auditionGeneration = 3; btn.classList.remove('disabled'); }
   else if (gen < 4 && ms.has(5_000_000)) { gameState.auditionGeneration = 4; btn.classList.remove('disabled'); }
   updateAuditionBtnLabel();
 }
@@ -10335,6 +10523,24 @@ function gameTick() {
       }));
       drainGlobalModalQueue();
     }
+    // 残り3日・2日・1日のカウントダウン演出
+    [3, 2, 1].forEach(days => {
+      const key = `last${days}day`;
+      if (!_timeNotifShown.has(key) && _remaining === days) {
+        _timeNotifShown.add(key);
+        playSeCountdownTick(days);
+        // カウントダウンフラッシュ表示
+        const flash = document.getElementById('countdownFlash');
+        const numEl = document.getElementById('countdownFlashNum');
+        if (flash && numEl) {
+          numEl.textContent = days;
+          flash.classList.remove('show');
+          void flash.offsetWidth; // reflow で再アニメーション
+          flash.classList.add('show');
+          setTimeout(() => flash.classList.remove('show'), 3500);
+        }
+      }
+    });
   }
 
   // ゲームオーバー判定
@@ -13683,6 +13889,37 @@ function stopGameTick() {
   if (gameTickTimer) { clearInterval(gameTickTimer); gameTickTimer = null; }
 }
 
+// ゲーム終了時にすべての進行中アクティビティを停止する
+function _freezeAllGameActivity() {
+  // ① ゲームティック停止・BGM停止・既存SEノード即時停止
+  stopGameTick();
+  stopBGM();
+  // AudioContext をリセット → 再生中の SE ノードを即時停止
+  if (_sharedAC) { try { _sharedAC.close(); } catch(e) {} _sharedAC = null; }
+
+  // ② モーダルキューをクリア（pending なイベント通知を全破棄）
+  _globalModalQueue.length = 0;
+
+  // ③ 自動クローズタイマーをすべてキャンセル
+  clearTimeout(_eventAutoCloseTimer);        _eventAutoCloseTimer        = null;
+  clearTimeout(_evhostResultAutoCloseTimer);  _evhostResultAutoCloseTimer  = null;
+  clearTimeout(_dreamAutoCloseTimer);         _dreamAutoCloseTimer         = null;
+  clearTimeout(_vtLevelupAutoCloseTimer);     _vtLevelupAutoCloseTimer     = null;
+  clearTimeout(_dreamAnnounceAutoCloseTimer); _dreamAnnounceAutoCloseTimer = null;
+
+  // ④ 表示中のオーバーレイ・モーダルをすべて非表示
+  [
+    'eventModal', 'milestoneOverlay', 'vtLevelupOverlay',
+    'dreamAnnounceOverlay', 'dreamFulfilledOverlay',
+    'eventHostModal', 'eventHostConfirmModal', 'eventHostResultModal',
+    'vtSelectModal', 'gradConsultOverlay', 'subsChartOverlay',
+    'eventHistoryModal', 'eventImageHistoryModal', 'ledgerModal',
+  ].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('show');
+  });
+}
+
 /* ════════════════════════════════════
    GAME OVER
 ════════════════════════════════════ */
@@ -13711,7 +13948,7 @@ function checkGameOver() {
     const lv = getOfficeLevel(getTotalSubs());
     if (lv >= 10) {
       _gameOverShown = true;
-      stopGameTick();
+      _freezeAllGameActivity();
       try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
       _triggerPresidentDebutEnding();
       return;
@@ -13721,7 +13958,7 @@ function checkGameOver() {
   if (!reason) return;
 
   _gameOverShown = true;
-  stopGameTick();
+  _freezeAllGameActivity();
   // セーブデータを削除
   try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
   _showGameOverScreen(reason);
@@ -13774,15 +14011,14 @@ function _determineEndingType() {
     return sum + c;
   }, 0);
 
+  // 大成功エンディング：現役VTuberが12人以上 かつ 叶えた夢が30個以上
+  const activeCount = allCh.filter(ch => !ch.graduated).length;
+  if (activeCount >= 12 && fulfilledDreams >= 30) return 'good';
+  // 成功エンディング：現役VTuberが6人以上 かつ 叶えた夢が10個以上
+  if (activeCount >= 6 && fulfilledDreams >= 10) return 'normal';
   // 魂カミングアウトエンド：事務所の一般知名度が最大値（≥490 / 最大500）
   const officeFame = gameState.fame ?? 0;
   if (officeFame >= 490) return 'soul';
-
-  // 良エンディング：総登録者50万人以上
-  if (totalSubs >= 500000) return 'good';
-  // 中エンディング：総登録者10万人以上 または 黒字かつ5万人以上
-  if (totalSubs >= 100000) return 'normal';
-  if (totalSubs >= 50000 && mon >= 0) return 'normal';
   // 悪エンディング
   return 'bad';
 }
@@ -13790,7 +14026,8 @@ function _determineEndingType() {
 // 時間終了エンディングを発動
 function _triggerTimeUpEnding() {
   _gameOverShown = true;
-  stopGameTick();
+  _freezeAllGameActivity(); // ゲームティック・モーダル・BGMをすべて停止
+  playSeTimeUp(); // 時間切れSE
   try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
 
   const endingType = _determineEndingType();
@@ -14409,6 +14646,10 @@ showEnding = function(endingType) {
   if (btn) {
     btn.textContent = _bgmEnabled ? '🎵 BGM ON' : '🎵 BGM OFF';
     btn.classList.toggle('off', !_bgmEnabled);
+  }
+  // エンディング画面表示と同時にエンディングBGMを自動再生
+  if (_bgmEnabled) {
+    playBGM(ENDING_BGM_SRC, ENDING_BGM_VOL);
   }
 };
 
@@ -15249,7 +15490,7 @@ function executeEventRoulette(evId, evType, channelId) {
         : null;
       showEvhostResult(false, ev, effectText, _failVtCh);
     }
-  }, 2500);
+  }, 1700);
 }
 
 let _evhostResultPaused = false;  // 自分でpauseしたか管理するフラグ
@@ -15333,9 +15574,9 @@ const BANNER_SLOT_OVERRIDE = {
   },
   'ad_bus': {
     1: [['23%','none','94%','163%','bottom:-55%']],
-    2: [['14%','none','72%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
-    3: [['14%','none','72%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
-    4: [['14%','none','72%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    2: [['33%','none','100%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['59%','none','72%','100%',''], ['71%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['60%','none','72%','100%',''], ['74%','translateX(-50%)','50%','100%',''], ['59%','translateX(-50%)','50%','100%',''], ['42%','translateX(-50%)','50%','100%','']],
   },
   'ev_mystery': {
     1: [['23%','none','87%','177%','bottom:-34%','transform:rotate(-142deg)']],
@@ -15380,10 +15621,10 @@ const BANNER_SLOT_OVERRIDE = {
     4: [['50%','translateX(-50%)','44%','96%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
   },
   'ev_battlegame': {
-    1: [['38%','none','26%','84%','']],
-    2: [['5%','none','26%','82%',''], ['68%','none','26%','82%','']],
+    1: [['3%','none','65%','123%','bottom:-27%','transform:rotate(-18deg)']],
+    2: [['5%','none','50%','98%','bottom:-20%','transform:rotate(14deg)'], ['49%','none','53%','82%','bottom:-12%','transform:rotate(-16deg)']],
     3: [['-7%','none','50%','99%','bottom:-5%','transform:rotate(59deg)'], ['26%','none','50%','84%','bottom:-15%'], ['59%','none','50%','100%','bottom:-2%','transform:rotate(-63deg)']],
-    4: [['4%','none','25%','82%',''], ['37%','none','26%','84%',''], ['70%','none','25%','82%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['4%','none','46%','170%','bottom:-22%','transform:rotate(37deg)'], ['69%','none','50%','87%','bottom:16%','transform:rotate(-55deg)'], ['58%','none','41%','76%','bottom:-22%','transform:rotate(-21deg)'], ['47%','translateX(-50%)','62%','100%','bottom:-22%','transform:rotate(16deg)']],
   },
   'ad_city': {
     1: [['41%','translateX(-50%)','36%','65%','top:11%;bottom:auto','object-fit:cover;object-position:top center']],
@@ -15404,10 +15645,10 @@ const BANNER_SLOT_OVERRIDE = {
     4: [['50%','translateX(-50%)','46%','85%','top:4%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
   },
   'ev_livefes': {
-    1: [['33%','none','34%','56%','top:3%;bottom:auto','object-fit:cover;object-position:top center']],
-    2: [['0%','none','33%','56%','top:2%;bottom:auto','object-fit:cover;object-position:top center'], ['66%','none','34%','56%','top:2%;bottom:auto','object-fit:cover;object-position:top center']],
+    1: [['35%','none','34%','100%','top:3%;bottom:auto','object-fit:cover;object-position:top center']],
+    2: [['31%','none','38%','90%','top:13%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(14deg)'], ['68%','none','34%','66%','top:20%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(-7deg)']],
     3: [['1%','none','33%','78%','top:18%;bottom:auto','object-fit:cover;object-position:top center'], ['30%','none','40%','107%','top:9%;bottom:auto','object-fit:cover;object-position:top center'], ['66%','none','34%','73%','top:20%;bottom:auto','object-fit:cover;object-position:top center']],
-    4: [['0%','none','33%','56%','top:2%;bottom:auto','object-fit:cover;object-position:top center'], ['33%','none','34%','56%','top:3%;bottom:auto','object-fit:cover;object-position:top center'], ['66%','none','34%','56%','top:2%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['0%','none','33%','56%','top:25%;bottom:auto','object-fit:cover;object-position:top center'], ['120%','none','34%','56%','top:3%;bottom:auto','object-fit:cover;object-position:top center'], ['66%','none','34%','56%','top:25%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
   },
   'col_gameguest': {
     1: [['41%','rotate(8deg)','46%','89%','top:21%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(12deg)']],
@@ -15428,10 +15669,10 @@ const BANNER_SLOT_OVERRIDE = {
     4: [['50%','translateX(-50%)','72%','58%','top:2%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
   },
   'ev_boxgame': {
-    1: [['28%','none','44%','97%','']],
+    1: [['45%','none','66%','120%','bottom:-24%','transform:rotate(11deg)']],
     2: [['-4%','none','63%','127%','bottom:-16%','transform:rotate(12deg)'], ['44%','none','64%','109%','bottom:-18%','transform:rotate(-18deg)']],
     3: [['-15%','none','52%','79%','bottom:30%','transform:rotate(85deg)'], ['59%','none','44%','97%','bottom:-22%','transform:rotate(-25deg)'], ['47%','translateX(-50%)','64%','126%','bottom:-25%','transform:rotate(8deg)']],
-    4: [['0%','none','44%','97%',''], ['54%','none','44%','97%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['0%','none','37%','97%','bottom:-9%','transform:rotate(64deg)'], ['63%','none','55%','123%','','transform:rotate(-126deg)'], ['71%','translateX(-50%)','46%','79%','bottom:-16%','transform:rotate(-21deg)'], ['43%','translateX(-50%)','50%','100%','bottom:-8%','transform:rotate(13deg)']],
   },
   'ad_tvcm': {
     1: [['40%','translateX(-50%)','93%','164%','bottom:-40%','object-fit:cover;object-position:top center;transform:rotate(28deg)']],
@@ -15469,6 +15710,7 @@ const BANNER_EXPR_OVERRIDE = {
   },
   'ev_livefes': {
     3: ['smile', 'smile'],
+    4: ['normal', 'normal', 'smile'],
   },
   'ev_battlegame': {
     3: ['sad', 'smile'],
@@ -15477,7 +15719,9 @@ const BANNER_EXPR_OVERRIDE = {
     1: ['smile'],
   },
   'ev_boxgame': {
+    1: ['smile'],
     3: ['smile', 'normal', 'smile'],
+    4: ['smile', 'normal', 'smile'],
   },
   'goods_ramen': {
     1: ['smile'],
@@ -15911,8 +16155,8 @@ function showEvhostResult(isSuccess, ev, effectText, vtChannel) {
     pauseGameTick();
     _evhostResultPaused = true;
   }
-  modal.classList.add('show');
   startEvhostResultCountdown();
+  modal.classList.add('show');
 }
 
 // イベント実行キュー（準備完了イベントを順番に処理）
@@ -16057,8 +16301,6 @@ function playEvhostFailureSound() {
       const o = ac.createOscillator(), g = ac.createGain();
       o.type = 'sawtooth'; o.frequency.value = f;
       g.gain.setValueAtTime(0.07, t0 + dt);
-      g.gain.exponentialRampToValueAtTime(0.001, t0 + dt + 0.25);
-      o.connect(g); g.connect(ac.destination);
       o.start(t0 + dt); o.stop(t0 + dt + 0.25);
     });
   } catch(e) {}
@@ -16066,4 +16308,3 @@ function playEvhostFailureSound() {
 </script>
 </body>
 </html>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
