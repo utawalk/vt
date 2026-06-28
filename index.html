@@ -11821,6 +11821,8 @@ function triggerRandomEvent() {
   const moneyDelta = money.value - moneyBefore;
   if (moneyDelta !== 0) ledgerPush(ev.title || (ev.type === 'good' ? '好イベント' : '悪イベント'), moneyDelta);
   if (ev.paramDelta) changeOfficeParams(ev.paramDelta);
+  // イベントで登録者数が変動した場合にHUDとバッジを即時更新
+  updateSubsHUD();
 
   // メンタルに影響（チャンネルイベントはそのチャンネルのVTuber、全体イベントはランダムな1人に）
   let mentalTargetCh   = null;
