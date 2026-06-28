@@ -134,6 +134,55 @@
     }
     .btn-start:active { transform: scale(0.97); }
 
+    /* タイトル画面サウンド注意 */
+    .title-sound-notice {
+      margin-top: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .tsn-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      color: #9080b8;
+    }
+    .tsn-toggles {
+      display: flex;
+      gap: 10px;
+    }
+    .tsn-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(176,96,255,0.35);
+      color: #b090d8;
+      font-size: 0.72rem;
+      padding: 5px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 0.08em;
+      transition: background 0.2s, border-color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .tsn-btn:hover {
+      background: rgba(176,96,255,0.12);
+      border-color: rgba(176,96,255,0.6);
+    }
+    .tsn-badge {
+      font-size: 0.65rem;
+      padding: 1px 6px;
+      border-radius: 8px;
+      background: rgba(255,80,80,0.2);
+      color: rgba(255,140,140,0.9);
+      transition: background 0.2s, color 0.2s;
+    }
+    .tsn-badge.on {
+      background: rgba(80,200,120,0.2);
+      color: rgba(100,220,140,0.9);
+    }
+
     /* Press-any-key blink */
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
     .press-hint {
@@ -4951,6 +5000,9 @@
   </div>
   <div class="ch-videos-header" style="margin-top:18px;">── イベント履歴 ──</div>
   <div class="ch-personal-log" id="chPersonalLog"></div>
+  <div class="ch-back-row" style="margin-top:24px;margin-bottom:8px">
+    <button class="btn-ch-back" id="btnChBackBottom">← 事務所に戻る</button>
+  </div>
 </div>
 
 <!-- ゲームオーバー画面 -->
@@ -5296,6 +5348,13 @@
   <button class="btn-start" id="btnStart" >GAME START</button>
   <button class="btn-continue-save" id="btnContinue">つづきから</button>
   <div class="save-date-hint" id="saveDateHint"></div>
+  <div class="title-sound-notice">
+    <div class="tsn-label">🔊 この後、音が出ます</div>
+    <div class="tsn-toggles">
+      <button class="tsn-btn" id="titleBgmToggle">🎵 BGM <span class="tsn-badge on" id="titleBgmBadge">ON</span></button>
+      <button class="tsn-btn" id="titleSeToggle">🔊 効果音 <span class="tsn-badge on" id="titleSeBadge">ON</span></button>
+    </div>
+  </div>
   <div class="press-hint">PRESS START TO BEGIN</div>
   <div class="title-footer-links">
     <a href="howtoplay.html" target="_blank">遊び方</a>
@@ -5702,7 +5761,31 @@ function showComplete(name){
 /* ════════════════════════════════════
    EVENTS
 ════════════════════════════════════ */
-document.getElementById('btnStart').addEventListener('click', ()=>{
+// ── タイトル画面サウンドトグル ──
+  (function() {
+    function syncTitleBadges() {
+      const bb = document.getElementById('titleBgmBadge');
+      const sb = document.getElementById('titleSeBadge');
+      if (bb) { bb.textContent = _bgmEnabled ? 'ON' : 'OFF'; bb.classList.toggle('on', _bgmEnabled); }
+      if (sb) { sb.textContent = _seEnabled  ? 'ON' : 'OFF'; sb.classList.toggle('on', _seEnabled);  }
+    }
+    document.getElementById('titleBgmToggle').addEventListener('click', () => {
+      _bgmEnabled = !_bgmEnabled;
+      // メニューバッジも同期
+      const mb = document.getElementById('menuBgmBadge');
+      if (mb) { mb.textContent = _bgmEnabled ? 'ON' : 'OFF'; mb.classList.toggle('on', _bgmEnabled); }
+      if (!_bgmEnabled) stopBGM();
+      syncTitleBadges();
+    });
+    document.getElementById('titleSeToggle').addEventListener('click', () => {
+      _seEnabled = !_seEnabled;
+      const sb2 = document.getElementById('menuSeBadge');
+      if (sb2) { sb2.textContent = _seEnabled ? 'ON' : 'OFF'; sb2.classList.toggle('on', _seEnabled); }
+      syncTitleBadges();
+    });
+  })();
+
+  document.getElementById('btnStart').addEventListener('click', ()=>{
   showScreen('prologueScreen');
   initDots();
   sceneIdx = 0;
@@ -9627,6 +9710,7 @@ document.getElementById('btnLoadMoreVideos').addEventListener('click', () => {
 });
 
 document.getElementById('btnChBack').addEventListener('click', () => showScreen('hubScreen'));
+document.getElementById('btnChBackBottom').addEventListener('click', () => showScreen('hubScreen'));
 
 // 総登録者HUD → グラフを開く
 function openSubsChart() {
@@ -9791,7 +9875,9 @@ const STYLE_GROWTH_RATE = {
 };
 
 function formatGameDate(d) {
-  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${DOW_JP[d.getDay()]}）`;
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${d.getFullYear()}/${mm}/${dd}`;
 }
 
 function updateDateHUD() {
