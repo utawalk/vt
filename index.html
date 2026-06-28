@@ -948,6 +948,22 @@
     .failure .evhost-result-effect {
       background: rgba(220,80,80,.1); border: 1px solid rgba(220,80,80,.25); color: #ffaaaa;
     }
+    .evhost-result-countdown {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: rgba(255,255,255,.08);
+      border-radius: 0 0 14px 14px;
+      overflow: hidden;
+    }
+    .evhost-result-countdown-fill {
+      height: 100%;
+      width: 100%;
+      transform-origin: left;
+      transition: none;
+    }
+    .evhost-result-card.success .evhost-result-countdown-fill { background: rgba(80,220,160,.7); }
+    .evhost-result-card.failure .evhost-result-countdown-fill { background: rgba(255,80,90,.7); }
     .btn-evhost-result-ok {
       padding: 12px 44px; border-radius: 12px;
       font-size: .9rem; font-weight: bold; cursor: pointer;
@@ -1490,6 +1506,8 @@
       letter-spacing: 0.25em;
       font-family: inherit;
       transition: all 0.3s;
+      position: relative;
+      z-index: 5000;
     }
     .btn-to-hub:hover {
       background: rgba(176,96,255,0.12);
@@ -1759,6 +1777,8 @@
       font-size:clamp(.85rem,2.2vw,.98rem);
       padding:12px 42px; border-radius:50px;
       cursor:pointer; letter-spacing:.25em; font-family:inherit; transition:all .3s;
+      position: relative;
+      z-index: 5000;
     }
     .btn-hub-from-born:hover { background:rgba(176,96,255,.12); box-shadow:0 0 22px rgba(176,96,255,.45); color:#e0b0ff; }
 
@@ -3593,6 +3613,10 @@
       overflow-y: auto;
       padding: 56px 16px 80px;
     }
+    #subsChartInner {
+      max-width: 720px;
+      margin: 0 auto;
+    }
     .subs-chart-header {
       display: flex;
       align-items: center;
@@ -4403,6 +4427,7 @@
     }
     .go-gameover-img.visible { opacity: 1; }
     #gameOverOverlay.finale .go-gameover-img { display: none; }
+    #gameOverOverlay.dissolution .go-gameover-img { display: none; }
     /* ── エンディング種別ヘッダー ── */
     .ending-result-section {
       padding: 56px 24px 48px;
@@ -5118,6 +5143,9 @@
   <div class="menu-item" id="menuTimeToggle">
     <span class="mi-icon" id="menuTimeIcon">⏸</span><span id="menuTimeLabel">時間を止める</span><span class="mi-toggle on" id="menuTimeBadge">進行中</span>
   </div>
+  <div class="menu-item" id="menuSpeedToggle">
+    <span class="mi-icon">⏩</span><span>倍速</span><span class="mi-toggle" id="menuSpeedBadge">OFF</span>
+  </div>
   <div class="menu-separator"></div>
   <div class="menu-item" id="menuBgmToggle">
     <span class="mi-icon">🎵</span>BGM<span class="mi-toggle on" id="menuBgmBadge">ON</span>
@@ -5363,6 +5391,7 @@
     <div class="evhost-result-desc" id="evhostResultDesc"></div>
     <div class="evhost-result-effect" id="evhostResultEffect"></div>
     <button class="btn-evhost-result-ok" id="btnEvhostResultOk">閉じる</button>
+    <div class="evhost-result-countdown"><div class="evhost-result-countdown-fill" id="evhostResultCountdownFill"></div></div>
   </div>
 </div>
 
@@ -5667,15 +5696,31 @@ function showScreen(id){
   if (PAUSE_SCREENS.includes(id)) {
     pauseGameTick();
     // ブロッキング画面遷移時：開いているイベントモーダルを閉じる
-    ['eventHostModal','eventHostConfirmModal','vtSelectModal'].forEach(mid => {
+    ['eventHostModal','eventHostConfirmModal','vtSelectModal','eventHostResultModal'].forEach(mid => {
       const mel = document.getElementById(mid);
       if (mel) mel.classList.remove('show');
     });
   }
-  if (RESUME_SCREENS.includes(id)) resumeGameTick();
-  // hubScreenへ戻った際、ゲーム開始済みでポーズなしなのにタイマーが止まっていたら強制再開
-  if (id === 'hubScreen' && _gameHasStarted && _gamePauseCount === 0 && !gameTickTimer) {
-    gameTickTimer = setInterval(gameTick, GAME_TICK_MS);
+  // デビュー・VTuber誕生画面では全オーバーレイを念のため閉じる（ボタンを確実に押せる状態にする）
+  if (id === 'debutScreen' || id === 'vtuberBornScreen') {
+    ['eventHostModal','eventHostConfirmModal','vtSelectModal','eventHostResultModal',
+     'eventModal','milestoneOverlay','gradConsultOverlay','dreamAnnounceOverlay',
+     'dreamFulfilledOverlay','subsChartOverlay','eventImageHistoryModal','eventHistoryModal',
+     'vtLevelupOverlay'].forEach(mid => {
+      const mel = document.getElementById(mid);
+      if (mel) mel.classList.remove('show');
+    });
+    clearTimeout(_evhostResultAutoCloseTimer);
+    _evhostResultAutoCloseTimer = null;
+  }
+  if (RESUME_SCREENS.includes(id)) {
+    // hubScreen 帰還時は残留ポーズカウントを強制リセットし、タイマーを必ず再起動する
+    _gamePauseCount = 0;
+  }
+  // hubScreenへ戻ったとき、ゲーム開始済みならタイマーを強制再開
+  if (id === 'hubScreen' && _gameHasStarted) {
+    if (gameTickTimer) { clearInterval(gameTickTimer); gameTickTimer = null; }
+    gameTickTimer = setInterval(gameTick, getTickMs());
   }
 
   // タイトル画面に戻るときは「つづきから」ボタンを再チェック
@@ -7104,6 +7149,9 @@ function playSeOfficeOpen() {
 /* ════════════════════════════════════
    MENU EVENT LISTENERS
 ════════════════════════════════════ */
+let _speedDouble = false;
+function getTickMs() { return _speedDouble ? GAME_TICK_MS / 2 : GAME_TICK_MS; }
+
 (function initMenu() {
   const menuBtn   = document.getElementById('menuBtn');
   const menuPanel = document.getElementById('menuPanel');
@@ -7141,7 +7189,7 @@ function playSeOfficeOpen() {
   const timeLabel = document.getElementById('menuTimeLabel');
   const timeIcon  = document.getElementById('menuTimeIcon');
   const timeBadge = document.getElementById('menuTimeBadge');
-  let _timePaused = false;
+  let _timePaused  = false;
   document.getElementById('menuTimeToggle').addEventListener('click', () => {
     _timePaused = !_timePaused;
     if (_timePaused) {
@@ -7157,6 +7205,19 @@ function playSeOfficeOpen() {
       timeBadge.textContent = '進行中';
       timeBadge.classList.add('on');
     }
+  });
+
+  // ── 倍速トグル ──
+  document.getElementById('menuSpeedToggle').addEventListener('click', () => {
+    _speedDouble = !_speedDouble;
+    const badge = document.getElementById('menuSpeedBadge');
+    badge.textContent = _speedDouble ? 'ON' : 'OFF';
+    badge.classList.toggle('on', _speedDouble);
+    if (gameTickTimer) {
+      clearInterval(gameTickTimer);
+      gameTickTimer = setInterval(gameTick, getTickMs());
+    }
+    document.getElementById('menuPanel').classList.remove('show');
   });
 
   // ── BGM ON/OFF ──
@@ -7192,6 +7253,8 @@ function playSeOfficeOpen() {
     _gameOverShown = true;
     stopGameTick();
     _showGameOverScreen('🏳️ 事務所を解散しました。お疲れ様でした。');
+    // 解散時は結果画面上の画像を非表示にする
+    document.getElementById('gameOverOverlay').classList.add('dissolution');
   });
 
 })();
@@ -9789,7 +9852,11 @@ function openSubsChart() {
   const allCh = (gameState.channels || []);
   const channels = allCh.filter(ch => !ch.graduated);
   if (allCh.length === 0) {
-    panel.innerHTML = '<div style="text-align:center;color:rgba(196,162,255,.84);padding:60px 20px">まだチャンネルがありません</div>';
+    const _emptyInner = document.createElement('div');
+    _emptyInner.id = 'subsChartInner';
+    _emptyInner.innerHTML = '<div style="text-align:center;color:rgba(196,162,255,.84);padding:60px 20px">まだチャンネルがありません</div>';
+    panel.innerHTML = '';
+    panel.appendChild(_emptyInner);
     document.getElementById('subsChartOverlay').classList.add('show');
     return;
   }
@@ -9799,6 +9866,10 @@ function openSubsChart() {
     '#b060ff','#60d0ff','#ff80c0','#60ffb0','#ffcc40',
     '#ff7060','#80c0ff','#c0ff60','#ff60e0','#60ffd0',
   ];
+
+  // ── コンテナ（最大幅制限）──
+  const inner = document.createElement('div');
+  inner.id = 'subsChartInner';
 
   // ── 1枚の統合グラフ ──
   const section = document.createElement('div');
@@ -9814,7 +9885,7 @@ function openSubsChart() {
   canvas.style.height = H + 'px';
   wrap.appendChild(canvas);
   section.appendChild(wrap);
-  panel.appendChild(section);
+  inner.appendChild(section);
 
   // 全チャンネルのデータ収集（卒業済みも含めて表示）
   const datasets = allCh.map((ch, idx) => {
@@ -9898,6 +9969,7 @@ function openSubsChart() {
     legend.appendChild(item);
   });
   section.appendChild(legend);
+  panel.appendChild(inner);
 
   document.getElementById('subsChartOverlay').classList.add('show');
 }
@@ -10283,7 +10355,7 @@ function startGameTick() {
   }
   document.getElementById('dateHUD').classList.add('visible');
   _gameHasStarted = true;
-  gameTickTimer = setInterval(gameTick, GAME_TICK_MS);
+  gameTickTimer = setInterval(gameTick, getTickMs());
 }
 
 // ── 一時停止カウンター（複数の重要操作が重なっても安全） ──
@@ -10294,7 +10366,7 @@ let _gamePauseCount = 0;
 const _globalModalQueue = [];
 function isAnyStoryModalShowing() {
   // オーディション・デビュー・ガワ画面が表示中はモーダルを全てブロック
-  const blockingScreens = ['auditionScreen', 'debutScreen', 'gawaScreen'];
+  const blockingScreens = ['auditionScreen', 'debutScreen', 'gawaScreen', 'vtuberBornScreen'];
   if (blockingScreens.some(sid => {
     const el = document.getElementById(sid);
     return el && el.classList.contains('active');
@@ -10330,7 +10402,7 @@ function resumeGameTick() {
   if (_gamePauseCount > 0) _gamePauseCount--;
   // ゲーム開始済み（startGameTick が呼ばれた後）かつ全ポーズが解除されたときのみ再開
   if (_gamePauseCount === 0 && !gameTickTimer && _gameHasStarted) {
-    gameTickTimer = setInterval(gameTick, GAME_TICK_MS);
+    gameTickTimer = setInterval(gameTick, getTickMs());
   }
 }
 
@@ -11866,6 +11938,7 @@ document.getElementById('btnEvImgHistClose').addEventListener('click', () => {
 });
 
 document.getElementById('btnEvhostResultOk').addEventListener('click', () => {
+  clearTimeout(_evhostResultAutoCloseTimer);
   document.getElementById('eventHostResultModal').classList.remove('show');
   if (_evhostResultPaused) {
     resumeGameTick();  // 自分でpauseした分だけresumeする
@@ -13756,6 +13829,8 @@ function _triggerTimeUpEnding() {
 
 // ゲームオーバー画面の表示（解散時・ゲームオーバー時 共通）
 function _showGameOverScreen(reason) {
+  // dissolution クラスをリセット（解散以外の呼び出しに備えて）
+  document.getElementById('gameOverOverlay').classList.remove('dissolution');
   // 最終結果を集計
   const officeName = document.getElementById('hubOfficeName').textContent || '──';
   const totalSubs  = getTotalSubs();
@@ -13844,6 +13919,7 @@ function buildEndingHTML(endingType) {
     const totalSubs = getTotalSubs();
     const mon = money.value;
     const allCh = gameState.channels || [];
+    const activeCount = allCh.filter(ch => !ch.graduated).length;
     const fulfilledDreams = allCh.reduce((sum, ch) => {
       if (!ch.dreams) return sum;
       let c = 0;
@@ -14006,7 +14082,7 @@ function buildEndingHTML(endingType) {
       <div class="ending-vt-soul">${vt.soul ? vt.soul.name + '（' + vt.soul.type + '）' : ''}</div>
       ${statusBadge}
       ${bdStr ? `<div style="font-size:.66rem;color:rgba(200,175,255,.4);letter-spacing:.12em;margin-bottom:14px;">${colorDot}${bdStr}</div>` : ''}
-      <div class="ending-gawa-wrap"><img src="images/gawa/${file}_${ch.graduated ? 'sad' : 'smile'}.png" alt="${vt.name}"></div>
+      <div class="ending-gawa-wrap"><img src="images/gawa/${file}_normal.png" alt="${vt.name}"></div>
       ${buildDreamsHtml(ch)}
       ${buildMomentsHtml(ch)}
       ${thumbsHtml ? `<div class="ending-thumbs">${thumbsHtml}</div>` : ''}
@@ -14265,11 +14341,18 @@ function showEnding(endingType) {
       const duration = Math.max(55, totalH / 55); // px/秒
       content.style.animationDuration = duration + 's';
       content.classList.add('scrolling');
-      // 終了後にSKIPボタンをタイトルへ変更
-      setTimeout(() => {
+      // 終了後にSKIPボタンをタイトルへ変更 & 自動でタイトルへ遷移
+      const onEndingFinish = () => {
+        content.removeEventListener('animationend', onEndingFinish);
         const sb = document.getElementById('btnEndingSkip');
         if (sb) sb.textContent = 'タイトルへ戻る ▶';
-      }, duration * 1000);
+        // 2秒後に自動タイトル遷移（エンドロール最後尾が見えてから）
+        setTimeout(() => {
+          if (!document.getElementById('endingOverlay').classList.contains('show')) return;
+          document.getElementById('btnEndingSkip').click();
+        }, 2000);
+      };
+      content.addEventListener('animationend', onEndingFinish);
     });
   });
 }
@@ -15170,6 +15253,22 @@ function executeEventRoulette(evId, evType, channelId) {
 }
 
 let _evhostResultPaused = false;  // 自分でpauseしたか管理するフラグ
+let _evhostResultAutoCloseTimer = null;
+const EVHOST_RESULT_AUTO_CLOSE_MS = 7000;
+
+function startEvhostResultCountdown() {
+  clearTimeout(_evhostResultAutoCloseTimer);
+  const fill = document.getElementById('evhostResultCountdownFill');
+  if (!fill) return;
+  fill.style.transition = 'none';
+  fill.style.transform  = 'scaleX(1)';
+  void fill.offsetWidth;
+  fill.style.transition = `transform ${EVHOST_RESULT_AUTO_CLOSE_MS}ms linear`;
+  fill.style.transform  = 'scaleX(0)';
+  _evhostResultAutoCloseTimer = setTimeout(() => {
+    document.getElementById('btnEvhostResultOk').click();
+  }, EVHOST_RESULT_AUTO_CLOSE_MS);
+}
 // イベントバナー スロット位置上書き設定（dbg.htmlのキャラ配置調整で更新）
 // 大成功エンディング：世界征服シーンのVTuber配置スロット（人数別）
 // [left, transform, width, height, extra, imgStyle]
@@ -15813,6 +15912,7 @@ function showEvhostResult(isSuccess, ev, effectText, vtChannel) {
     _evhostResultPaused = true;
   }
   modal.classList.add('show');
+  startEvhostResultCountdown();
 }
 
 // イベント実行キュー（準備完了イベントを順番に処理）
@@ -15957,6 +16057,8 @@ function playEvhostFailureSound() {
       const o = ac.createOscillator(), g = ac.createGain();
       o.type = 'sawtooth'; o.frequency.value = f;
       g.gain.setValueAtTime(0.07, t0 + dt);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + dt + 0.25);
+      o.connect(g); g.connect(ac.destination);
       o.start(t0 + dt); o.stop(t0 + dt + 0.25);
     });
   } catch(e) {}
