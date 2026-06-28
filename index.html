@@ -203,7 +203,7 @@
       top: 20px; left: 50%; transform: translateX(-50%);
       font-size: 0.7rem;
       letter-spacing: 0.3em;
-      color: rgba(176,96,255,0.75);
+      color: rgba(195,125,255,.88);
       text-transform: uppercase;
     }
 
@@ -318,7 +318,7 @@
     .form-label {
       font-size: 0.72rem;
       letter-spacing: 0.3em;
-      color: rgba(160,140,200,0.6);
+      color: rgba(180,162,215,0.84);
       margin-bottom: 12px;
       text-transform: uppercase;
     }
@@ -393,7 +393,7 @@
     .complete-label {
       font-size: clamp(0.85rem, 2vw, 1rem);
       letter-spacing: 0.3em;
-      color: rgba(176,140,220,0.7);
+      color: rgba(195,162,232,.88);
       margin-bottom: 10px;
       text-transform: uppercase;
     }
@@ -581,7 +581,7 @@
     }
     .evhost-sub {
       text-align: center; font-size: .68rem;
-      color: rgba(180,150,255,.6); margin-bottom: 16px; letter-spacing: .05em;
+      color: rgba(198,170,255,.84); margin-bottom: 16px; letter-spacing: .05em;
     }
     .evhost-category-title {
       font-size: .92rem; font-weight: bold; letter-spacing: .12em;
@@ -616,9 +616,49 @@
     }
     .evhost-card.real-card:hover { border-color: rgba(255,160,80,.6); }
     .evhost-card.locked {
-      opacity: .45;
-      filter: grayscale(.6);
+      opacity: .75;
       cursor: not-allowed;
+    }
+    /* ロック中のミステリーUI */
+    .evhost-card-mystery-icon {
+      font-size: 1.8rem; margin-bottom: 4px;
+      color: rgba(150,130,200,.5);
+      filter: blur(0px);
+    }
+    .evhost-card-mystery-name {
+      font-size: .82rem; font-weight: 700;
+      color: rgba(150,130,200,.4);
+      letter-spacing: .15em; margin-bottom: 5px;
+    }
+    .evhost-card-mystery-stars {
+      font-size: .60rem; color: rgba(150,130,200,.3);
+      margin-bottom: 3px; letter-spacing: .05em;
+    }
+    .evhost-card-mystery-detail {
+      font-size: .62rem; color: rgba(150,130,200,.3);
+      margin-bottom: 5px;
+    }
+    .evhost-card-mystery-cost {
+      color: rgba(150,130,200,.3) !important;
+      margin-bottom: 7px;
+    }
+    .evhost-card-mystery-bar {
+      height: 5px; background: rgba(150,130,200,.15);
+      border-radius: 3px; margin-bottom: 6px;
+    }
+    .evhost-card-mystery-lines {
+      font-size: .62rem; color: rgba(150,130,200,.25);
+      line-height: 1.7;
+    }
+    .evhost-lock-badge {
+      margin-top: 10px;
+      font-size: .65rem; font-weight: 700;
+      color: rgba(200,170,255,.72);
+      background: rgba(100,70,160,.3);
+      border: 1px solid rgba(150,100,220,.3);
+      border-radius: 8px;
+      padding: 4px 10px;
+      letter-spacing: .05em;
     }
     .evhost-card.locked:hover { border-color: rgba(120,100,180,.3); transform: none; }
     .evhost-card.locked::before { opacity: 0 !important; }
@@ -646,10 +686,10 @@
       font-size: .8rem; font-weight: bold; color: #d0c0f0;
       margin-bottom: 3px; letter-spacing: .06em;
     }
-    .evhost-card-scale { font-size: .62rem; color: rgba(176,150,255,.6); margin-bottom: 8px; }
+    .evhost-card-scale { font-size: .62rem; color: rgba(196,172,255,.82); margin-bottom: 8px; }
     .evhost-card-cost { font-size: .78rem; color: #80e8ff; font-weight: bold; margin-bottom: 6px; }
     .evhost-rate-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
-    .evhost-rate-label { font-size: .62rem; color: rgba(190,170,255,.7); white-space: nowrap; }
+    .evhost-rate-label { font-size: .62rem; color: rgba(208,190,255,.88); white-space: nowrap; }
     .evhost-rate-bar-wrap {
       flex: 1; height: 5px; background: rgba(255,255,255,.1);
       border-radius: 3px; overflow: hidden;
@@ -669,7 +709,7 @@
     .evhost-footer { display: flex; justify-content: center; margin-top: 18px; }
     .evhost-cancel {
       padding: 10px 30px; border: 1px solid rgba(176,96,255,.3); border-radius: 8px;
-      background: transparent; color: rgba(200,175,255,.7);
+      background: transparent; color: rgba(215,192,255,.88);
       font-size: .82rem; cursor: pointer; transition: all .2s;
     }
     .evhost-cancel:hover { background: rgba(176,96,255,.12); }
@@ -711,7 +751,7 @@
     }
     .evhost-confirm-cost { font-size: .9rem; color: #80e8ff; margin-bottom: 10px; }
     .evhost-confirm-detail {
-      font-size: .7rem; color: rgba(190,170,255,.75);
+      font-size: .7rem; color: rgba(208,190,255,.92);
       line-height: 1.9; margin-bottom: 16px;
     }
     .evhost-confirm-warn {
@@ -733,7 +773,7 @@
     .btn-evhost-go:hover { transform: translateY(-1px); box-shadow: 0 0 30px rgba(176,96,255,.5); }
     .btn-evhost-back {
       background: transparent; border: 1px solid rgba(176,96,255,.3);
-      color: rgba(200,175,255,.7);
+      color: rgba(215,192,255,.88);
     }
     .btn-evhost-back:hover { background: rgba(176,96,255,.1); }
 
@@ -811,7 +851,7 @@
     #btnVtselGo.ready:hover { transform: translateY(-1px); box-shadow: 0 0 28px rgba(176,96,255,.5); }
     #btnVtselBack {
       background: transparent; border: 1px solid rgba(176,96,255,.3);
-      color: rgba(200,175,255,.7);
+      color: rgba(215,192,255,.88);
     }
     #btnVtselBack:hover { background: rgba(176,96,255,.1); }
 
@@ -882,7 +922,7 @@
     .success .evhost-result-title { color: #ffe880; }
     .failure .evhost-result-title { color: #ff8898; }
     .evhost-result-desc {
-      font-size: .75rem; color: rgba(200,180,255,.75);
+      font-size: .75rem; color: rgba(215,198,255,.92);
       line-height: 1.8; margin-bottom: 14px;
     }
     .evhost-result-effect {
@@ -987,7 +1027,7 @@
       display: flex; flex-direction: column; gap: 20px;
     }
     .evimg-hist-empty {
-      text-align: center; color: rgba(200,175,255,.4);
+      text-align: center; color: rgba(215,192,255,.65);
       font-size: .8rem; margin: 40px 0;
     }
     .evimg-hist-item { display: flex; flex-direction: column; gap: 8px; }
@@ -1015,7 +1055,7 @@
     /* イメージ履歴ボタン */
     .btn-evimg-hist {
       background: transparent; border: 1px solid rgba(176,96,255,.3);
-      color: rgba(200,175,255,.6); font-size: .68rem; padding: 5px 16px;
+      color: rgba(215,192,255,.82); font-size: .68rem; padding: 5px 16px;
       border-radius: 20px; cursor: pointer; letter-spacing: .06em;
       font-family: inherit; transition: all .2s; margin-top: 10px;
     }
@@ -1488,7 +1528,7 @@
     .gawa-prog-sub {
       font-size: 0.72rem;
       letter-spacing: 0.2em;
-      color: rgba(200,185,235,0.85);
+      color: rgba(215,202,245,0.95);
       margin-bottom: 36px;
     }
     .gawa-prog-bar-wrap {
@@ -1540,7 +1580,7 @@
     .gawa-soul-panel-ttl {
       font-size: 0.72rem;
       letter-spacing: 0.22em;
-      color: rgba(200,185,235,0.85);
+      color: rgba(215,202,245,0.95);
       margin-bottom: 10px;
     }
     .gawa-soul-list { display:flex; flex-direction:column; gap:7px; }
@@ -1682,7 +1722,7 @@
     }
     .vborn-gawa-frame svg { width:100%; display:block; }
     .vborn-info { flex:1; }
-    .vborn-gen { font-size:.6rem; letter-spacing:.25em; color:rgba(190,170,230,.7); margin-bottom:6px; text-transform:uppercase; }
+    .vborn-gen { font-size:.6rem; letter-spacing:.25em; color:rgba(208,190,242,.88); margin-bottom:6px; text-transform:uppercase; }
     .vborn-name {
       font-size:clamp(1.3rem,4vw,2rem); font-weight:900;
       background:linear-gradient(135deg,#d080ff,#80d0ff);
@@ -1694,7 +1734,7 @@
     .vborn-soul-mini { width:40px; height:40px; flex-shrink:0; }
     .vborn-soul-mini svg { width:100%; height:100%; }
     .vborn-soul-mini img { width:100%; height:100%; object-fit:cover; object-position:center top; display:block; border-radius:50%; }
-    .vborn-soul-label { font-size:.58rem; letter-spacing:.2em; color:rgba(176,140,220,.65); display:block; margin-bottom:2px; }
+    .vborn-soul-label { font-size:.58rem; letter-spacing:.2em; color:rgba(195,162,232,.84); display:block; margin-bottom:2px; }
     .vborn-soul-name { font-size:.82rem; font-weight:bold; color:#d0c8f0; }
     .vborn-soul-type { font-size:.6rem; color:rgba(185,168,220,.8); }
     .btn-hub-from-born {
@@ -1807,7 +1847,7 @@
     }
     .diss-icon  { font-size: 2.2rem; margin-bottom: 10px; }
     .diss-title { font-size: 1.05rem; font-weight: 800; color: #ff9090; letter-spacing: .06em; margin-bottom: 10px; }
-    .diss-msg   { font-size: .82rem; color: rgba(230,200,200,.65); line-height: 1.7; margin-bottom: 24px; }
+    .diss-msg   { font-size: .82rem; color: rgba(240,215,215,.85); line-height: 1.7; margin-bottom: 24px; }
     .diss-btn-row { display: flex; gap: 10px; }
     #btnDissolveDo {
       flex: 1; padding: 12px 0; font-size: .9rem; font-weight: 800;
@@ -1878,7 +1918,7 @@
       color: #ff9090; letter-spacing: 0.1em; margin-bottom: 8px;
     }
     .reset-modal-desc {
-      font-size: 0.78rem; color: rgba(200,180,210,0.8);
+      font-size: 0.78rem; color: rgba(215,196,222,0.93);
       line-height: 1.8; margin-bottom: 22px;
     }
     .reset-modal-btns { display: flex; gap: 10px; justify-content: center; }
@@ -2087,7 +2127,7 @@
     }
     .event-desc {
       font-size: 0.78rem;
-      color: rgba(200,185,235,0.85);
+      color: rgba(215,202,245,0.95);
       line-height: 1.75;
       margin-bottom: 16px;
     }
@@ -2250,7 +2290,7 @@
     }
     .leb-date {
       font-size: 0.6rem;
-      color: rgba(170,155,210,0.5);
+      color: rgba(190,175,225,.72);
       white-space: nowrap;
       flex-shrink: 0;
     }
@@ -2324,7 +2364,7 @@
     }
     .evhist-empty {
       text-align: center;
-      color: rgba(170,155,210,0.4);
+      color: rgba(188,175,225,.65);
       font-size: 0.8rem;
       padding: 40px 0;
     }
@@ -2351,7 +2391,7 @@
     .evhist-row.levelup .evhist-row-title { color: #d080ff; }
     .evhist-row-sub {
       font-size: 0.65rem;
-      color: rgba(185,168,220,0.6);
+      color: rgba(204,188,235,0.84);
       margin-top: 2px;
       white-space: nowrap;
       overflow: hidden;
@@ -2359,7 +2399,7 @@
     }
     .evhist-row-effect {
       font-size: 0.65rem;
-      color: rgba(185,168,220,0.75);
+      color: rgba(204,188,235,0.92);
       margin-top: 3px;
     }
     .evhist-meta {
@@ -2440,7 +2480,7 @@
     .op-bar-fill.trust      { background: linear-gradient(90deg, #4eff91, #a0ffcc); }
     .op-val {
       font-size: 0.62rem;
-      color: rgba(200,185,255,0.65);
+      color: rgba(215,202,255,.84);
       width: 28px;
       text-align: right;
       flex-shrink: 0;
@@ -2716,7 +2756,7 @@
     .ch-radar-header {
       font-size: .72rem;
       letter-spacing: .2em;
-      color: rgba(176,120,255,.7);
+      color: rgba(196,145,255,.88);
       text-align: center;
       margin-bottom: 10px;
     }
@@ -2776,7 +2816,7 @@
     }
     .ch-plog-empty {
       font-size: .78rem;
-      color: rgba(180,160,220,0.4);
+      color: rgba(198,180,232,.65);
       text-align: center;
       padding: 16px 0;
     }
@@ -2805,13 +2845,13 @@
     .ch-plog-row.levelup .ch-plog-title { color: #d080ff; }
     .ch-plog-sub {
       font-size: .7rem;
-      color: rgba(180,160,220,0.6);
+      color: rgba(198,180,232,0.85);
       margin-top: 2px;
       line-height: 1.5;
     }
     .ch-plog-date {
       font-size: .65rem;
-      color: rgba(160,140,200,0.45);
+      color: rgba(180,162,218,.68);
       white-space: nowrap;
       flex-shrink: 0;
       margin-top: 2px;
@@ -2945,7 +2985,7 @@
     }
     .style-opt-desc {
       font-size: .54rem;
-      color: rgba(185,168,220,.75);
+      color: rgba(208,194,238,.93);
       line-height: 1.55;
     }
     .style-opt-check { display: none; }
@@ -3058,7 +3098,7 @@
       gap: 10px;
       margin-bottom: 16px;
       font-size: 0.82rem;
-      color: rgba(185,168,220,0.7);
+      color: rgba(204,188,235,.88);
     }
     .color-custom-row input[type="color"] {
       width: 36px; height: 36px;
@@ -3278,7 +3318,7 @@
     }
     .milestone-desc {
       font-size: .82rem;
-      color: rgba(230,210,170,.7);
+      color: rgba(240,222,185,.88);
       line-height: 1.7;
       margin: 4px 0 8px;
       white-space: pre-line;
@@ -3317,18 +3357,54 @@
     #btnMilestoneClose:hover { background: rgba(255,180,40,.12); color: #ffe8a0; }
 
     /* ガワ3択選択ステップ */
-    .gawa-pick-sub  { font-size:.8rem; color:rgba(200,180,255,.65); letter-spacing:.1em; margin-bottom:20px; text-align:center; }
-    .gawa-pick-grid { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; width:100%; max-width:520px; }
+    .gawa-pick-sub  { font-size:.8rem; color:rgba(215,196,255,.84); letter-spacing:.1em; margin-bottom:20px; text-align:center; }
+    .gawa-pick-grid {
+      display: flex; gap: 16px; justify-content: center;
+      flex-wrap: wrap; width: 100%; max-width: 700px;
+    }
     .gawa-pick-item {
-      width:150px; cursor:pointer; border-radius:14px; overflow:hidden;
+      width: clamp(180px, 27vw, 210px);
+      cursor:pointer; border-radius:14px; overflow:hidden;
       border:2px solid rgba(255,255,255,.12);
       transition:border-color .2s,transform .2s,box-shadow .2s;
       background:#0a0518;
     }
+    @media (max-width: 560px) {
+      .gawa-pick-grid { flex-direction:column; align-items:center; gap:20px; max-width:100%; }
+      .gawa-pick-item { width: min(78vw, 300px); }
+    }
     .gawa-pick-item:hover { border-color:rgba(176,96,255,.7); transform:translateY(-4px); box-shadow:0 8px 24px rgba(176,96,255,.3); }
     .gawa-pick-item.selected { border-color:#b060ff; box-shadow:0 0 28px rgba(176,96,255,.55); transform:translateY(-4px); }
-    .gawa-pick-item img { width:100%; height:170px; object-fit:contain; display:block; padding:10px; box-sizing:border-box; }
-    .gawa-pick-label { font-size:.68rem; color:rgba(200,180,255,.55); text-align:center; padding:4px 0 8px; }
+    .gawa-pick-item img { width:100%; height:clamp(210px, 30vw, 250px); object-fit:contain; display:block; padding:12px; box-sizing:border-box; }
+    .gawa-pick-label { font-size:.68rem; color:rgba(215,196,255,.80); text-align:center; padding:4px 0 8px; }
+    .btn-gawa-pick-ok {
+      padding: 12px 40px;
+      background: transparent;
+      border: 2px solid rgba(176,96,255,.35);
+      color: rgba(180,140,255,.6);
+      border-radius: 40px;
+      font-size: .9rem;
+      font-weight: bold;
+      letter-spacing: .12em;
+      font-family: inherit;
+      cursor: default;
+      transition: all .2s;
+      opacity: .45;
+      pointer-events: none;
+    }
+    .btn-gawa-pick-ok.ready {
+      border-color: #b060ff;
+      color: #d090ff;
+      opacity: 1;
+      cursor: pointer;
+      pointer-events: auto;
+      box-shadow: 0 0 18px rgba(176,96,255,.3);
+    }
+    .btn-gawa-pick-ok.ready:hover {
+      background: rgba(176,96,255,.15);
+      box-shadow: 0 0 28px rgba(176,96,255,.5);
+      color: #fff;
+    }
     .btn-gawa-reorder {
       margin-top:22px; padding:10px 28px;
       background:transparent; border:1px solid rgba(176,96,255,.35);
@@ -3582,7 +3658,7 @@
     }
     .ch-mental-label {
       font-size: .68rem;
-      color: rgba(185,168,220,.65);
+      color: rgba(204,188,235,.84);
       white-space: nowrap;
     }
     .ch-mental-bar-wrap {
@@ -3623,7 +3699,7 @@
       transform: translateY(-6px);
       transition: opacity 0.55s ease, transform 0.55s ease, border-color 0.4s;
       pointer-events: none;
-      min-width: 148px;
+      min-width: 112px;
       box-shadow: 0 0 20px rgba(0,229,255,0.08);
     }
     #moneyHUD.visible {
@@ -3649,7 +3725,7 @@
     }
 
     .hud-amount {
-      font-size: clamp(1rem, 2.8vw, 1.25rem);
+      font-size: clamp(0.82rem, 2.2vw, 1.0rem);
       font-weight: 700;
       letter-spacing: 0.04em;
       color: #80e8ff;
@@ -3740,7 +3816,7 @@
     .subs-hud-label {
       font-size: 0.62rem;
       letter-spacing: 0.28em;
-      color: rgba(176,140,220,0.75);
+      color: rgba(195,162,232,.90);
       text-transform: uppercase;
     }
     .subs-hud-amount {
@@ -3754,7 +3830,7 @@
     }
     .subs-hud-delta {
       font-size: 0.62rem;
-      color: rgba(200,160,255,0.75);
+      color: rgba(215,180,255,.90);
       letter-spacing: 0.04em;
       min-height: 0.8em;
       transition: opacity 0.3s;
@@ -3788,7 +3864,7 @@
     .date-label {
       font-size: .5rem;
       letter-spacing: .3em;
-      color: rgba(176,140,220,.62);
+      color: rgba(195,162,232,.82);
       text-transform: uppercase;
       margin-bottom: 1px;
     }
@@ -3891,7 +3967,7 @@
     /* ── 誕生日ピッカー ── */
     #gawaStepBirthday { justify-content: flex-start; }
     .birthday-section-label {
-      font-size: .72rem; color: rgba(180,150,255,.7);
+      font-size: .72rem; color: rgba(198,170,255,.88);
       letter-spacing: .1em; margin-bottom: 8px; align-self: flex-start;
     }
     .birthday-month-grid {
@@ -3973,7 +4049,7 @@
     .ledger-close {
       background: none;
       border: none;
-      color: rgba(180,160,220,0.55);
+      color: rgba(198,180,232,.78);
       font-size: 1.1rem;
       cursor: pointer;
       padding: 2px 6px;
@@ -4011,7 +4087,7 @@
     }
     .ledger-row-date {
       font-size: 0.58rem;
-      color: rgba(180,160,220,0.45);
+      color: rgba(198,180,232,.68);
       margin-top: 2px;
       letter-spacing: 0.04em;
     }
@@ -4027,7 +4103,7 @@
     .ledger-row-delta.neg { color: #ff8888; }
     .ledger-row-balance {
       font-size: 0.6rem;
-      color: rgba(140,200,220,0.45);
+      color: rgba(158,212,228,.68);
       text-align: right;
       font-variant-numeric: tabular-nums;
       margin-top: 2px;
@@ -4293,7 +4369,7 @@
     }
     .date-remaining {
       font-size: .5rem; letter-spacing: .2em;
-      color: rgba(176,140,220,.55); text-align: center;
+      color: rgba(195,162,232,.78); text-align: center;
     }
     /* ── 時間終了オーバーレイ（FINALE モード） ── */
     #gameOverOverlay.finale .go-title {
@@ -4756,6 +4832,7 @@
     <div class="gawa-pick-sub">3種類の中から1つ選んでください</div>
     <div class="gawa-pick-grid" id="gawaPickGrid"></div>
     <div class="gawa-pick-footer">
+      <button class="btn-gawa-pick-ok" id="btnGawaPickOk">このガワにする ▶</button>
       <button class="btn-gawa-reorder" id="btnGawaReorder">もう一度発注する（¥500,000）</button>
       <button class="btn-gawa-back-hub" id="btnGawaPickBackHub">事務所に戻る</button>
     </div>
@@ -4922,7 +4999,7 @@
     <div class="vborn-ch-title" id="vbornChTitle"></div>
     <div class="vborn-ch-style" id="vbornChStyle"></div>
   </div>
-  <div style="font-size:.7rem;color:rgba(180,155,255,.6);margin-top:10px;letter-spacing:.08em;text-align:center;">
+  <div style="font-size:.7rem;color:rgba(198,175,255,.82);margin-top:10px;letter-spacing:.08em;text-align:center;">
     🎂 誕生日：<span id="vbornBirthday">──</span>　　✨ デビュー日：<span id="vbornDebutDate">──</span>
   </div>
   <button class="btn-hub-from-born" id="btnHubFromBorn">事務所に戻る</button>
@@ -5650,7 +5727,7 @@ function showScreen(id){
   if (menuBtn) menuBtn.style.display = (id === 'hubScreen') ? '' : 'none';
   // HUD（登録者数・日時・資金）はchannelScreen以外で表示
   const _hudIds = ['subsHUD', 'dateHUD', 'moneyHUD'];
-  const _hideHUD = (id === 'channelScreen');
+  const _hideHUD = (id === 'channelScreen' || id === 'auditionScreen' || id === 'gawaScreen');
   _hudIds.forEach(hid => {
     const hel = document.getElementById(hid);
     if (hel) hel.style.visibility = _hideHUD ? 'hidden' : '';
@@ -6323,9 +6400,18 @@ const money = (() => {
   const hudEl    = () => document.getElementById('moneyHUD');
   let _deltaTimer = null;
 
+  function _formatHUD(n) {
+    const abs = Math.abs(n);
+    if (abs >= 100_000_000) {
+      const x = Math.round(abs / 10_000_000) / 10;
+      return (Number.isInteger(x) ? x : x.toFixed(1)) + '億円';
+    }
+    if (abs >= 10_000) return Math.round(abs / 10_000) + '万円';
+    return abs.toLocaleString('ja-JP') + '円';
+  }
   function _format(v) {
-    if (v < 0) return `−${_formatJP(v)}`;
-    return _formatJP(v);
+    if (v < 0) return `−${_formatHUD(-v)}`;
+    return _formatHUD(v);
   }
   function _updateDisplay() {
     amountEl().textContent = _format(_value);
@@ -7932,7 +8018,7 @@ const CANDIDATES = [
     id: 'noir',
     name: 'ノワール',
     type: 'バケネコ',
-    typeColor: 'rgba(120,0,200,.7)',
+    typeColor: 'rgba(195,110,255,.97)',
     typeBg: 'rgba(80,0,150,.25)',
     quote: '……ふん。私の魅力が\nわかる人間がいるとは\n思えませんけど。',
     stats: { talk: 70, persona: 95 },
@@ -7944,7 +8030,7 @@ const CANDIDATES = [
     id: 'popo',
     name: 'ポポ',
     type: '200歳のオウム',
-    typeColor: 'rgba(0,160,60,.8)',
+    typeColor: 'rgba(80,230,130,.97)',
     typeBg: 'rgba(0,100,40,.25)',
     quote: 'かたじけない！ポポポ！\n余は幕末も見たぞ！\nポポポポ！',
     stats: { talk: 95, persona: 80 },
@@ -7956,7 +8042,7 @@ const CANDIDATES = [
     id: 'lily',
     name: 'リリィ',
     type: '人魚',
-    typeColor: 'rgba(0,160,220,.8)',
+    typeColor: 'rgba(80,215,255,.97)',
     typeBg: 'rgba(0,100,160,.25)',
     quote: 'お肉！！食べてみたい！！\nあとラーメン！！唐揚げ！！\nぜんぶ食べたいの！！',
     stats: { talk: 75, persona: 92 },
@@ -7968,7 +8054,7 @@ const CANDIDATES = [
     id: 'gonta',
     name: 'ゴン太',
     type: '内気な小鬼',
-    typeColor: 'rgba(200,60,0,.8)',
+    typeColor: 'rgba(255,135,70,.97)',
     typeBg: 'rgba(140,30,0,.25)',
     quote: 'あの……料理配信とか\nしてもいいですか……\n迷惑だったらごめんなさい',
     stats: { talk: 45, persona: 98 },
@@ -7980,7 +8066,7 @@ const CANDIDATES = [
     id: 'himari',
     name: '橘ひまり',
     type: '普通の女子高生',
-    typeColor: 'rgba(220,60,120,.8)',
+    typeColor: 'rgba(255,130,182,.97)',
     typeBg: 'rgba(160,30,80,.25)',
     quote: 'え、みんなモンスターなの！？\n……まあいっか！\nよろしくね〜！',
     stats: { talk: 82, persona: 68 },
@@ -7992,7 +8078,7 @@ const CANDIDATES = [
     id: 'rei',
     name: '零（れい）',
     type: '量子AI',
-    typeColor: 'rgba(0,160,255,.85)',
+    typeColor: 'rgba(100,205,255,.97)',
     typeBg: 'rgba(0,80,160,.25)',
     quote: '感情/喜び/楽しい……\n処理中……。ふぁっ、\nなんですかこの感覚は？',
     stats: { talk: 62, persona: 90 },
@@ -8004,7 +8090,7 @@ const CANDIDATES = [
     id: 'kumo',
     name: '天魔（てんま）',
     type: '天井蜘蛛',
-    typeColor: 'rgba(160,60,220,.85)',
+    typeColor: 'rgba(200,120,255,.97)',
     typeBg: 'rgba(100,20,160,.25)',
     quote: '人間ってうるさいのよねえ。\nでもまあ、そこが\n愛おしいのだけど。',
     stats: { talk: 84, persona: 86 },
@@ -8016,7 +8102,7 @@ const CANDIDATES = [
     id: 'flame',
     name: '炎太（えんた）',
     type: '炎の精霊',
-    typeColor: 'rgba(255,100,0,.85)',
+    typeColor: 'rgba(255,165,60,.97)',
     typeBg: 'rgba(180,50,0,.25)',
     quote: '俺の熱さ見せてやるぜ！\n……って言いたかったけど\n今めちゃ恥ずかしい。',
     stats: { talk: 72, persona: 88 },
@@ -8028,7 +8114,7 @@ const CANDIDATES = [
     id: 'luna',
     name: 'ルーナ',
     type: '月兎の落とし子',
-    typeColor: 'rgba(160,160,255,.85)',
+    typeColor: 'rgba(215,215,255,.97)',
     typeBg: 'rgba(80,80,180,.25)',
     quote: '月ではお餅を搗いていましたが\n配信というのも\nなかなか楽しそうですね。',
     stats: { talk: 78, persona: 82 },
@@ -8040,7 +8126,7 @@ const CANDIDATES = [
     id: 'yuki',
     name: '雪霞（ゆきか）',
     type: '雪女（7代目）',
-    typeColor: 'rgba(80,200,240,.85)',
+    typeColor: 'rgba(155,235,255,.97)',
     typeBg: 'rgba(0,120,180,.25)',
     quote: 'ひ、ひとたちと話すのが\n苦手なだけで……冷たく\nしてるわけじゃないから！',
     stats: { talk: 56, persona: 94 },
@@ -8052,7 +8138,7 @@ const CANDIDATES = [
     id: 'ryu',
     name: '龍崎（りゅうざき）',
     type: '千五百歳の古龍',
-    typeColor: 'rgba(0,160,60,.85)',
+    typeColor: 'rgba(80,230,130,.97)',
     typeBg: 'rgba(0,80,30,.25)',
     quote: '儂は1500年生きてきたが\nゲームとやらは\n初めて経験する面白さじゃ',
     stats: { talk: 88, persona: 72 },
@@ -8064,7 +8150,7 @@ const CANDIDATES = [
     id: 'fuwari',
     name: 'ふわり',
     type: '座敷童子',
-    typeColor: 'rgba(220,140,40,.85)',
+    typeColor: 'rgba(255,198,90,.97)',
     typeBg: 'rgba(160,90,0,.25)',
     quote: '……あなた、\nふわりのこと\n見えるの？',
     stats: { talk: 40, persona: 99 },
@@ -8076,7 +8162,7 @@ const CANDIDATES = [
     id: 'pon',
     name: 'ぽん',
     type: '化け狸',
-    typeColor: 'rgba(180,110,20,.85)',
+    typeColor: 'rgba(252,182,62,.97)',
     typeBg: 'rgba(120,70,0,.25)',
     quote: 'いらっしゃいませ〜！\nあ、違う違う。\n商売の癖が出ちゃった！',
     stats: { talk: 88, persona: 78 },
@@ -8088,7 +8174,7 @@ const CANDIDATES = [
     id: 'yura',
     name: 'ゆら',
     type: 'おてんば幽霊',
-    typeColor: 'rgba(120,70,220,.85)',
+    typeColor: 'rgba(185,145,255,.97)',
     typeBg: 'rgba(70,30,160,.25)',
     quote: 'ひゃは！びっくりした？\nしたよね？ね？\nもう一回やっていい？',
     stats: { talk: 80, persona: 90 },
@@ -8100,7 +8186,7 @@ const CANDIDATES = [
     id: 'tenshin',
     name: 'テンシン',
     type: '落第天使',
-    typeColor: 'rgba(180,160,0,.85)',
+    typeColor: 'rgba(240,228,40,.97)',
     typeBg: 'rgba(120,100,0,.25)',
     quote: 'え、光輪が曲がってる？\nあはは……また\n失敗しちゃいました……',
     stats: { talk: 74, persona: 85 },
@@ -8112,7 +8198,7 @@ const CANDIDATES = [
     id: 'fukami',
     name: 'フカミ',
     type: '深海サメ娘',
-    typeColor: 'rgba(0,80,200,.85)',
+    typeColor: 'rgba(90,172,255,.97)',
     typeBg: 'rgba(0,40,120,.25)',
     quote: '……噛まないから\n安心していいよ。\n今は。',
     stats: { talk: 55, persona: 95 },
@@ -8124,7 +8210,7 @@ const CANDIDATES = [
     id: 'konkon',
     name: 'こんこん',
     type: '千年狐の占い師',
-    typeColor: 'rgba(180,80,0,.85)',
+    typeColor: 'rgba(252,152,62,.97)',
     typeBg: 'rgba(120,50,0,.25)',
     quote: 'あなたの未来……\n面白いものが\n見えますよ、フフ。',
     stats: { talk: 76, persona: 96 },
@@ -8136,7 +8222,7 @@ const CANDIDATES = [
     id: 'musashi',
     name: 'むさし',
     type: 'サイバー忍者',
-    typeColor: 'rgba(0,180,140,.85)',
+    typeColor: 'rgba(80,242,198,.97)',
     typeBg: 'rgba(0,80,60,.25)',
     quote: '……任務は\n必ず完遂する。\n雑談も、だ。',
     stats: { talk: 60, persona: 92 },
@@ -8554,6 +8640,8 @@ let _gawaPickCandidates = [];  // ガワ3択の候補バリアント
 function buildGawaPickScreen() {
   const grid = document.getElementById('gawaPickGrid');
   grid.innerHTML = '';
+  const okBtn = document.getElementById('btnGawaPickOk');
+  if (okBtn) okBtn.classList.remove('ready');
   _gawaPickCandidates.forEach(variant => {
     const item = document.createElement('div');
     item.className = 'gawa-pick-item';
@@ -8566,11 +8654,17 @@ function buildGawaPickScreen() {
       grid.querySelectorAll('.gawa-pick-item').forEach(el => el.classList.remove('selected'));
       item.classList.add('selected');
       currentGawa = { id: `gawa_${Date.now()}`, variant };
-      setTimeout(() => advanceGawaStep(2), 380);
+      document.getElementById('btnGawaPickOk').classList.add('ready');
     });
     grid.appendChild(item);
   });
 }
+// ── ガワ3択：決定ボタン ──
+document.getElementById('btnGawaPickOk').addEventListener('click', () => {
+  if (!currentGawa) return;
+  advanceGawaStep(2);
+});
+
 // ── ガワ3択：もう一度発注する ──
 document.getElementById('btnGawaReorder').addEventListener('click', () => {
   if (money.value < GAWA_COST) { flashHudRed(); return; }
@@ -9727,7 +9821,7 @@ function openSubsChart() {
   const allCh = (gameState.channels || []);
   const channels = allCh.filter(ch => !ch.graduated);
   if (allCh.length === 0) {
-    panel.innerHTML = '<div style="text-align:center;color:rgba(176,140,255,.6);padding:60px 20px">まだチャンネルがありません</div>';
+    panel.innerHTML = '<div style="text-align:center;color:rgba(196,162,255,.84);padding:60px 20px">まだチャンネルがありません</div>';
     document.getElementById('subsChartOverlay').classList.add('show');
     return;
   }
@@ -9832,7 +9926,7 @@ function openSubsChart() {
     item.innerHTML = `
       <span style="display:inline-block;width:18px;height:3px;border-radius:2px;background:${color};flex-shrink:0"></span>
       <span style="font-size:.75rem;color:#d0c8f0">${vtLabel(ch.vtuber)}${ch.graduated ? ' 🎓' : ''}</span>
-      <span style="font-size:.7rem;color:rgba(176,140,255,.6)">${fmtNum(ch.subscribers)}人</span>`;
+      <span style="font-size:.7rem;color:rgba(196,162,255,.84)">${fmtNum(ch.subscribers)}人</span>`;
     legend.appendChild(item);
   });
   section.appendChild(legend);
@@ -14621,8 +14715,19 @@ function buildEvhostGrid(category) {
     const personalNote = dreamOwners && dreamOwners.length > 0
       ? dreamOwners.map(n => `<div class="evhost-dream-badge">🌠 ${n}の夢</div>`).join('')
       : '';
-    return `
-      <div class="${cardClass}" data-evid="${ev.id}" data-evtype="${category}" data-lock-msg="${lockMsg}" data-on-cd="${isOnCd}" data-prepping="${isThisPrepping}">
+    const _cardInner = isLocked ? `
+        <div class="evhost-card-icon evhost-card-mystery-icon">？</div>
+        <div class="evhost-card-name evhost-card-mystery-name">？？？？？</div>
+        <div class="evhost-card-mystery-stars">★★★★★</div>
+        <div class="evhost-card-mystery-detail">？？？　CT: ??日</div>
+        <div class="evhost-card-cost evhost-card-mystery-cost">💴 ??????円</div>
+        <div class="evhost-card-mystery-bar"></div>
+        <div class="evhost-card-mystery-lines">
+          <div>？？？？？？？？？？？？</div>
+          <div>？？？？？？？？？？？？</div>
+        </div>
+        <div class="evhost-lock-badge">🔒 事務所 Lv.${ev.minLevel} で解放</div>
+      ` : `
         ${cdBadge}
         <div class="evhost-card-icon">${ev.icon}</div>
         <div class="evhost-card-name">${ev.name}</div>
@@ -14640,6 +14745,10 @@ function buildEvhostGrid(category) {
         </div>
         <div class="evhost-card-reward">✅ 成功：+${_formatJP(rewardMin)}〜+${_formatJP(rewardMax)}<br>　　登録者 +${subMin}%〜+${subMax}%</div>
         <div class="evhost-card-risk">❌ 失敗：−${_formatJP(failLoss)}（損失）<br>　　登録者 −${Math.round(ev.failureSubLossRate*100)}%</div>
+      `;
+    return `
+      <div class="${cardClass}" data-evid="${ev.id}" data-evtype="${category}" data-lock-msg="${lockMsg}" data-on-cd="${isOnCd}" data-prepping="${isThisPrepping}">
+        ${_cardInner}
       </div>`;
   }).join('');
 
