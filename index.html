@@ -1502,7 +1502,10 @@
       max-width: 700px;
       gap: 0;
       min-height: 100%;
-      justify-content: center;
+      justify-content: safe center;
+      padding-top: clamp(16px, 4vh, 36px);
+      padding-bottom: clamp(16px, 4vh, 36px);
+      box-sizing: border-box;
     }
     .gawa-step.active { display: flex; }
     /* 推しマーク選択は縦に長いので上詰め */
@@ -3804,7 +3807,7 @@
       transform: translateY(-6px);
       transition: opacity 0.55s ease, transform 0.55s ease;
       pointer-events: none;
-      min-width: 130px;
+      min-width: 112px;
       box-shadow: 0 0 20px rgba(176,96,255,0.08);
     }
     #subsHUD.visible {
@@ -3820,7 +3823,7 @@
       text-transform: uppercase;
     }
     .subs-hud-amount {
-      font-size: clamp(1rem, 2.8vw, 1.25rem);
+      font-size: clamp(0.82rem, 2.2vw, 1.0rem);
       font-weight: 700;
       letter-spacing: 0.04em;
       color: #c880ff;
@@ -3828,13 +3831,7 @@
       font-variant-numeric: tabular-nums;
       line-height: 1;
     }
-    .subs-hud-delta {
-      font-size: 0.62rem;
-      color: rgba(215,180,255,.90);
-      letter-spacing: 0.04em;
-      min-height: 0.8em;
-      transition: opacity 0.3s;
-    }
+    .subs-hud-delta { display: none; }
 
     /* ════════════════════════
        DATE HUD
@@ -4884,15 +4881,9 @@
     <div class="gawa-mini-header-row">
       <div class="gawa-mini-thumb" id="gawaEmojiThumb"></div>
       <div class="naming-dlog" style="flex:1;margin-bottom:0;">
-        <div class="dlog-header">
-          <div class="dlog-icon" id="gawaOshiAiriIcon"></div>
-          <div><div class="dlog-speaker">アイリ</div></div>
-        </div>
         <div class="dlog-text" id="gawaOshiAiriText"></div>
       </div>
     </div>
-    <div class="oshi-preview" id="oshiPreview">⭐</div>
-    <div class="oshi-name-preview" id="oshiNamePreview"></div>
     <div class="oshi-grid" id="oshiGrid"></div>
     <div style="display:flex;justify-content:flex-end;width:100%;max-width:480px;">
       <button class="btn-vtuber-born" id="btnOshiConfirm">イメージカラーを決める ▶</button>
@@ -4906,15 +4897,9 @@
     <div class="gawa-mini-header-row">
       <div class="gawa-mini-thumb" id="gawaColorThumb"></div>
       <div class="naming-dlog" style="flex:1;margin-bottom:0;">
-        <div class="dlog-header">
-          <div class="dlog-icon" id="gawaColorAiriIcon"></div>
-          <div><div class="dlog-speaker">アイリ</div></div>
-        </div>
         <div class="dlog-text" id="gawaColorAiriText"></div>
       </div>
     </div>
-    <div class="color-preview-ring" id="colorPreviewRing"></div>
-    <div class="color-name-preview" id="colorNamePreview">🎨 パープル</div>
     <div class="color-swatch-grid" id="colorSwatchGrid"></div>
     <div class="color-custom-row">
       <label for="colorCustomPicker">🖌️ カスタムカラー：</label>
@@ -4929,10 +4914,6 @@
   <div class="gawa-step" id="gawaStepBirthday">
     <div class="gawa-reveal-title">誕生日を決めましょう</div>
     <div class="naming-dlog" style="width:100%;max-width:680px;margin-bottom:14px;">
-      <div class="dlog-header">
-        <div class="dlog-icon" id="gawaBdayAiriIcon"></div>
-        <div><div class="dlog-speaker">アイリ</div></div>
-      </div>
       <div class="dlog-text" id="gawaBdayAiriText"></div>
     </div>
     <div class="bday-preview" id="bdayPreview">── 誕生日未設定 ──</div>
@@ -4950,10 +4931,6 @@
   <div class="gawa-step" id="gawaStep3">
     <div class="gawa-reveal-title">配信スタイルを決めましょう</div>
     <div class="naming-dlog" style="width:100%;max-width:680px;margin-bottom:14px;">
-      <div class="dlog-header">
-        <div class="dlog-icon" id="gawaStyleAiriIcon"></div>
-        <div><div class="dlog-speaker">アイリ</div></div>
-      </div>
       <div class="dlog-text" id="gawaStyleAiriText"></div>
     </div>
     <!-- 決定内容ミニ表示 -->
@@ -5406,7 +5383,6 @@
 <div id="subsHUD">
   <div class="subs-hud-label">TOTAL SUBS</div>
   <div class="subs-hud-amount" id="subsHudAmount">0 人</div>
-  <div class="subs-hud-delta" id="subsHudDelta"></div>
 </div>
 
 <!-- 資金HUD（常時表示） -->
@@ -8947,15 +8923,13 @@ const OSHI_EMOJIS = [
 /* ── Step 3（新）: 推しマーク選択 ── */
 function setupGawaStepEmoji() {
   pendingOshi = '⭐';
-  document.getElementById('oshiPreview').textContent = pendingOshi;
-  document.getElementById('oshiNamePreview').textContent = `${pendingOshi} ${pendingVtName}`;
   // 決定ボタンは最初から押せる状態にする（絵文字はデフォルト⭐で選択済み扱い）
   document.getElementById('btnOshiConfirm').classList.add('ready');
   // ガワサムネイル表示
   if (currentGawa) {
     document.getElementById('gawaEmojiThumb').innerHTML = gawaPlaceholder(currentGawa.variant, '#808080');
   }
-  document.getElementById('gawaOshiAiriIcon').innerHTML = secretarySVG();
+  const _gOI = document.getElementById('gawaOshiAiriIcon'); if(_gOI) _gOI.innerHTML = secretarySVG();
   typewrite(
     document.getElementById('gawaOshiAiriText'),
     `いい名前ですね！「${pendingVtName}」さん！\nでは次に——ファンが使う推しマークを1つ決めましょう。\nこの絵文字がこの子の象徴になります！`,
@@ -8975,14 +8949,7 @@ function buildOshiGrid() {
       pendingOshi = emoji;
       // アクティブ状態を更新
       grid.querySelectorAll('.oshi-btn').forEach(b => b.classList.toggle('active', b.textContent === emoji));
-      // プレビューをポップアニメで更新
-      const prev = document.getElementById('oshiPreview');
-      prev.textContent = emoji;
-      prev.classList.remove('pop');
-      void prev.offsetWidth;
-      prev.classList.add('pop');
-      setTimeout(() => prev.classList.remove('pop'), 200);
-      document.getElementById('oshiNamePreview').textContent = `${emoji} ${pendingVtName}`;
+
     });
     grid.appendChild(btn);
   });
@@ -9021,15 +8988,12 @@ const IMAGE_COLORS = [
 /* ── イメージカラー選択ステップ ── */
 function setupGawaStepColor() {
   pendingColor = '#b060ff';
-  const ring = document.getElementById('colorPreviewRing');
-  ring.style.background = pendingColor;
-  ring.style.boxShadow = `0 0 28px ${pendingColor}88`;
-  document.getElementById('colorNamePreview').textContent = '🎨 パープル';
+
   // ガワサムネイル表示（カラー選択でリアルタイム更新）
   if (currentGawa) {
     document.getElementById('gawaColorThumb').innerHTML = gawaPlaceholder(currentGawa.variant, '#808080');
   }
-  document.getElementById('gawaColorAiriIcon').innerHTML = secretarySVG();
+  const _gCI = document.getElementById('gawaColorAiriIcon'); if(_gCI) _gCI.innerHTML = secretarySVG();
   typewrite(
     document.getElementById('gawaColorAiriText'),
     `推しマーク「${pendingOshi}」、いいですね！\n次は——「${pendingVtName}」さんのイメージカラーを決めましょう。\nサムネイルの背景色や、ファンアートで使われる特別な色になります！`,
@@ -9063,10 +9027,7 @@ function buildColorSwatchGrid() {
 
 function selectColor(hex, name) {
   pendingColor = hex;
-  const ring = document.getElementById('colorPreviewRing');
-  ring.style.background = hex;
-  ring.style.boxShadow = `0 0 28px ${hex}88`;
-  document.getElementById('colorNamePreview').textContent = `🎨 ${name}`;
+
   // ガワサムネイルをリアルタイムで背景色更新
   const colorThumb = document.getElementById('gawaColorThumb');
   if (colorThumb && currentGawa) {
@@ -9086,7 +9047,7 @@ function setupGawaStepBirthday() {
   confirmBtn.style.opacity = '.35';
   confirmBtn.style.pointerEvents = 'none';
   document.getElementById('bdayDayLabel').style.opacity = '.4';
-  document.getElementById('gawaBdayAiriIcon').innerHTML = secretarySVG();
+  const _gBI = document.getElementById('gawaBdayAiriIcon'); if(_gBI) _gBI.innerHTML = secretarySVG();
   typewrite(
     document.getElementById('gawaBdayAiriText'),
     `推しマーク「${pendingOshi}」、素敵ですね！
@@ -9183,7 +9144,7 @@ function setupGawaStep3() {
   document.getElementById('gawaStep3Thumb').innerHTML  = gawaPlaceholder(currentGawa.variant, pendingColor);
   document.getElementById('gawaStep3Soul').innerHTML   = soulIconHtml(currentGawaSoul);
   document.getElementById('gawaStep3VtName').textContent = `${pendingOshi} ${pendingVtName}`;
-  document.getElementById('gawaStyleAiriIcon').innerHTML = secretarySVG();
+  const _gSI = document.getElementById('gawaStyleAiriIcon'); if(_gSI) _gSI.innerHTML = secretarySVG();
   typewrite(
     document.getElementById('gawaStyleAiriText'),
     `推しマーク「${pendingOshi}」も決まりましたね！\n最後に——「${pendingVtName}」さんはどんな配信をしていきますか？\nスタイルを選んでください！`,
@@ -10053,7 +10014,6 @@ function dailySubGrowth() {
 function updateSubsHUD(deltaGain) {
   const hud    = document.getElementById('subsHUD');
   const amtEl  = document.getElementById('subsHudAmount');
-  const dltEl  = document.getElementById('subsHudDelta');
   const total  = (gameState.channels || []).reduce((s, ch) => s + (ch.subscribers || 0), 0);
 
   if (total > 0) hud.classList.add('visible');
@@ -10061,12 +10021,7 @@ function updateSubsHUD(deltaGain) {
   checkSubsMilestones(total);
   updateOfficeRankDisplay();
 
-  if (deltaGain && deltaGain > 0) {
-    dltEl.textContent = `▲ ${fmtNum(deltaGain)} 人`;
-    clearTimeout(dltEl._timer);
-    dltEl.style.opacity = '1';
-    dltEl._timer = setTimeout(() => { dltEl.style.opacity = '0'; }, 2500);
-  }
+
 }
 
 // 週次：totalViewsのみ補正（登録者は日次で処理）
@@ -14329,8 +14284,6 @@ function resetAllHUDs() {
   const subsHud = document.getElementById('subsHUD');
   subsHud.classList.remove('visible');
   document.getElementById('subsHudAmount').textContent = '0 人';
-  document.getElementById('subsHudDelta').textContent  = '';
-  document.getElementById('subsHudDelta').classList.remove('show');
   // 日付HUD
   document.getElementById('dateHUD').classList.remove('visible');
   // メニューボタン非表示
