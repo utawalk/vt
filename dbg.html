@@ -1,0 +1,3615 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DBG — VTゲーム デバッグビュー</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0e0e16;color:#ddd;font-family:'Hiragino Sans','Meiryo',sans-serif;font-size:13px}
+header{background:#1a1a2e;padding:12px 20px;border-bottom:2px solid #3a3a5e;display:flex;gap:16px;align-items:center;position:sticky;top:0;z-index:100}
+header h1{font-size:15px;color:#a080ff;font-weight:bold;letter-spacing:.08em}
+.tab-btn{background:none;border:1px solid #444;color:#aaa;padding:5px 14px;border-radius:6px;cursor:pointer;font-size:12px}
+.tab-btn.active{background:#3a3a5e;border-color:#8060d0;color:#fff}
+section{padding:20px;display:none}
+section.active{display:block}
+h2{font-size:14px;color:#c0a0ff;margin-bottom:14px;border-left:3px solid #8060d0;padding-left:8px}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;align-items:center}
+.controls label{font-size:11px;color:#888}
+.controls select,.controls input{background:#1e1e30;border:1px solid #444;color:#ccc;padding:4px 8px;border-radius:5px;font-size:12px}
+.controls input[type=color]{padding:2px 4px;height:28px;width:44px;cursor:pointer}
+.grid{display:grid;gap:12px}
+.grid-thumb{grid-template-columns:repeat(auto-fill,minmax(195px,1fr))}
+.grid-event{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.card{background:#141420;border-radius:8px;overflow:hidden;border:1px solid #2a2a40}
+.card-label{padding:5px 8px;font-size:10px;color:#888;background:#101018;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thumb-wrap{position:relative;aspect-ratio:16/9;overflow:hidden;background:#0a0518}
+.banner-wrap{position:relative;aspect-ratio:16/9;overflow:hidden;background:#111}
+.banner-wrap img.layer{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.banner-wrap .vt-slot{position:absolute;bottom:0;overflow:hidden}
+.banner-wrap .vt-slot img{width:100%;height:100%;object-fit:contain;object-position:bottom center;display:block}
+.style-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.style-tab{background:#1e1e30;border:1px solid #333;color:#999;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:11px}
+.style-tab.active{background:#3a2a60;border-color:#8060d0;color:#e0d0ff}
+.sep{height:2px;background:#1e1e30;margin:24px 0}
+
+/* キャラ配置調整 */
+.adj-back-btn{background:#252535;border:1px solid #555;color:#bbb;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px}
+.adj-back-btn:hover{background:#353550}
+.adj-title{font-size:14px;color:#c0a0ff;font-weight:bold;margin:0}
+.adj-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+@media(max-width:640px){.adj-layout{grid-template-columns:1fr}}
+.adj-preview-gawa-sel{margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:11px;color:#888}
+.adj-preview-gawa-sel select{background:#1e1e30;border:1px solid #444;color:#ccc;padding:3px 6px;border-radius:4px;font-size:11px}
+.adj-panel{background:#101018;border:1px solid #252535;border-radius:8px;padding:14px}
+.adj-section{margin-bottom:14px}
+.adj-slabel{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-weight:bold}
+.adj-mode-row{display:flex;flex-wrap:wrap;gap:4px}
+.adj-mode-btn{background:#1e1e30;border:1px solid #333;color:#999;padding:4px 10px;border-radius:5px;cursor:pointer;font-size:11px}
+.adj-mode-btn.active{background:#3a2a60;border-color:#8060d0;color:#e0d0ff}
+.adj-srow{display:grid;grid-template-columns:90px 1fr 44px;align-items:center;gap:6px;margin-bottom:8px}
+.adj-slbl{font-size:11px;color:#aaa}
+.adj-sval{font-size:11px;color:#c0a0ff;text-align:right}
+.adj-posrow,.adj-fitrow{display:flex;flex-wrap:wrap;gap:3px}
+.adj-pos-btn{background:#1e1e30;border:1px solid #333;color:#999;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:10px}
+.adj-pos-btn.active{background:#1e3a3a;border-color:#40a0a0;color:#80e0e0}
+.adj-fit-btn{background:#1e1e30;border:1px solid #333;color:#999;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:10px}
+.adj-fit-btn.active{background:#1e3a1e;border-color:#40a060;color:#80d080}
+.adj-css-out{background:#08080f;border:1px solid #252535;color:#88d0ff;padding:8px;border-radius:5px;font-family:monospace;font-size:10px;width:100%;min-height:60px;resize:vertical;line-height:1.5}
+.adj-action-row{display:flex;gap:6px;margin-top:8px}
+.adj-copy-btn{background:#1a2a40;border:1px solid #304060;color:#90b0e0;padding:5px 12px;border-radius:5px;cursor:pointer;font-size:11px}
+.adj-apply-btn{background:#1a3020;border:1px solid #304030;color:#70b070;padding:5px 12px;border-radius:5px;cursor:pointer;font-size:11px}
+.adj-open-btn{display:block;width:100%;background:#13131e;border:1px solid #302040;border-top:none;color:#9070c0;padding:5px;cursor:pointer;font-size:10px;text-align:center}
+.adj-open-btn:hover{background:#1e1e2e;color:#c0a0f0}
+.adj-reflect-btn{background:#2a1040;border:1px solid #5030a0;color:#c090f0;padding:5px 12px;border-radius:5px;cursor:pointer;font-size:11px}
+/* イベントバナー キャラ配置調整 */
+.ev-adj-slot-sec{border:1px solid #2a2a40;border-radius:6px;padding:10px;margin-bottom:8px}
+
+/* ════ エンディングプレビュー ════ */
+.dbg-go-gameover-img {
+  width: min(88%, 360px);
+  object-fit: contain;
+  margin: 4px auto 8px;
+  display: block;
+}
+.ending-sel-btn {
+  background: #1a1a2a; border: 1px solid #444; color: #aaa;
+  padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px;
+  transition: all .2s;
+}
+.ending-sel-btn.active { border-color: #8060c0; color: #c0a0ff; background: #2a1a3a; }
+.ending-type-card {
+  background: rgba(10,5,25,.9); border: 1px solid rgba(100,70,180,.3);
+  border-radius: 14px; padding: 24px 20px; width: 260px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.ending-type-card-badge { font-size: 1rem; font-weight: 900; letter-spacing: .2em; }
+.ending-type-card-title { font-size: 1.2rem; font-weight: 900; letter-spacing: .1em; }
+.ending-type-card-desc { font-size: .75rem; line-height: 1.7; color: rgba(200,175,240,.7); }
+.ending-type-card-cond { font-size: .68rem; color: rgba(180,150,230,.5); letter-spacing: .08em; border-top: 1px solid rgba(255,255,255,.08); padding-top: 8px; width: 100%; }
+.card-good .ending-type-card-badge { color: #ffd700; }
+.card-good .ending-type-card-title { background: linear-gradient(135deg,#ffd700,#ffaa00); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.card-normal .ending-type-card-badge { color: #a0d0ff; }
+.card-normal .ending-type-card-title { background: linear-gradient(135deg,#90c0ff,#60a0ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.card-bad .ending-type-card-badge { color: #c090c0; }
+.card-bad .ending-type-card-title { color: #c0a0d0; }
+.card-president .ending-type-card-badge { color: #ffd264; }
+.card-president .ending-type-card-title { background: linear-gradient(135deg,#ffd264,#ff8c00); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.card-gameover .ending-type-card-badge { color: #ff6060; }
+.card-gameover .ending-type-card-title { background: linear-gradient(135deg,#ff4060,#ff8030); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+
+/* ── エンディングロール内部スタイル（プレビュー用） ── */
+.dbg-ending-result-section { padding:56px 24px 48px; text-align:center; border-bottom:1px solid rgba(255,255,255,.06); margin-bottom:8px; }
+.dbg-ending-result-badge { font-size:clamp(1rem,4vw,1.5rem); font-weight:900; letter-spacing:.25em; margin-bottom:16px; }
+.dbg-ending-result-title { font-size:clamp(1.6rem,6vw,2.4rem); font-weight:900; letter-spacing:.12em; margin-bottom:20px; line-height:1.3; }
+.dbg-ending-result-desc { font-size:.88rem; line-height:1.8; max-width:480px; margin:0 auto 24px; letter-spacing:.06em; }
+.dbg-ending-result-stats { display:flex; flex-wrap:wrap; justify-content:center; gap:12px 24px; font-size:.78rem; letter-spacing:.1em; margin-top:24px; }
+.dbg-ending-result-stat { background:rgba(255,255,255,.06); border-radius:8px; padding:8px 16px; white-space:nowrap; }
+.dbg-result-good .dbg-ending-result-badge { color:#ffd700; }
+.dbg-result-good .dbg-ending-result-title { background:linear-gradient(135deg,#ffd700 0%,#ffaa00 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.dbg-result-good .dbg-ending-result-desc { color:rgba(255,230,150,.85); }
+.dbg-result-good .dbg-ending-result-stat { border:1px solid rgba(255,200,0,.2); color:rgba(255,220,100,.85); }
+.dbg-result-normal .dbg-ending-result-badge { color:#a0d0ff; }
+.dbg-result-normal .dbg-ending-result-title { background:linear-gradient(135deg,#90c0ff 0%,#60a0ff 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.dbg-result-normal .dbg-ending-result-desc { color:rgba(190,220,255,.85); }
+.dbg-result-normal .dbg-ending-result-stat { border:1px solid rgba(100,150,255,.2); color:rgba(170,210,255,.85); }
+.dbg-result-bad .dbg-ending-result-badge { color:#c090c0; }
+.dbg-result-bad .dbg-ending-result-title { color:#c0a0d0; }
+.dbg-result-bad .dbg-ending-result-desc { color:rgba(200,175,220,.75); }
+.dbg-result-bad .dbg-ending-result-stat { border:1px solid rgba(160,120,200,.2); color:rgba(190,160,210,.8); }
+.dbg-go-screen { display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:20px 0 60px; min-height:100vh; }
+.dbg-go-title { font-size:clamp(2.2rem,8vw,3.4rem); font-weight:900; letter-spacing:.12em; background:linear-gradient(135deg,#ff4060 0%,#ff8030 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:48px 0 8px; }
+.dbg-go-title.finale { background:linear-gradient(135deg,#ffd700 0%,#c060ff 60%,#60a0ff 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.dbg-go-reason { font-size:.9rem; color:rgba(255,160,140,.75); margin-bottom:32px; text-align:center; padding:0 24px; line-height:1.6; }
+.dbg-go-results { width:min(96%,440px); background:rgba(10,5,28,.9); border:1px solid rgba(255,100,80,.22); border-radius:18px; padding:22px 24px 28px; margin-bottom:32px; }
+.dbg-go-results.finale { border-color:rgba(176,96,255,.35); }
+.dbg-go-results-title { font-size:.65rem; letter-spacing:.35em; color:rgba(255,140,100,.55); margin-bottom:14px; }
+.dbg-go-results.finale .dbg-go-results-title { color:rgba(200,160,255,.65); }
+.dbg-go-row { display:flex; justify-content:space-between; align-items:baseline; padding:7px 0; border-bottom:1px solid rgba(255,100,80,.07); }
+.dbg-go-results.finale .dbg-go-row { border-bottom-color:rgba(176,96,255,.1); }
+.dbg-go-row:last-child { border-bottom:none; }
+.dbg-go-row-label { font-size:.72rem; color:rgba(255,160,140,.65); letter-spacing:.08em; }
+.dbg-go-results.finale .dbg-go-row-label { color:rgba(200,175,240,.65); }
+.dbg-go-row-val { font-size:.82rem; color:#e8d0c8; letter-spacing:.06em; }
+.dbg-go-row-val.highlight { color:#c090ff; font-weight:700; }
+.dbg-btn-go-ending { padding:14px 40px; font-size:1rem; font-weight:800; background:linear-gradient(135deg,#7030c0,#3070ff); border:none; border-radius:40px; color:#fff; cursor:pointer; letter-spacing:.1em; box-shadow:0 0 28px rgba(100,80,220,.45); }
+.dbg-ending-scroll-wrap { font-family:inherit; color:#e8d8ff; min-height:100vh; padding-bottom:50vh; }
+.dbg-ending-opening { display:flex; flex-direction:column; align-items:center; padding:64px 24px 48px; }
+.dbg-ending-stars-line { color:rgba(200,160,255,.75); letter-spacing:.6em; font-size:.9rem; margin-bottom:28px; }
+.dbg-ending-office-name-big { font-size:clamp(1.8rem,7vw,3.2rem); font-weight:900; background:linear-gradient(135deg,#d080ff 0%,#80cfff 50%,#d080ff 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:.12em; margin-bottom:8px; }
+.dbg-ending-agency-label { font-size:.65rem; letter-spacing:.5em; color:rgba(200,160,255,.62); margin-bottom:14px; }
+.dbg-ending-period-label { font-size:.78rem; color:rgba(215,190,255,.68); letter-spacing:.2em; }
+.dbg-ending-h-rule { width:min(90%,400px); height:1px; margin:32px auto; background:linear-gradient(90deg,transparent,rgba(180,120,255,.4),transparent); }
+.dbg-ending-vtuber { display:flex; flex-direction:column; align-items:center; padding:50px 24px 20px; width:100%; max-width:520px; margin:0 auto; }
+.dbg-ending-vt-oshi { font-size:2.4rem; margin-bottom:10px; }
+.dbg-ending-vt-name { font-size:clamp(1.4rem,5vw,2rem); font-weight:900; letter-spacing:.12em; margin-bottom:6px; }
+.dbg-ending-vt-soul { font-size:.68rem; color:rgba(200,160,255,.55); letter-spacing:.15em; margin-bottom:14px; }
+.dbg-ending-status-badge { font-size:.62rem; font-weight:700; letter-spacing:.2em; padding:3px 14px; border-radius:20px; margin-bottom:18px; }
+.dbg-ending-status-active { background:rgba(100,200,120,.15); border:1px solid rgba(100,200,120,.3); color:rgba(150,230,160,.9); }
+.dbg-ending-status-graduate { background:rgba(200,150,100,.12); border:1px solid rgba(200,150,100,.28); color:rgba(230,180,130,.85); }
+.dbg-ending-vt-stats { display:flex; gap:16px; font-size:.68rem; color:rgba(200,170,240,.6); letter-spacing:.08em; flex-wrap:wrap; justify-content:center; }
+.dbg-ending-sep { color:rgba(190,140,255,.42); letter-spacing:.5em; font-size:.75rem; margin-top:24px; }
+.dbg-ending-closing { display:flex; flex-direction:column; align-items:center; padding:90px 24px 30px; width:100%; }
+.dbg-ending-thank { font-size:clamp(2.4rem,9vw,4.5rem); font-weight:900; letter-spacing:.18em; background:linear-gradient(135deg,#d080ff 0%,#80cfff 50%,#d080ff 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-align:center; margin:24px 0 18px; }
+.dbg-ending-thank-sub { font-size:.88rem; color:rgba(200,165,255,.65); letter-spacing:.35em; }
+.dbg-ending-blank { height:50vh; }
+.dbg-ending-world-section { width:100%; padding:0 0 60px; display:flex; flex-direction:column; align-items:center; }
+.dbg-ending-world-label { font-size:.62rem; letter-spacing:.45em; color:rgba(255,215,0,.55); margin-bottom:20px; }
+.dbg-ending-world-img-wrap { position:relative; width:min(100%,720px); aspect-ratio:16/9; overflow:hidden; border-radius:12px; box-shadow:0 0 60px rgba(255,200,0,.25),0 0 120px rgba(180,100,255,.15); }
+.dbg-ending-world-img-wrap img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.dbg-ending-gameover-img-wrap {
+        width: min(100%, 480px); border-radius: 12px; overflow: hidden;
+        box-shadow: 0 0 60px rgba(100,150,255,.25), 0 0 120px rgba(80,100,200,.15);
+        margin-bottom: 8px;
+      }
+      .dbg-ending-gameover-img-wrap img { width: 100%; display: block; object-fit: contain; }
+      .dbg-ending-world-bg { z-index:0; }
+.dbg-ending-world-fg { z-index:2; }
+.dbg-ending-world-text-overlay { position:absolute; inset:0; z-index:3; background:linear-gradient(to top,rgba(4,2,12,.82) 0%,rgba(4,2,12,.1) 55%,transparent 100%); display:flex; flex-direction:column; justify-content:flex-end; align-items:center; padding:0 20px 28px; }
+.dbg-ending-world-caption { font-size:clamp(.75rem,2.2vw,1rem); color:rgba(255,230,150,.85); letter-spacing:.18em; line-height:1.9; text-align:center; }
+.dbg-ending-world-desc { width:min(90%,640px); margin:32px auto 0; font-size:clamp(.8rem,2vw,.96rem); line-height:2; color:rgba(230,215,255,.8); letter-spacing:.08em; text-align:center; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🔧 DBG VIEW — VTゲーム</h1>
+  <button class="tab-btn active" onclick="showTab('thumb')">📷 サムネイル</button>
+  <button class="tab-btn" data-tab="event" onclick="showTab('event')">🎉 イベントバナー</button>
+  <button class="tab-btn" data-tab="ending" onclick="showTab('ending')">🎬 エンディング</button>
+  <button id="btnReloadFromIndex" onclick="reloadFromIndexFile()" style="margin-left:auto;background:#1a3a2a;border:1px solid #2a6a4a;color:#6fcf97;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px">🔄 index.htmlから読み込む</button>
+</header>
+
+<!-- ══════════ サムネイル ══════════ -->
+<section id="sec-thumb" class="active">
+  <h2>サムネイル完成図</h2>
+  <div class="controls">
+    <label>スタイル:</label>
+    <div class="style-tabs" id="styleTabs"></div>
+  </div>
+  <div class="controls">
+    <label>サンプル色:</label>
+    <input type="color" id="colorPicker" value="#9b59b6" oninput="renderThumbs()">
+    <label style="margin-left:8px">表情:</label>
+    <select id="exprSelect" onchange="renderThumbs()">
+      <option value="auto" selected>auto（スタイル標準）</option>
+      <option value="normal">normal</option>
+      <option value="smile">smile</option>
+      <option value="sad">sad</option>
+    </select>
+    <label style="margin-left:8px">タイトル例:</label>
+    <input type="text" id="titleInput" value="今日もゲームやっていくぞ！" style="width:180px" oninput="renderThumbs()">
+    <span id="collabControls" style="display:none">
+      <label style="margin-left:12px;color:#9090d0">コラボ相手色:</label>
+      <input type="color" id="colorPicker2" value="#5599dd" oninput="renderThumbs()" style="height:24px;width:36px;padding:2px;border-radius:3px;border:1px solid #444;background:#1e1e30;cursor:pointer;vertical-align:middle">
+      <label style="margin-left:8px;color:#9090d0">コラボ相手:</label>
+      <select id="collabGawaSelect" onchange="renderThumbs()" style="background:#1e1e30;border:1px solid #444;color:#ccc;padding:4px 8px;border-radius:5px;font-size:12px"></select>
+    </span>
+  </div>
+  <div class="grid grid-thumb" id="thumbGrid"></div>
+</section>
+
+
+<!-- ══════════ キャラ配置調整 ══════════ -->
+<section id="sec-adjust">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+    <button class="adj-back-btn" onclick="closeAdjust()">← 一覧に戻る</button>
+    <div class="adj-title" id="adjTitle">キャラ配置調整</div>
+  </div>
+  <div style="margin-bottom:14px">
+    <div class="adj-slabel">キャラ表情（BANNER_EXPR_OVERRIDE）</div>
+    <div class="adj-mode-row" style="margin-top:4px">
+      <button class="adj-mode-btn active" id="evExprBtnNormal" onclick="setEvAdjExpr('normal')">normal</button>
+      <button class="adj-mode-btn" id="evExprBtnSmile" onclick="setEvAdjExpr('smile')">smile</button>
+      <button class="adj-mode-btn" id="evExprBtnSad" onclick="setEvAdjExpr('sad')">sad</button>
+    </div>
+  </div>
+  <div class="adj-layout">
+    <!-- プレビュー -->
+    <div>
+      <div style="position:relative;aspect-ratio:16/9;overflow:hidden;background:#0a0518;border-radius:8px;border:1px solid #2a2a40" id="adjPreview"></div>
+      <div class="adj-preview-gawa-sel">
+        <label>キャラ:</label>
+        <select id="adjGawaSelect" onchange="updateAdjustPreview()"></select>
+
+        <label>背景色:</label>
+        <input type="color" id="adjColorPicker" value="#9b59b6" oninput="updateAdjustPreview()" style="height:24px;width:36px;padding:2px;border-radius:3px;border:1px solid #444;background:#1e1e30;cursor:pointer;vertical-align:middle">
+      </div>
+    </div>
+    <!-- コントロール -->
+    <div class="adj-panel">
+      <div class="adj-section">
+        <div class="adj-slabel">配置モード</div>
+        <div class="adj-mode-row">
+          <button class="adj-mode-btn" data-mode="centered" onclick="setMode('centered')">中央配置</button>
+          <button class="adj-mode-btn" data-mode="right" onclick="setMode('right')">右寄せ</button>
+          <button class="adj-mode-btn" data-mode="rotate" onclick="setMode('rotate')">全面+回転</button>
+        </div>
+      </div>
+      <div class="adj-section" id="adjCtrlTopWidth">
+        <div class="adj-slabel">サイズ・位置</div>
+        <div class="adj-srow">
+          <span class="adj-slbl">上からの位置</span>
+          <input type="range" id="adjTop" min="-200" max="100" step="5" value="0" oninput="onSliderChange('adjTop',this.value)">
+          <span class="adj-sval" id="adjTopVal">0%</span>
+        </div>
+        <div class="adj-srow">
+          <span class="adj-slbl">幅</span>
+          <input type="range" id="adjWidth" min="10" max="400" step="5" value="100" oninput="onSliderChange('adjWidth',this.value)">
+          <span class="adj-sval" id="adjWidthVal">100%</span>
+        </div>
+        <div class="adj-srow">
+          <span class="adj-slbl">高さ</span>
+          <input type="range" id="adjHeight" min="10" max="700" step="5" value="100" oninput="onSliderChange('adjHeight',this.value)">
+          <span class="adj-sval" id="adjHeightVal">100%</span>
+        </div>
+      </div>
+      <div class="adj-section" id="adjCtrlRotate" style="display:none">
+        <div class="adj-slabel">回転・スケール</div>
+        <div class="adj-srow">
+          <span class="adj-slbl">回転角度</span>
+          <input type="range" id="adjRotate" min="-180" max="180" step="5" value="90" oninput="onSliderChange('adjRotate',this.value)">
+          <span class="adj-sval" id="adjRotateVal">90°</span>
+        </div>
+        <div class="adj-srow">
+          <span class="adj-slbl">拡大率</span>
+          <input type="range" id="adjScale" min="0.5" max="5" step="0.1" value="1.0" oninput="onSliderChange('adjScale',this.value)">
+          <span class="adj-sval" id="adjScaleVal">1.0×</span>
+        </div>
+      </div>
+      <div class="adj-section">
+        <div class="adj-slabel">アンカー (object-position)</div>
+        <div class="adj-posrow">
+          <button class="adj-pos-btn" data-pos="top left" onclick="setObjPos('top left')">↖ 左上</button>
+          <button class="adj-pos-btn" data-pos="top center" onclick="setObjPos('top center')">↑ 上中央</button>
+          <button class="adj-pos-btn" data-pos="top right" onclick="setObjPos('top right')">↗ 右上</button>
+          <button class="adj-pos-btn" data-pos="center" onclick="setObjPos('center')">⊙ 中央</button>
+          <button class="adj-pos-btn" data-pos="center bottom" onclick="setObjPos('center bottom')">↓ 下中央</button>
+        </div>
+        <div class="adj-slabel" style="margin-top:8px">object-fit</div>
+        <div class="adj-fitrow">
+          <button class="adj-fit-btn" id="adjFitContain" onclick="setObjFit('contain')">contain</button>
+          <button class="adj-fit-btn" id="adjFitCover" onclick="setObjFit('cover')">cover</button>
+        </div>
+      </div>
+      <div class="adj-section">
+        <div class="adj-slabel">表情設定（index.htmlに反映されます）</div>
+        <select id="adjExprSelect" onchange="onAdjExprChange(this.value)" style="background:#1e1e30;border:1px solid #444;color:#ccc;padding:5px 8px;border-radius:4px;font-size:12px;width:100%">
+          <option value="">── スタイル別グローバル設定に従う ──</option>
+          <option value="normal">normal（普通）</option>
+          <option value="smile">smile（笑顔）</option>
+          <option value="sad">sad（悲しみ）</option>
+        </select>
+      </div>
+      <div class="adj-section" style="margin-bottom:0">
+        <div class="adj-slabel">CSS 出力</div>
+        <textarea class="adj-css-out" id="adjCssOut" readonly></textarea>
+        <div class="adj-action-row">
+          <button class="adj-copy-btn" id="adjCopyBtn" onclick="copyCssOut()">📋 コピー</button>
+          <button class="adj-apply-btn" id="adjApplyBtn" onclick="applyToGrid()">🖼 グリッドに適用</button>
+          <button class="adj-reflect-btn" id="adjReflectBtn" onclick="reflectToIndexHtml()">📝 index.htmlに反映</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ コラボサムネ キャラ配置調整 ══════════ -->
+<section id="sec-collab-adjust">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+    <button class="adj-back-btn" onclick="closeCollabAdjust()">← 一覧に戻る</button>
+    <div class="adj-title">コラボサムネ キャラ配置調整</div>
+  </div>
+  <div class="adj-layout">
+    <!-- プレビュー -->
+    <div>
+      <div style="position:relative;aspect-ratio:16/9;overflow:hidden;background:#0a0518;border-radius:8px;border:1px solid #2a2a40" id="collabAdjPreview"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:11px;color:#888;align-items:center">
+        <span style="color:#ff9980">← 左:</span>
+        <select id="collabAdjGawa1" onchange="updateCollabAdjPreview()" style="background:#1e1e30;border:1px solid #444;color:#ccc;padding:2px 4px;font-size:11px;border-radius:3px"></select>
+        <input type="color" id="collabAdjColor1" value="#9b59b6" oninput="updateCollabAdjPreview()" style="height:22px;width:32px;padding:1px;border-radius:3px;border:1px solid #444;background:#1e1e30;cursor:pointer">
+        <span style="color:#80aaff;margin-left:8px">右 →:</span>
+        <select id="collabAdjGawa2" onchange="updateCollabAdjPreview()" style="background:#1e1e30;border:1px solid #444;color:#ccc;padding:2px 4px;font-size:11px;border-radius:3px"></select>
+        <input type="color" id="collabAdjColor2" value="#5599dd" oninput="updateCollabAdjPreview()" style="height:22px;width:32px;padding:1px;border-radius:3px;border:1px solid #444;background:#1e1e30;cursor:pointer">
+      </div>
+    </div>
+    <!-- コントロール -->
+    <div id="collabAdjControls" class="adj-panel" style="overflow-y:auto;max-height:72vh"></div>
+  </div>
+  <div class="adj-action-row" style="margin-top:14px">
+    <button class="adj-apply-btn" id="collabAdjApplyBtn" onclick="applyCollabAdjToGrid()">🖼 グリッドに適用</button>
+    <button class="adj-reflect-btn" id="collabAdjReflectBtn" onclick="reflectCollabAdjToFiles()">📝 index.htmlに反映</button>
+  </div>
+</section>
+
+<!-- ══════════ イベントバナー ══════════ -->
+<section id="sec-event">
+  <h2>イベントバナー完成図</h2>
+  <div class="controls">
+    <label>キャラA (左):</label>
+    <select id="gawa1" onchange="renderEvents()"></select>
+    <label>キャラB:</label>
+    <select id="gawa2" onchange="renderEvents()"></select>
+    <label>キャラC:</label>
+    <select id="gawa3" onchange="renderEvents()"></select>
+    <label>キャラD (右):</label>
+    <select id="gawa4" onchange="renderEvents()"></select>
+    <label style="margin-left:8px">結果表示:</label>
+    <select id="evResultLayer" onchange="renderEvents()">
+      <option value="success">成功</option>
+      <option value="failure" selected>失敗</option>
+      <option value="none">なし</option>
+    </select>
+  </div>
+  <div class="grid grid-event" id="eventGrid"></div>
+</section>
+
+<!-- ══════════ エンディング ══════════ -->
+<section id="sec-ending">
+  <h2>エンディングプレビュー</h2>
+
+  <!-- エンディング種別選択 -->
+  <div class="controls" style="gap:10px;flex-wrap:wrap;align-items:center">
+    <label>エンディング種別:</label>
+    <button class="ending-sel-btn" data-etype="soul" onclick="selectEndingType('soul')">✦ 魂カミングアウトエンド</button>
+    <button class="ending-sel-btn active" data-etype="good" onclick="selectEndingType('good')">★★★ 大成功エンド</button>
+    <button class="ending-sel-btn" data-etype="normal" onclick="selectEndingType('normal')">★★ 成功エンド</button>
+    <button class="ending-sel-btn" data-etype="bad" onclick="selectEndingType('bad')">★ 苦戦エンド</button>
+    <button class="ending-sel-btn" data-etype="president" onclick="selectEndingType('president')">👑 社長デビューエンド</button>
+    <button class="ending-sel-btn" data-etype="gameover" onclick="selectEndingType('gameover')">💀 ゲームオーバー</button>
+  </div>
+  <div class="controls" style="gap:10px;margin-top:4px">
+    <label>プレビュー:</label>
+    <button onclick="showEndingPreview('gameover-screen')" id="btnPreviewGoScreen" style="background:#2a1a3a;border:1px solid #6040a0;color:#c0a0ff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px">📋 GAME OVER画面</button>
+    <button onclick="showEndingPreview('ending-roll')" id="btnPreviewEndingRoll" style="background:#1a2a3a;border:1px solid #4060a0;color:#a0c0ff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px">🎬 エンディングロール</button>
+    <button onclick="closeEndingPreview()" style="background:#2a2a2a;border:1px solid #444;color:#aaa;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px">✕ 閉じる</button>
+  </div>
+  <div class="controls" style="gap:10px;margin-top:4px">
+    <label>配置調整:</label>
+    <button onclick="openSoulEndingAdjust()" style="background:#2a2010;border:1px solid #806020;color:#d0a030;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px">🎨 魂カミングアウトエンド キャラ配置調整</button>
+    <button onclick="openWorldEndingAdjust()" style="background:#1a2a1a;border:1px solid #406040;color:#90d090;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px">🎨 大成功エンド キャラ配置調整</button>
+    <button onclick="openFamilyEndingAdjust()" style="background:#2a1a2a;border:1px solid #604060;color:#d090d0;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px">🎨 成功エンド キャラ配置調整</button>
+    <button onclick="openNormalEndingAdjust()" style="background:#1a1a2a;border:1px solid #404060;color:#9090d0;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px">🎨 苦戦エンド キャラ配置調整</button>
+  </div>
+
+  <!-- エンディング種別サマリーカード -->
+  <div id="endingTypeCards" style="display:flex;flex-wrap:wrap;gap:16px;margin-top:20px;justify-content:center"></div>
+
+  <!-- フルスクリーンプレビューオーバーレイ -->
+  <div id="dbgEndingOverlay" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(4,2,12,.97);overflow-y:auto">
+    <button onclick="closeEndingPreview()" style="position:fixed;top:16px;right:16px;z-index:9100;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:8px 18px;border-radius:20px;cursor:pointer;font-size:13px;letter-spacing:.1em">✕ 閉じる</button>
+    <div id="dbgEndingContent"></div>
+  </div>
+</section>
+
+
+<!-- ══════════ 大成功エンド キャラ配置調整 ══════════ -->
+<section id="sec-world-ending-adjust">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+    <button class="adj-back-btn" onclick="closeWorldEndingAdjust()">← エンディングに戻る</button>
+    <div class="adj-title">大成功エンド — キャラ配置調整</div>
+  </div>
+
+  <!-- N枠タブ -->
+  <div style="margin-bottom:14px">
+    <div class="adj-slabel">VTuber人数</div>
+    <div class="adj-mode-row" style="margin-top:4px" id="weNTabs"></div>
+  </div>
+
+  <div class="adj-layout">
+    <!-- プレビュー -->
+    <div>
+      <div style="position:relative;aspect-ratio:16/9;overflow:hidden;background:#0a0518;border-radius:8px;border:1px solid #2a2a40" id="weAdjPreview"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
+        <label style="font-size:11px;color:#888">表情:</label>
+        <button class="adj-mode-btn active" id="weExprNormal" onclick="setWeExpr('normal')">normal</button>
+        <button class="adj-mode-btn" id="weExprSmile" onclick="setWeExpr('smile')">smile</button>
+        <button class="adj-mode-btn" id="weExprSad" onclick="setWeExpr('sad')">sad</button>
+      </div>
+    </div>
+    <!-- スロットコントロール -->
+    <div class="adj-panel">
+      <div id="weSlotControls"></div>
+      <div class="adj-section" style="margin-top:16px">
+        <button id="weReflectBtn" onclick="reflectWorldEndingToFile()" style="width:100%;padding:9px;background:#1a3a2a;border:1px solid #2a6a4a;color:#6fcf97;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700">📝 index.htmlに反映</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="sec-family-ending-adjust">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+    <button class="adj-back-btn" onclick="closeFamilyEndingAdjust()">← エンディングに戻る</button>
+    <div class="adj-title">成功エンド — キャラ配置調整</div>
+  </div>
+  <div style="margin-bottom:14px">
+    <div class="adj-slabel">VTuber人数</div>
+    <div class="adj-mode-row" style="margin-top:4px" id="feNTabs"></div>
+  </div>
+  <div class="adj-layout">
+    <div>
+      <div style="position:relative;aspect-ratio:16/9;overflow:hidden;background:#0a0518;border-radius:8px;border:1px solid #2a2a40" id="feAdjPreview"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
+        <label style="font-size:11px;color:#888">表情:</label>
+        <button class="adj-mode-btn active" id="feExprNormal" onclick="setFeExpr('normal')">normal</button>
+        <button class="adj-mode-btn" id="feExprSmile" onclick="setFeExpr('smile')">smile</button>
+        <button class="adj-mode-btn" id="feExprSad" onclick="setFeExpr('sad')">sad</button>
+      </div>
+    </div>
+    <div class="adj-panel">
+      <div id="feSlotControls"></div>
+      <div class="adj-section" style="margin-top:16px">
+        <button id="feReflectBtn" onclick="reflectFamilyEndingToFile()" style="width:100%;padding:9px;background:#2a1a3a;border:1px solid #6a3a6a;color:#cf97cf;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700">📝 index.htmlに反映</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="sec-normal-ending-adjust">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+    <button class="adj-back-btn" onclick="closeNormalEndingAdjust()">← エンディングに戻る</button>
+    <div class="adj-title">苦戦エンド — キャラ配置調整</div>
+  </div>
+  <div style="margin-bottom:14px">
+    <div class="adj-slabel">VTuber人数</div>
+    <div class="adj-mode-row" style="margin-top:4px" id="neNTabs"></div>
+  </div>
+  <div class="adj-layout">
+    <div>
+      <div style="position:relative;aspect-ratio:16/9;overflow:hidden;background:#0a0518;border-radius:8px;border:1px solid #2a2a40" id="neAdjPreview"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
+        <label style="font-size:11px;color:#888">表情:</label>
+        <button class="adj-mode-btn active" id="neExprNormal" onclick="setNeExpr('normal')">normal</button>
+        <button class="adj-mode-btn" id="neExprSmile" onclick="setNeExpr('smile')">smile</button>
+        <button class="adj-mode-btn" id="neExprSad" onclick="setNeExpr('sad')">sad</button>
+      </div>
+    </div>
+    <div class="adj-panel">
+      <div id="neSlotControls"></div>
+      <div class="adj-section" style="margin-top:16px">
+        <button id="neReflectBtn" onclick="reflectNormalEndingToFile()" style="width:100%;padding:9px;background:#1a1a3a;border:1px solid #3a3a6a;color:#9797cf;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700">📝 index.htmlに反映</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════ イベントバナー キャラ配置調整 ══════════ -->
+<section id="sec-soul-ending-adjust">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+    <button class="adj-back-btn" onclick="closeSoulEndingAdjust()">← エンディングに戻る</button>
+    <div class="adj-title">魂カミングアウトエンド — キャラ配置調整</div>
+  </div>
+  <div style="margin-bottom:14px">
+    <div class="adj-slabel">VTuber人数</div>
+    <div class="adj-mode-row" style="margin-top:4px" id="seNTabs"></div>
+  </div>
+  <div class="adj-layout">
+    <div>
+      <div style="position:relative;aspect-ratio:16/9;overflow:hidden;background:#0a0518;border-radius:8px;border:1px solid #2a2a40" id="seAdjPreview"></div>
+    </div>
+    <div class="adj-panel">
+      <div id="seSlotControls"></div>
+      <div class="adj-section" style="margin-top:16px">
+        <button id="seReflectBtn" onclick="reflectSoulEndingToFile()" style="width:100%;padding:9px;background:#2a2010;border:1px solid #806020;color:#d0a030;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700">📝 index.htmlに反映</button>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="sec-ev-adjust">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+    <button class="adj-back-btn" onclick="closeEvAdjust()">← 一覧に戻る</button>
+    <div class="adj-title" id="evAdjTitle">イベントバナー キャラ配置調整</div>
+  </div>
+  <div style="margin-bottom:14px">
+    <div class="adj-slabel">表示キャラ数</div>
+    <div id="evAdjNTabs" class="adj-mode-row" style="margin-top:4px"></div>
+  </div>
+  <div class="adj-layout">
+    <div>
+      <div style="position:relative;aspect-ratio:16/9;overflow:hidden;background:#111;border-radius:8px;border:1px solid #2a2a40" id="evAdjPreview"></div>
+      <div id="evAdjGawaRow" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center;font-size:11px;color:#888"></div>
+    </div>
+    <div id="evAdjSlotControls" class="adj-panel" style="overflow-y:auto;max-height:72vh"></div>
+  </div>
+  <div class="adj-section" style="margin-top:14px">
+    <div class="adj-slabel">生成コード（参考）</div>
+    <textarea class="adj-css-out" id="evAdjCodeOut" readonly style="height:80px"></textarea>
+    <div class="adj-action-row">
+      <button class="adj-copy-btn" id="evAdjCopyBtn" onclick="copyEvAdjCode()">📋 コピー</button>
+      <button class="adj-apply-btn" id="evAdjApplyBtn" onclick="applyEvAdjToGrid()">🖼 グリッドに適用</button>
+      <button class="adj-reflect-btn" id="evAdjReflectBtn" onclick="reflectEvAdjToFiles()">📝 index.htmlに反映</button>
+    </div>
+  </div>
+</section>
+
+<script>
+
+// ── 安全なファイル書き込み（nullバイト防止） ──────────────────────────────────
+async function safeWrite(fileHandle, content) {
+  const blob = new Blob([content], { type: 'text/html; charset=utf-8' });
+  const writable = await fileHandle.createWritable();
+  await writable.write(blob);
+  await writable.truncate(blob.size);
+  await writable.close();
+  // 書き込み後検証
+  const verify = await (await fileHandle.getFile()).text();
+  if (!verify.includes('</html>')) throw new Error(fileHandle.name + ' 書き込み検証エラー');
+}
+
+
+// ─── gawaVariantToFile ───────────────────────────────────────────
+function gawaVariantToFile(v) {
+  const letters = ['A','B','C','D','E','F','G','H','L'];
+  return letters[Math.floor(v/6)] + ((v%6)+1);
+}
+
+// ─── 全ガワ variant リスト ────────────────────────────────────────
+const GAWA_ALL = [];
+for(let i=0;i<54;i++) GAWA_ALL.push(i);
+
+// ─── サムネ：スタイル定義 ────────────────────────────────────────
+const STYLE_FRAMES = {
+  debut:       {label:'初配信',  expr:'smile', frames:['images/thumbnail/共通/初配信.png']},
+  birthday:    {label:'誕生日',  expr:'smile', frames:['images/thumbnail/共通/誕生日配信.png']},
+  anniversary: {label:'記念日',  expr:'smile', frames:['images/thumbnail/共通/記念日配信.png']},
+  talk:        {label:'トーク',  expr:'normal',frames:['images/thumbnail/トーク/雑談.png','images/thumbnail/トーク/朝活.png','images/thumbnail/トーク/作業用.png']},
+  song:        {label:'歌',      expr:'smile', frames:['images/thumbnail/歌/歌枠.png','images/thumbnail/歌/うたってみた.png','images/thumbnail/歌/楽器練習.png','images/thumbnail/歌/曲作り.png']},
+  game:        {label:'ゲーム',  expr:'normal',frames:['images/thumbnail/ゲーム実況/ゲーム実況.png','images/thumbnail/ゲーム実況/耐久.png','images/thumbnail/ゲーム実況/ガチャ.png','images/thumbnail/ゲーム実況/ランクマ.png','images/thumbnail/ゲーム実況/視聴者参加型.png','images/thumbnail/ゲーム実況/大会練習.png']},
+  plan:        {label:'企画',    expr:'smile', frames:['images/thumbnail/企画/VLOG.png','images/thumbnail/企画/凸待ち.png','images/thumbnail/企画/逆凸.png','images/thumbnail/企画/やってみた.png','images/thumbnail/企画/ティア表を作る.png']},
+  voice:       {label:'ボイス',  expr:'normal',frames:['images/thumbnail/ボイス/ASMR.png','images/thumbnail/ボイス/朗読.png','images/thumbnail/ボイス/ボイスドラマ.png','images/thumbnail/ボイス/寝落ち枠.png','images/thumbnail/ボイス/TRPG.png']},
+  announcement:{label:'お知らせ',expr:'normal',frames:['images/thumbnail/共通/大切なお知らせ.png']},
+  graduation:  {label:'卒業配信',expr:'sad',   frames:['images/thumbnail/共通/卒業配信.png']},
+  collab:      {label:'コラボ',  expr:'smile', frames:['images/thumbnail/共通/コラボ.png']},
+  pr:          {label:'PR案件', expr:'smile', frames:['images/thumbnail/共通/PR案件.png']},
+};
+const STYLE_KEYS = Object.keys(STYLE_FRAMES);
+let currentStyle = 'song';
+
+// ─── index.html から設定を読み込む ──────────────────────────────────
+function applyIndexHtmlText(txt) {
+    // FRAME_GAWA_STYLE を解析して上書き
+    const gsS = txt.indexOf('const FRAME_GAWA_STYLE = {');
+    const gsE = txt.indexOf('\n  };', gsS);
+    if (gsS >= 0 && gsE >= 0) {
+      const block = txt.slice(gsS, gsE);
+      for (const m of block.matchAll(/'([^']+)':\s*'([^']+)'/g)) {
+        FRAME_GAWA_STYLE_RT[m[1]] = m[2];
+      }
+    }
+
+    // FRAME_EXPR_MAP を解析して上書き
+    const emS = txt.indexOf('const FRAME_EXPR_MAP = {');
+    const emE = txt.indexOf('\n  };', emS);
+    if (emS >= 0 && emE >= 0) {
+      const block = txt.slice(emS, emE);
+      for (const m of block.matchAll(/'([^']+)':\s*'([^']+)'/g)) {
+        FRAME_EXPR_RT[m[1]] = m[2];
+      }
+    }
+
+    // COLLAB_THUMB_STYLE を解析して上書き
+    const ctS = txt.indexOf('const COLLAB_THUMB_STYLE = {');
+    const ctE = txt.indexOf('\n};', ctS);
+    if (ctS >= 0 && ctE >= 0) {
+      const block = txt.slice(ctS, ctE + 3);
+      const parseSide = (side) => {
+        const re2 = new RegExp(side + '\\s*:\\s*\\{([^}]+)\\}');
+        const m2 = block.match(re2);
+        if (!m2) return null;
+        const obj = {};
+        for (const pm of m2[1].matchAll(/(\w+):\s*(-?[\d.]+|'[^']*'|true|false)/g)) {
+          let v = pm[2];
+          if (v === 'true') v = true;
+          else if (v === 'false') v = false;
+          else if (v.startsWith("'")) v = v.slice(1, -1);
+          else v = parseFloat(v);
+          obj[pm[1]] = v;
+        }
+        return obj;
+      };
+      const L = parseSide('left'), R = parseSide('right');
+      if (L) Object.assign(COLLAB_THUMB_STYLE.left, L);
+      if (R) Object.assign(COLLAB_THUMB_STYLE.right, R);
+    }
+    // ENDING_WORLD_VT_SLOTS を解析して上書き
+    const ewsS = txt.indexOf('const ENDING_WORLD_VT_SLOTS = {');
+    const ewsE = txt.indexOf('\n};', ewsS) + 3;
+    if (ewsS >= 0 && ewsE > ewsS) {
+      try {
+        let ewsStr = txt.slice(ewsS + 'const ENDING_WORLD_VT_SLOTS = '.length, ewsE).replace(/;\s*$/, '');
+        ewsStr = ewsStr.replace(/'/g, '"').replace(/(\n\s+)(\d+):/g, '$1"$2":').replace(/,(\s*[}\]])/g, '$1');
+        const newEws = JSON.parse(ewsStr);
+        Object.keys(newEws).forEach(k => { ENDING_WORLD_VT_SLOTS_RT[k] = newEws[k]; });
+      } catch(e2) { console.warn('ENDING_WORLD_VT_SLOTS parse error:', e2); }
+    }
+
+    // ENDING_FAMILY_VT_SLOTS パース
+    const efsS = txt.indexOf('const ENDING_FAMILY_VT_SLOTS = {');
+    const efsE = txt.indexOf('\n};', efsS) + 3;
+    if (efsS >= 0 && efsE > efsS) {
+      try {
+        let efsStr = txt.slice(efsS + 'const ENDING_FAMILY_VT_SLOTS = '.length, efsE).replace(/;\s*$/, '');
+        efsStr = efsStr.replace(/'/g, '"').replace(/(\n\s+)(\d+):/g, '$1"$2":').replace(/,(\s*[}\]])/g, '$1');
+        const newEfs = JSON.parse(efsStr);
+        Object.keys(newEfs).forEach(k => { ENDING_FAMILY_VT_SLOTS_RT[k] = newEfs[k]; });
+      } catch(e2) { console.warn('ENDING_FAMILY_VT_SLOTS parse error:', e2); }
+    }
+
+    // ENDING_NORMAL_VT_SLOTS パース
+    const ensS = txt.indexOf('const ENDING_NORMAL_VT_SLOTS = {');
+    const ensE = txt.indexOf('\n};', ensS) + 3;
+    if (ensS >= 0 && ensE > ensS) {
+      try {
+        let ensStr = txt.slice(ensS + 'const ENDING_NORMAL_VT_SLOTS = '.length, ensE).replace(/;\s*$/, '');
+        ensStr = ensStr.replace(/'/g, '"').replace(/(\n\s+)(\d+):/g, '$1"$2":').replace(/,(\s*[}\]])/g, '$1');
+        const newEns = JSON.parse(ensStr);
+        Object.keys(newEns).forEach(k => { ENDING_NORMAL_VT_SLOTS_RT[k] = newEns[k]; });
+      } catch(e2) { console.warn('ENDING_NORMAL_VT_SLOTS parse error:', e2); }
+    }
+
+    // ENDING_SOUL_VT_SLOTS パース
+    const essS = txt.indexOf('const ENDING_SOUL_VT_SLOTS = {');
+    const essE = txt.indexOf('\n};', essS) + 3;
+    if (essS >= 0 && essE > essS) {
+      try {
+        let essStr = txt.slice(essS + 'const ENDING_SOUL_VT_SLOTS = '.length, essE).replace(/;\s*$/, '');
+        essStr = essStr.replace(/'/g, '"').replace(/(\n\s+)(\d+):/g, '$1"$2":').replace(/,(\s*[}\]])/g, '$1');
+        const newEss = JSON.parse(essStr);
+        Object.keys(newEss).forEach(k => { ENDING_SOUL_VT_SLOTS_RT[k] = newEss[k]; });
+      } catch(e2) { console.warn('ENDING_SOUL_VT_SLOTS parse error:', e2); }
+    }
+
+    // BANNER_SLOT_OVERRIDE を解析して上書き（JSON変換方式）
+    const ovrS = txt.indexOf('const BANNER_SLOT_OVERRIDE = {');
+    const ovrE = txt.indexOf('\n};', ovrS) + 3;
+    if (ovrS >= 0 && ovrE > ovrS) {
+      try {
+        let ovrStr = txt.slice(ovrS + 'const BANNER_SLOT_OVERRIDE = '.length, ovrE).replace(/;\s*$/, '');
+        ovrStr = ovrStr.replace(/'/g, '"').replace(/(\n\s+)(\d+):/g, '$1"$2":').replace(/,(\s*[}\]])/g, '$1');
+        const newOvr = JSON.parse(ovrStr);
+        Object.keys(newOvr).forEach(k => { BANNER_SLOT_OVERRIDE[k] = newOvr[k]; });
+      } catch(e2) { console.warn('BANNER_SLOT_OVERRIDE parse error:', e2); }
+    }
+
+    // BANNER_EXPR_OVERRIDE を解析して上書き（JSON変換方式）
+    const exprS = txt.indexOf('const BANNER_EXPR_OVERRIDE = {');
+    const exprE = txt.indexOf('\n};', exprS) + 3;
+    if (exprS >= 0 && exprE > exprS) {
+      try {
+        let exprStr = txt.slice(exprS + 'const BANNER_EXPR_OVERRIDE = '.length, exprE).replace(/;\s*$/, '');
+        exprStr = exprStr.replace(/'/g, '"').replace(/(\n\s+)(\d+):/g, '$1"$2":').replace(/,(\s*[}\]])/g, '$1');
+        const newExpr = JSON.parse(exprStr);
+        Object.keys(BANNER_EXPR_OVERRIDE).forEach(k=>delete BANNER_EXPR_OVERRIDE[k]);
+        Object.assign(BANNER_EXPR_OVERRIDE, newExpr);
+      } catch(e2) { console.warn('BANNER_EXPR_OVERRIDE parse error:', e2); }
+    }
+    // BANNER_CFG の fg/bg/bk を解析して上書き（regexでシンプルに抽出）
+    const cfgS = txt.indexOf('const BANNER_CFG = {');
+    const cfgMarker = '\n  };\n\n  const cfg = BANNER_CFG';
+    const cfgE = txt.indexOf(cfgMarker, cfgS);
+    if (cfgS >= 0 && cfgE > cfgS) {
+      const cfgBlock = txt.slice(cfgS, cfgE + 5);
+      for (const em of cfgBlock.matchAll(/'([^']+)':\s*\{[^}]*?\bbg:\s*'([^']+)'/gs)) {
+        if (BANNER_CFG[em[1]]) BANNER_CFG[em[1]].bg = em[2];
+      }
+      for (const em of cfgBlock.matchAll(/'([^']+)':\s*\{[^}]*?\bfg:\s*'([^']+)'/gs)) {
+        if (BANNER_CFG[em[1]]) BANNER_CFG[em[1]].fg = em[2];
+      }
+      for (const em of cfgBlock.matchAll(/'([^']+)':\s*\{[^}]*?\bfg:\s*null/gs)) {
+        if (BANNER_CFG[em[1]]) BANNER_CFG[em[1]].fg = null;
+      }
+    }
+
+  renderThumbs();
+  renderEvents();
+}
+
+async function loadFromIndexHtml() {
+  try {
+    const resp = await fetch('index.html?' + Date.now());
+    if (!resp.ok) throw new Error('fetch failed');
+    const txt = await resp.text();
+    applyIndexHtmlText(txt);
+  } catch(e) {
+    console.warn('index.html の読み込みに失敗（ハードコード値を使用）:', e.message);
+  }
+}
+
+async function reloadFromIndexFile() {
+  const btn = document.getElementById('btnReloadFromIndex');
+  if (btn) btn.textContent = '📂 フォルダを選択...';
+  try {
+    const dirH = await window.showDirectoryPicker({ mode: 'read' });
+    const fh = await dirH.getFileHandle('index.html');
+    const idxTxt = await (await fh.getFile()).text();
+    applyIndexHtmlText(idxTxt);
+    if (btn) { btn.textContent = '✅ 読み込みました！'; setTimeout(() => btn.textContent = '🔄 index.htmlから読み込む', 2500); }
+  } catch(e) {
+    if (e.name !== 'AbortError') {
+      if (btn) { btn.textContent = '❌ ' + e.message; setTimeout(() => btn.textContent = '🔄 index.htmlから読み込む', 3000); }
+    } else {
+      if (btn) btn.textContent = '🔄 index.htmlから読み込む';
+    }
+  }
+}
+
+
+const FRAME_GAWA_STYLE_RT = {
+  'images/thumbnail/トーク/朝活.png': 'position:absolute;top:0%;bottom:auto;right:0;left:auto;width:65%;height:320%;object-fit:contain;object-position:top right;',
+  'images/thumbnail/ボイス/ASMR.png': 'position:absolute;top:-110%;left:50%;transform:translateX(-50%);bottom:auto;width:200%;height:370%;object-fit:contain;object-position:top center;',
+  'images/thumbnail/ボイス/朗読.png': 'position:absolute;top:0%;bottom:auto;right:0;left:auto;width:80%;height:110%;object-fit:contain;object-position:top center;',
+  'images/thumbnail/ボイス/ボイスドラマ.png': 'position:absolute;top:-120%;left:50%;transform:translateX(-50%);bottom:auto;width:230%;height:305%;object-fit:contain;object-position:top center;',
+  'images/thumbnail/ボイス/寝落ち枠.png': 'position:absolute;inset:0;width:100%;height:100%;transform:rotate(-95deg) scale(2.8);transform-origin:center center;object-fit:contain;object-position:center;',
+  'images/thumbnail/ボイス/TRPG.png': 'position:absolute;top:0;left:50%;transform:translateX(-50%);bottom:auto;width:55%;height:110%;object-fit:contain;object-position:top center;',
+  'images/thumbnail/歌/歌枠.png': 'position:absolute;top:-40%;left:50%;transform:translateX(-50%);bottom:auto;width:155%;height:240%;object-fit:contain;object-position:center bottom;',
+  'images/thumbnail/企画/逆凸.png': 'position:absolute;inset:0;width:100%;height:100%;transform:rotate(15deg) scale(2.7);transform-origin:center center;object-fit:contain;object-position:center bottom;',
+  'images/thumbnail/企画/VLOG.png': 'position:absolute;inset:0;width:100%;height:100%;transform:rotate(-30deg) scale(1.8);transform-origin:center center;object-fit:contain;object-position:center bottom;',
+  'images/thumbnail/企画/やってみた.png': 'position:absolute;top:-100%;left:50%;transform:translateX(-50%);bottom:auto;width:215%;height:385%;object-fit:contain;object-position:center bottom;',
+  'images/thumbnail/ゲーム実況/耐久.png': 'position:absolute;top:-135%;left:50%;transform:translateX(-50%);bottom:auto;width:290%;height:470%;object-fit:contain;object-position:center bottom;',
+  'images/thumbnail/ゲーム実況/大会練習.png': 'position:absolute;inset:0;width:100%;height:100%;transform:rotate(-10deg) scale(2.3);transform-origin:center center;object-fit:contain;object-position:center;',
+  'images/thumbnail/ゲーム実況/ランクマ.png': 'position:absolute;top:-25%;left:50%;transform:translateX(-50%);bottom:auto;width:145%;height:175%;object-fit:contain;object-position:center bottom;',
+  'images/thumbnail/共通/卒業配信.png': 'position:absolute;top:0%;left:50%;transform:translateX(-50%);bottom:auto;width:100%;height:100%;object-fit:contain;object-position:center bottom;',
+  'images/thumbnail/共通/PR案件.png': 'position:absolute;top:-15%;left:50%;transform:translateX(-50%);bottom:auto;width:135%;height:145%;object-fit:contain;object-position:center bottom;',
+  'images/thumbnail/共通/誕生日配信.png': 'position:absolute;top:0%;left:50%;transform:translateX(-50%);bottom:auto;width:120%;height:140%;object-fit:contain;object-position:center bottom;',
+  'images/thumbnail/歌/曲作り.png': 'position:absolute;top:-60%;bottom:auto;right:0;left:auto;width:125%;height:215%;object-fit:contain;object-position:center bottom;',
+  'images/thumbnail/歌/楽器練習.png': 'position:absolute;inset:0;width:100%;height:100%;transform:rotate(-10deg) scale(1.5);transform-origin:center center;object-fit:contain;object-position:center bottom;',
+  'images/thumbnail/歌/うたってみた.png': 'position:absolute;inset:0;width:100%;height:100%;transform:rotate(10deg) scale(1.5);transform-origin:center center;object-fit:contain;object-position:center bottom;',
+  'images/thumbnail/トーク/雑談.png': 'position:absolute;top:0%;left:50%;transform:translateX(-50%);bottom:auto;width:100%;height:100%;object-fit:contain;object-position:center bottom;',
+  'images/thumbnail/トーク/作業用.png': 'position:absolute;top:-5%;left:50%;transform:translateX(-50%);bottom:auto;width:100%;height:195%;object-fit:contain;object-position:center bottom;',
+  'images/thumbnail/共通/記念日配信.png': 'position:absolute;top:-20%;left:50%;transform:translateX(-50%);bottom:auto;width:115%;height:165%;object-fit:contain;object-position:center bottom;',
+  'images/thumbnail/共通/初配信.png': 'position:absolute;top:-5%;left:50%;transform:translateX(-50%);bottom:auto;width:100%;height:120%;object-fit:contain;object-position:center bottom;',
+};
+const DEFAULT_GAWA_STYLE = 'position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;';
+const FRAME_EXPR_RT = {
+  'images/thumbnail/歌/曲作り.png': 'normal',
+  'images/thumbnail/歌/楽器練習.png': 'normal',
+  'images/thumbnail/共通/初配信.png': 'normal',
+  'images/thumbnail/トーク/朝活.png': 'smile',
+  'images/thumbnail/ゲーム実況/耐久.png': 'sad',
+  'images/thumbnail/企画/VLOG.png': 'normal',
+  'images/thumbnail/ボイス/TRPG.png': 'smile',
+  'images/thumbnail/共通/PR案件.png': 'normal',
+};
+
+// ─── コラボサムネスタイル（index.htmlから loadFromIndexHtml で上書きされる） ────
+let COLLAB_THUMB_STYLE = {
+  left:  { containerW: 50, imgOffset: 3, imgW: 115, imgH: 100, objPos: 'right center', flip: false },
+  right: { containerW: 50, imgOffset: 3, imgW: 115, imgH: 100, objPos: 'left center', flip: true  }
+};
+
+
+// ─── スタイルタブ生成 ───────────────────────────────────────────
+function buildStyleTabs() {
+  const container = document.getElementById('styleTabs');
+  if (!container) return;
+  container.innerHTML = '';
+  STYLE_KEYS.forEach(key => {
+    const btn = document.createElement('button');
+    btn.className = 'style-tab' + (key === currentStyle ? ' active' : '');
+    btn.textContent = STYLE_FRAMES[key].label;
+    btn.onclick = () => {
+      currentStyle = key;
+      container.querySelectorAll('.style-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderThumbs();
+    };
+    container.appendChild(btn);
+  });
+}
+
+// ─── サムネ描画 ──────────────────────────────────────────────────
+let _tid=0;
+function renderThumbs(){
+  const grid = document.getElementById('thumbGrid');
+  grid.innerHTML='';
+  const color = document.getElementById('colorPicker').value;
+  const exprOverride = document.getElementById('exprSelect').value;
+  const titleText = document.getElementById('titleInput').value || '配信タイトル';
+  const cfg = STYLE_FRAMES[currentStyle];
+  const frames = cfg.frames;
+  const expr = (exprOverride === 'auto') ? cfg.expr : exprOverride;
+  const FRAME_KEYWORD_MAP = {
+    voice: [
+      { keys: ['ASMR'],       frame: 'images/thumbnail/ボイス/ASMR.png' },
+      { keys: ['朗読'],        frame: 'images/thumbnail/ボイス/朗読.png' },
+      { keys: ['ボイスドラマ'], frame: 'images/thumbnail/ボイス/ボイスドラマ.png' },
+      { keys: ['寝落ち'],      frame: 'images/thumbnail/ボイス/寝落ち枠.png' },
+      { keys: ['TRPG'],       frame: 'images/thumbnail/ボイス/TRPG.png' },
+    ],
+    game: [
+      { keys: ['ガチャ'],     frame: 'images/thumbnail/ゲーム実況/ガチャ.png' },
+      { keys: ['ランクマ'],   frame: 'images/thumbnail/ゲーム実況/ランクマ.png' },
+      { keys: ['視聴者参加'], frame: 'images/thumbnail/ゲーム実況/視聴者参加型.png' },
+      { keys: ['大会練習'],   frame: 'images/thumbnail/ゲーム実況/大会練習.png' },
+      { keys: ['耐久'],       frame: 'images/thumbnail/ゲーム実況/耐久.png' },
+    ],
+    song: [
+      { keys: ['歌枠','歌ってみた','歌配信','歌'], frame: 'images/thumbnail/歌/歌枠.png' },
+      { keys: ['うたってみた'],                    frame: 'images/thumbnail/歌/うたってみた.png' },
+      { keys: ['楽器'],                            frame: 'images/thumbnail/歌/楽器練習.png' },
+      { keys: ['曲作り','DTM'],                    frame: 'images/thumbnail/歌/曲作り.png' },
+    ],
+    talk: [
+      { keys: ['朝'],   frame: 'images/thumbnail/トーク/朝活.png' },
+      { keys: ['作業'], frame: 'images/thumbnail/トーク/作業用.png' },
+    ],
+    plan: [
+      { keys: ['VLOG','vlog'], frame: 'images/thumbnail/企画/VLOG.png' },
+      { keys: ['凸待ち'],      frame: 'images/thumbnail/企画/凸待ち.png' },
+      { keys: ['逆凸'],        frame: 'images/thumbnail/企画/逆凸.png' },
+      { keys: ['やってみた'],  frame: 'images/thumbnail/企画/やってみた.png' },
+      { keys: ['ティア表'],    frame: 'images/thumbnail/企画/ティア表を作る.png' },
+    ],
+  };
+
+  GAWA_ALL.forEach(v=>{
+    _tid++;
+    const file = gawaVariantToFile(v);
+    // dbgでは固定タイトル例でフレームを選択
+    let frameImg = frames[_tid % frames.length];
+    if (titleText && FRAME_KEYWORD_MAP[currentStyle]) {
+      const m = FRAME_KEYWORD_MAP[currentStyle].find(kw => kw.keys.some(k => titleText.includes(k)));
+      if (m) frameImg = m.frame;
+    }
+    const frameExpr = FRAME_EXPR_RT[frameImg] ?? expr;
+    const gawaImg = `images/gawa/${file}_${frameExpr}.png`;
+    const title = titleText.length>19?titleText.slice(0,18)+'…':titleText;
+    const name = file;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'thumb-wrap';
+    if (frameImg === 'images/thumbnail/共通/コラボ.png') {
+      // コラボ：左右に2キャラ配置（COLLAB_THUMB_STYLE を使用）
+      const partnerV = parseInt(document.getElementById('collabGawaSelect')?.value ?? 6) || 6;
+      const partnerFile = gawaVariantToFile(partnerV);
+      const color2 = document.getElementById('colorPicker2')?.value || '#5599dd';
+      const gawaImg2 = `images/gawa/${partnerFile}_${frameExpr}.png`;
+      const _L = COLLAB_THUMB_STYLE.left, _R = COLLAB_THUMB_STYLE.right;
+      wrap.innerHTML = `
+        <div style="position:absolute;inset:0;background:linear-gradient(90deg,${color} 50%,${color2} 50%);overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;width:${_L.containerW}%;height:100%;overflow:hidden;">
+            <img src="${gawaImg}" style="position:absolute;top:0;right:${_L.imgOffset}%;width:${_L.imgW}%;height:${_L.imgH}%;object-fit:contain;object-position:${_L.objPos};${_L.flip?'transform:scaleX(-1);':''}" loading="lazy">
+          </div>
+          <div style="position:absolute;top:0;right:0;width:${_R.containerW}%;height:100%;overflow:hidden;">
+            <img src="${gawaImg2}" style="position:absolute;top:0;left:${_R.imgOffset}%;width:${_R.imgW}%;height:${_R.imgH}%;object-fit:contain;object-position:${_R.objPos};${_R.flip?'transform:scaleX(-1);':''}" loading="lazy">
+          </div>
+          <img src="${frameImg}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" loading="lazy">
+        </div>`;
+    } else {
+      wrap.innerHTML = `
+        <div style="position:absolute;inset:0;background:${color};overflow:hidden;">
+          <img src="${gawaImg}" style="${FRAME_GAWA_STYLE_RT[frameImg]??DEFAULT_GAWA_STYLE}" loading="lazy">
+          <img src="${frameImg}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" loading="lazy">
+        </div>`;
+    }
+
+    const infoDiv = document.createElement('div');
+    infoDiv.style.cssText = 'padding:6px 8px 8px;';
+    infoDiv.innerHTML = `
+      <div style="font-size:11px;font-weight:bold;color:#d8d0f0;line-height:1.4;margin-bottom:3px;">${title}</div>
+      <div style="font-size:10px;color:rgba(140,220,255,.75);">12.3万回視聴</div>`;
+
+    const label = document.createElement('div');
+    label.className = 'card-label';
+    label.textContent = `${file} | ${cfg.label}`;
+
+    const adjBtn = document.createElement('button');
+    adjBtn.className = 'adj-open-btn';
+    const _fn = frameImg.replace('images/thumbnail/','').replace('.png','');
+    adjBtn.textContent = '⚙ キャラ配置調整：' + _fn;
+    adjBtn.onclick = ((_fi,_fn2)=>()=>{ if(_fi==='images/thumbnail/共通/コラボ.png') openCollabAdjust(); else openAdjust(_fi,_fn2); })(frameImg,_fn);
+    card.appendChild(wrap);
+    card.appendChild(infoDiv);
+    card.appendChild(label);
+    card.appendChild(adjBtn);
+    grid.appendChild(card);
+  });
+}
+
+// ─── BANNER_SLOT_OVERRIDE（dbg.htmlのキャラ配置調整で更新される）────────
+const BANNER_SLOT_OVERRIDE = {
+  'goods_ramen': {
+    1: [['-14%','none','83%','148%','bottom:-39%','transform:rotate(19deg)']],
+    2: [['0%','none','44%','96%',''], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['0%','none','44%','96%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['0%','none','44%','96%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'goods_covercd': {
+    1: [['0%','rotate(-9deg)','75%','127%','bottom:-35%','transform:rotate(-5deg)']],
+    2: [['4%','rotate(-9deg)','48%','86%','bottom:2%'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['4%','rotate(-9deg)','48%','86%','bottom:2%'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['4%','rotate(-9deg)','48%','86%','bottom:2%'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'col_influencer': {
+    1: [['-1%','none','55%','100%','']],
+    2: [['0%','none','42%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['0%','none','42%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['0%','none','42%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'ad_sns': {
+    1: [['50%','translateX(-50%)','62%','100%','']],
+    2: [['2%','none','54%','100%',''], ['44%','none','54%','100%','']],
+    3: [['-6%','none','55%','100%',''], ['50%','translateX(-50%)','55%','100%',''], ['54%','none','55%','100%','']],
+    4: [['0%','none','55%','100%',''], ['50%','translateX(-50%)','58%','100%',''], ['45%','none','55%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'goods_essay': {
+    1: [['42%','none','45%','90%','top:33%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(8deg)']],
+    2: [['40%','none','36%','84%','top:6%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['40%','none','36%','84%','top:6%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['40%','none','36%','84%','top:6%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'ad_bus': {
+    1: [['23%','none','94%','163%','bottom:-55%']],
+    2: [['14%','none','72%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['14%','none','72%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['14%','none','72%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'ev_mystery': {
+    1: [['23%','none','87%','177%','bottom:-34%','transform:rotate(-142deg)']],
+    2: [['55%','none','36%','90%',''], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['55%','none','36%','90%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['55%','none','36%','90%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'col_amusementpark': {
+    1: [['65%','translateX(-50%)','87%','155%','bottom:-48%']],
+    2: [['68%','translateX(-50%)','48%','98%',''], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['68%','translateX(-50%)','48%','98%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['68%','translateX(-50%)','48%','98%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'col_tvguest': {
+    1: [['66%','none','28%','55%','top:22%;bottom:auto','object-fit:cover;object-position:top center']],
+    2: [['63%','none','28%','74%','top:7%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['63%','none','28%','74%','top:7%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['63%','none','28%','74%','top:7%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'col_anime': {
+    1: [['1%','none','64%','119%','bottom:-10%']],
+    2: [['3%','none','38%','92%',''], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['3%','none','38%','92%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['3%','none','38%','92%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'pev_colcafe': {
+    1: [['41%','none','65%','122%','bottom:-21%']],
+    2: [['28%','none','48%','96%',''], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['28%','none','48%','96%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['28%','none','48%','96%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'pev_talksession': {
+    1: [['51%','translateX(-50%)','71%','119%','bottom:-15%']],
+    2: [['50%','translateX(-50%)','38%','75%','bottom:16%'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['50%','translateX(-50%)','38%','75%','bottom:16%'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['50%','translateX(-50%)','38%','75%','bottom:16%'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'pev_arenasoloshow': {
+    1: [['51%','translateX(-50%)','63%','81%','bottom:-14%','transform:rotate(-21deg)']],
+    2: [['50%','translateX(-50%)','44%','96%',''], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['50%','translateX(-50%)','44%','96%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['50%','translateX(-50%)','44%','96%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'ev_battlegame': {
+    1: [['38%','none','26%','84%','']],
+    2: [['5%','none','26%','82%',''], ['68%','none','26%','82%','']],
+    3: [['-7%','none','50%','99%','bottom:-5%','transform:rotate(59deg)'], ['26%','none','50%','84%','bottom:-15%'], ['59%','none','50%','100%','bottom:-2%','transform:rotate(-63deg)']],
+    4: [['4%','none','25%','82%',''], ['37%','none','26%','84%',''], ['70%','none','25%','82%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'ad_city': {
+    1: [['41%','translateX(-50%)','36%','65%','top:11%;bottom:auto','object-fit:cover;object-position:top center']],
+    2: [['13%','translateX(-50%)','28%','65%','top:18%;bottom:auto','object-fit:cover;object-position:top center'], ['73%','translateX(-50%)','26%','65%','top:15%;bottom:auto','object-fit:cover;object-position:top center']],
+    3: [['13%','translateX(-50%)','28%','88%','top:-11%;bottom:auto','object-fit:cover;object-position:top center'], ['35%','translateX(-50%)','29%','49%','top:22%;bottom:auto','object-fit:cover;object-position:top center'], ['83%','translateX(-50%)','52%','101%','top:15%;bottom:auto','object-fit:cover;object-position:top center']],
+    4: [['14%','translateX(-50%)','50%','65%','top:-11%;bottom:auto','object-fit:cover;object-position:top center'], ['35%','translateX(-50%)','31%','52%','top:18%;bottom:auto','object-fit:cover;object-position:top center'], ['83%','translateX(-50%)','26%','102%','top:10%;bottom:auto','object-fit:cover;object-position:top center'], ['36%','translateX(-50%)','55%','107%','bottom:-47%']],
+  },
+  'goods_origcd': {
+    1: [['40%','translateX(-50%)','100%','156%','top:-13%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(-13deg)']],
+    2: [['66%','translateX(-50%)','34%','72%','top:8%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['66%','translateX(-50%)','34%','72%','top:8%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['66%','translateX(-50%)','34%','72%','top:8%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'pev_onlinesoloshow': {
+    1: [['56%','translateX(-50%)','58%','85%','top:13%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(-17deg)']],
+    2: [['50%','translateX(-50%)','46%','85%','top:4%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['50%','translateX(-50%)','46%','85%','top:4%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['50%','translateX(-50%)','46%','85%','top:4%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'ev_livefes': {
+    1: [['33%','none','34%','56%','top:3%;bottom:auto','object-fit:cover;object-position:top center']],
+    2: [['0%','none','33%','56%','top:2%;bottom:auto','object-fit:cover;object-position:top center'], ['66%','none','34%','56%','top:2%;bottom:auto','object-fit:cover;object-position:top center']],
+    3: [['1%','none','33%','78%','top:18%;bottom:auto','object-fit:cover;object-position:top center'], ['30%','none','40%','107%','top:9%;bottom:auto','object-fit:cover;object-position:top center'], ['66%','none','34%','73%','top:20%;bottom:auto','object-fit:cover;object-position:top center']],
+    4: [['0%','none','33%','56%','top:2%;bottom:auto','object-fit:cover;object-position:top center'], ['33%','none','34%','56%','top:3%;bottom:auto','object-fit:cover;object-position:top center'], ['66%','none','34%','56%','top:2%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'col_gameguest': {
+    1: [['41%','rotate(8deg)','46%','89%','top:21%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(12deg)']],
+    2: [['63%','rotate(8deg)','26%','52%','top:5%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['63%','rotate(8deg)','26%','52%','top:5%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['63%','rotate(8deg)','26%','52%','top:5%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'goods_origgame': {
+    1: [['9%','none','50%','97%','top:10%;bottom:auto','object-fit:cover;object-position:top center']],
+    2: [['10%','none','38%','75%','top:7%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['10%','none','38%','75%','top:7%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['10%','none','38%','75%','top:7%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'pev_fanmeet': {
+    1: [['50%','translateX(-50%)','37%','77%','top:-4%;bottom:auto','object-fit:cover;object-position:top center']],
+    2: [['50%','translateX(-50%)','72%','58%','top:2%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['50%','translateX(-50%)','72%','58%','top:2%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['50%','translateX(-50%)','72%','58%','top:2%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'ev_boxgame': {
+    1: [['28%','none','44%','97%','']],
+    2: [['-4%','none','63%','127%','bottom:-16%','transform:rotate(12deg)'], ['44%','none','64%','109%','bottom:-18%','transform:rotate(-18deg)']],
+    3: [['0%','none','44%','97%',''], ['54%','none','44%','97%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['0%','none','44%','97%',''], ['54%','none','44%','97%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+};
+const BANNER_EXPR_OVERRIDE = {};
+
+// 大成功エンディング世界征服シーン VTuber配置（index.htmlのENDING_WORLD_VT_SLOTSと連動）
+let ENDING_WORLD_VT_SLOTS_RT = {
+  1: [['29%','translateX(-50%)','42%','100%','']],
+  2: [['14%','none','38%','100%',''], ['48%','none','38%','100%','']],
+  3: [['5%','none','31%','100%',''], ['35%','none','31%','100%',''], ['63%','none','31%','100%','']],
+  4: [['2%','none','25%','100%',''], ['26%','none','25%','100%',''], ['50%','none','25%','100%',''], ['74%','none','25%','100%','']],
+};
+
+let ENDING_FAMILY_VT_SLOTS_RT = {
+  1: [['51%','translateX(-50%)','72%','130%','bottom:-2%']],
+  2: [['8%','none','58%','115%','bottom:-8%'], ['42%','none','56%','112%','bottom:-6%']],
+  3: [['2%','none','48%','105%','bottom:-6%'], ['28%','none','52%','110%','bottom:-4%'], ['56%','none','48%','104%','bottom:-7%']],
+  4: [['0%','none','38%','100%','bottom:-8%'], ['22%','none','40%','102%','bottom:-5%'], ['46%','none','38%','98%','bottom:-7%'], ['68%','none','36%','100%','bottom:-6%']],
+};
+
+let ENDING_NORMAL_VT_SLOTS_RT = {
+  1: [['51%','translateX(-50%)','68%','120%','bottom:-2%']],
+  2: [['10%','none','52%','110%','bottom:-6%'], ['44%','none','50%','108%','bottom:-4%']],
+  3: [['2%','none','42%','102%','bottom:-5%'], ['30%','none','44%','106%','bottom:-3%'], ['58%','none','42%','102%','bottom:-5%']],
+  4: [['0%','none','32%','98%','bottom:-6%'], ['24%','none','34%','100%','bottom:-4%'], ['50%','none','32%','98%','bottom:-4%'], ['72%','none','32%','98%','bottom:-6%']],
+};
+
+let ENDING_SOUL_VT_SLOTS_RT = {
+  1: [['51%','translateX(-50%)','62%','110%','bottom:-2%']],
+  2: [['8%','none','54%','108%','bottom:-4%'], ['42%','none','52%','108%','bottom:-4%']],
+  3: [['2%','none','42%','100%','bottom:-3%'], ['30%','none','44%','104%','bottom:-2%'], ['58%','none','42%','100%','bottom:-3%']],
+  4: [['0%','none','32%','96%','bottom:-4%'], ['24%','none','34%','100%','bottom:-2%'], ['50%','none','32%','96%','bottom:-2%'], ['72%','none','32%','96%','bottom:-4%']],
+};
+
+const BANNER_CFG = {
+    'ad_sns': {
+      bg: 'images/event/SNS広告_背景.png', fg: null, label: true,
+      vtSlots: (chs) => {
+        const n = Math.min(chs.length, 3);
+        const map = {
+          1: [['50%','translateX(-50%)','56%','100%','']],
+          2: [['6%','none','45%','98%',''],['50%','none','45%','98%','']],
+          3: [['-2%','none','37%','94%',''],['32%','none','37%','94%',''],['65%','none','37%','94%','']],
+        };
+        return (map[n] || map[3]).map((s,i) => ({ slot: s, ch: chs[i] }));
+      },
+    },
+    'ev_boxgame': {
+      bg: 'images/event/箱内ゲーム大会_背景.png',
+      fg: 'images/event/箱内ゲーム大会_手前.png', label: false,
+      vtSlots: (chs) => {
+        const left  = { slot: ['0%','none','44%','97%',''], ch: chs[0] };
+        const right = { slot: ['54%','none','44%','97%',''], ch: chs[1] || chs[0] };
+        return chs.length >= 2 ? [left, right] : [{ slot: ['28%','none','44%','97%',''], ch: chs[0] }];
+      },
+    },
+    'pev_talksession': {
+      bg: 'images/event/オンライントーク会_背景.png',
+      fg: 'images/event/オンライントーク会_手前.png', label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        return [{ slot: ['50%','translateX(-50%)','52%','90%','top:5%;bottom:auto', imgS], ch: chs[0] }];
+      },
+    },
+    'col_influencer': {
+      bg: 'images/event/インフルエンサーコラボ_背景.png', fg: null, label: false,
+      vtSlots: (chs) => [
+        { slot: ['-2%','none','46%','102%','bottom:-2%'], ch: chs[0] },
+      ],
+    },
+    'goods_covercd': {
+      bg: 'images/event/カバー曲CD発売_背景.png',
+      bk: 'images/event/カバー曲CD発売_奥.png',
+      fg: 'images/event/カバー曲CD発売_手前.png', label: false,
+      vtSlots: (chs) => [
+        { slot: ['2%','none','40%','88%','bottom:5%'], ch: chs[0] },
+      ],
+    },
+
+    // ── 以下、各イベント ──
+
+    // ファンミーティング（個人）: ステージ上で中央大きめ
+    'pev_fanmeet': {
+      bg: 'images/event/ファンミーティング_背景.png',
+      fg: 'images/event/ファンミーティング_手前.png', label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        return [{ slot: ['50%','translateX(-50%)','72%','58%','top:2%;bottom:auto', imgS], ch: chs[0] }];
+      },
+    },
+
+    // コラボカフェ（個人）: 中央やや右寄りに1人
+    'pev_colcafe': {
+      bg: 'images/event/コラボカフェ_背景.png', fg: null, label: false,
+      vtSlots: (chs) => [
+        { slot: ['44%','none','46%','95%',''], ch: chs[0] },
+      ],
+    },
+
+    // テレビ番組にゲスト出演（個人）: 右側モニター画面内にキャラを配置（手前で枠を重ねる）
+    'col_tvguest': {
+      bg: 'images/event/テレビ番組にゲスト出演_背景.png',
+      fg: 'images/event/テレビ番組にゲスト出演_手前.png', label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        return [{ slot: ['62%','none','30%','72%','top:5%;bottom:auto', imgS], ch: chs[0] }];
+      },
+    },
+
+    // 街頭ビジョン広告（全体広告）: 円柱型大型ビジョン画面内に1人、手前レイヤーあり
+    'ad_vision': {
+      bg: 'images/event/街頭ビジョン_背景.png',
+      fg: 'images/event/街頭ビジョン_手前.png', label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        return [{ slot: ['47%','none','38%','115%','bottom:-15%', imgS], ch: chs[0] }];
+      },
+    },
+
+    // ラッピングバス（全体広告）: バス車体に大きく1人、バス前景あり
+    'ad_bus': {
+      bg: 'images/event/ラッピングバス_背景.png',
+      fg: 'images/event/ラッピングバス_手前.png', label: false,
+      vtSlots: (chs) => [
+        { slot: ['18%','none','62%','100%',''], ch: chs[0] },
+      ],
+    },
+
+    // 大型ライブフェス（全体）: 3スクリーンに顔アップ、手前レイヤーあり
+    'ev_livefes': {
+      bg: 'images/event/大型ライブフェス_背景.png',
+      fg: 'images/event/大型ライブフェス_手前.png', label: false,
+      vtSlots: (chs) => {
+        const n = Math.min(chs.length, 3);
+        const imgS = 'object-fit:cover;object-position:top center';
+        const screens = [
+          ['0%','none','33%','56%','top:2%;bottom:auto', imgS],
+          ['33%','none','34%','56%','top:3%;bottom:auto', imgS],
+          ['66%','none','34%','56%','top:2%;bottom:auto', imgS],
+        ];
+        const picks = n === 1 ? [1] : n === 2 ? [0,2] : [0,1,2];
+        return picks.map((si, i) => ({ slot: screens[si], ch: chs[i] }));
+      },
+    },
+
+    // 街ジャック広告（全体広告）: 4つの広告スペースに配置、前景あり
+    'ad_city': {
+      bg: 'images/event/街ジャック広告_背景.png',
+      fg: 'images/event/街ジャック広告_手前.png', label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        const allSlots = [
+          ['1%','none','25%','52%','top:0%;bottom:auto', imgS],     // 左上大看板
+          ['27%','none','18%','40%','top:12%;bottom:auto', imgS],   // 中央上看板
+          ['65%','none','35%','88%','top:0%;bottom:auto', imgS],    // 右円柱
+          ['23%','none','32%','36%','top:52%;bottom:auto', imgS],   // 左下看板
+        ];
+        const n = Math.min(chs.length, 4);
+        const picks = n === 1 ? [2] : n === 2 ? [0,2] : n === 3 ? [0,1,2] : [0,1,2,3];
+        return picks.map((si, i) => ({ slot: allSlots[si], ch: chs[i] }));
+      },
+    },
+
+    // 遊園地コラボ（個人）: 右寄りに大きく1人
+    'col_amusementpark': {
+      bg: 'images/event/遊園地コラボ_背景.png', fg: null, label: false,
+      vtSlots: (chs) => [
+        { slot: ['47%','none','56%','108%','bottom:-5%'], ch: chs[0] },
+      ],
+    },
+
+    // VTuberバトルゲーム大会（全体）: 1〜3人横並び（中央やや大きめ）
+    'ev_battlegame': {
+      bg: 'images/event/VTuberバトルゲーム大会_背景.png', fg: null, label: false,
+      vtSlots: (chs) => {
+        const n = Math.min(chs.length, 3);
+        const maps = {
+          1: [['36%','none','28%','85%','']],
+          2: [['5%','none','27%','83%',''],['68%','none','27%','83%','']],
+          3: [['4%','none','26%','82%',''],['36%','none','28%','86%','bottom:0'],['68%','none','26%','82%','']],
+        };
+        return (maps[n] || maps[3]).map((s,i) => ({ slot: s, ch: chs[i] }));
+      },
+    },
+
+    // アニメにゲスト声優出演（個人）: 左寄り大きめ1人
+    'col_anime': {
+      bg: 'images/event/アニメにゲスト声優出演_背景.png', fg: 'images/event/アニメにゲスト声優出演_手前.png', label: false,
+      vtSlots: (chs) => [
+        { slot: ['5%','none','42%','95%',''], ch: chs[0] },
+      ],
+    },
+
+    // アリーナソロライブ（個人）: 中央大きめ1人、手前レイヤーあり
+    'pev_arenasoloshow': {
+      bg: 'images/event/アリーナソロライブ_背景.png',
+      fg: 'images/event/アリーナソロライブ_手前.png', label: false,
+      vtSlots: (chs) => [
+        { slot: ['55%','translateX(-50%)','52%','100%','bottom:-5%'], ch: chs[0] },
+      ],
+    },
+
+    // オリジナルCD発売（グッズ）: CDジャケット中央に顔アップ
+    'goods_origcd': {
+      bg: 'images/event/オリジナルCD発売_背景.png',
+      fg: 'images/event/オリジナルCD発売_手前.png', label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        return [{ slot: ['50%','translateX(-50%)','54%','54%','top:6%;bottom:auto', imgS], ch: chs[0] }];
+      },
+    },
+
+    // オリジナルゲーム発売（グッズ）: TVモニター画面内に配置、手前レイヤーあり
+    'goods_origgame': {
+      bg: 'images/event/オリジナルゲーム発売_背景.png',
+      fg: 'images/event/オリジナルゲーム発売_手前.png', label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        return [{ slot: ['10%','none','38%','75%','top:7%;bottom:auto', imgS], ch: chs[0] }];
+      },
+    },
+
+    // オンラインソロライブ（個人）: PCモニター画面内に配置、手前レイヤーあり
+    'pev_onlinesoloshow': {
+      bg: 'images/event/オンラインソロライブ_背景.png',
+      fg: 'images/event/オンラインソロライブ_手前.png', label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        return [{ slot: ['50%','translateX(-50%)','46%','85%','top:4%;bottom:auto', imgS], ch: chs[0] }];
+      },
+    },
+
+    // ゲームにゲスト出演（個人）: SSRカード枠内（右側・傾き約8°）にキャラを配置、手前レイヤーあり
+    'col_gameguest': {
+      bg: 'images/event/ゲームにゲスト出演_背景.png',
+      fg: 'images/event/ゲームにゲスト出演_手前.png', label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        return [{ slot: ['63%','rotate(8deg)','26%','52%','top:5%;bottom:auto', imgS], ch: chs[0] }];
+      },
+    },
+
+    // 謎解きイベント（全体）: 右寄りに1人
+    'ev_mystery': {
+      bg: 'images/event/謎解きイベント_背景.png', fg: null, label: false,
+      vtSlots: (chs) => [
+        { slot: ['55%','none','36%','90%',''], ch: chs[0] },
+      ],
+    },
+
+    // エッセイ本発売（グッズ）: 本の右側に全身
+    'goods_essay': {
+      bg: 'images/event/エッセイ本発売_背景.png',
+      fg: 'images/event/エッセイ本発売_手前.png', label: false,
+      vtSlots: (chs) => [
+        { slot: ['42%','none','40%','90%','bottom:0'], ch: chs[0] },
+      ],
+    },
+
+    // オリジナルラーメン発売（グッズ）: 左端に大きめ1人
+    'goods_ramen': {
+      bg: 'images/event/オリジナルラーメン_背景.png', fg: null, label: false,
+      vtSlots: (chs) => [
+        { slot: ['-3%','none','52%','100%',''], ch: chs[0] },
+      ],
+    },
+    'ev_onlinelive': {
+      bg: 'images/event/オンライン事務所ライブ_背景.png',
+      fg: 'images/event/オンライン事務所ライブ_手前.png', label: false,
+      name: 'オンライン事務所ライブ',
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        const n = Math.min(chs.length, 4);
+        const screens = {
+          1: [['20%','none','57%','63%','top:9%;bottom:auto', imgS]],
+          2: [['20%','none','27%','60%','top:10%;bottom:auto', imgS], ['49%','none','27%','60%','top:10%;bottom:auto', imgS]],
+          3: [['19%','none','18%','56%','top:13%;bottom:auto', imgS], ['29%','none','32%','63%','top:9%;bottom:auto', imgS], ['63%','none','14%','56%','top:13%;bottom:auto', imgS]],
+          4: [['19%','none','13%','56%','top:12%;bottom:auto', imgS], ['33%','none','13%','58%','top:10%;bottom:auto', imgS], ['47%','none','14%','58%','top:10%;bottom:auto', imgS], ['62%','none','14%','56%','top:12%;bottom:auto', imgS]],
+        };
+        return (screens[n] || screens[3]).map((s,i) => ({ slot: s, ch: chs[i] }));
+      },
+    },
+    'ad_tvcm': {
+      bg: 'images/event/CM出演_背景.png', fg: null, label: false,
+      name: 'テレビCM',
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        const n = Math.min(chs.length, 4);
+        const slots = {
+          1: [['50%','translateX(-50%)','60%','110%','bottom:-12%', imgS]],
+          2: [['3%','none','50%','100%','bottom:-8%', imgS], ['50%','none','48%','100%','bottom:-8%', imgS]],
+          3: [['0%','none','40%','95%','bottom:-5%', imgS], ['32%','translateX(-50%)','38%','105%','bottom:-10%', imgS], ['63%','none','38%','95%','bottom:-5%', imgS]],
+          4: [['0%','none','30%','90%','bottom:-5%', imgS], ['25%','none','30%','95%','bottom:-8%', imgS], ['52%','none','30%','95%','bottom:-8%', imgS], ['72%','none','30%','90%','bottom:-5%', imgS]],
+        };
+        return (slots[n] || slots[3]).map((s,i) => ({ slot: s, ch: chs[i] }));
+      },
+    },
+  };
+
+
+// ─── イベントバナー描画 ──────────────────────────────────────────
+const SAMPLE_COLORS = ['#c0a0ff','#a0c8ff','#a0ffc8','#ffc8a0'];
+
+function buildGawaSelects(){
+  // コラボ相手セレクトも初期化
+  const collabSel = document.getElementById('collabGawaSelect');
+  if (collabSel && collabSel.options.length === 0) {
+    GAWA_ALL.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v; o.textContent = gawaVariantToFile(v);
+      if (v === 6) o.selected = true; // デフォルトB1
+      collabSel.appendChild(o);
+    });
+  }
+
+  const ids=['gawa1','gawa2','gawa3','gawa4'];
+  const defaults=[0,6,12,18];
+  ids.forEach((id,i)=>{
+    const sel=document.getElementById(id);
+    GAWA_ALL.forEach(v=>{
+      const o=document.createElement('option');
+      o.value=v;
+      o.textContent=gawaVariantToFile(v);
+      if(v===defaults[i]) o.selected=true;
+      sel.appendChild(o);
+    });
+  });
+}
+
+function renderEvents(){
+  const grid=document.getElementById('eventGrid');
+  grid.innerHTML='';
+  const resultLayerVal=document.getElementById('evResultLayer')?.value||'failure';
+  const gawaVars=[
+    parseInt(document.getElementById('gawa1').value),
+    parseInt(document.getElementById('gawa2').value),
+    parseInt(document.getElementById('gawa3').value),
+    parseInt(document.getElementById('gawa4').value),
+  ];
+  const sampleChs=gawaVars.map((v,i)=>({
+    vtuber:{gawaVariant:v, imageColor:SAMPLE_COLORS[i], name:gawaVariantToFile(v)}
+  }));
+
+  Object.entries(BANNER_CFG).forEach(([evId,cfg])=>{
+    const card=document.createElement('div');
+    card.className='card';
+
+    const wrap=document.createElement('div');
+    wrap.className='banner-wrap';
+
+    // bg
+    const bgImg=document.createElement('img');
+    bgImg.className='layer'; bgImg.style.zIndex=1;
+    bgImg.src=cfg.bg; bgImg.alt='bg'; bgImg.loading='lazy';
+    wrap.appendChild(bgImg);
+
+    // bk
+    if(cfg.bk){
+      const bkImg=document.createElement('img');
+      bkImg.className='layer'; bkImg.style.zIndex=2;
+      bkImg.src=cfg.bk; bkImg.alt='bk'; bkImg.loading='lazy';
+      wrap.appendChild(bkImg);
+    }
+
+    // vtSlots（BANNER_SLOT_OVERRIDE があればそちらを優先）
+    const vtLayer=document.createElement('div');
+    vtLayer.style.cssText='position:absolute;inset:0;z-index:3;';
+    const _defaultSlots=cfg.vtSlots(sampleChs);
+    const _ovr=BANNER_SLOT_OVERRIDE[evId]?.[_defaultSlots.length];
+    const _evSlots=_ovr?_ovr.map((s,i)=>({slot:s,ch:sampleChs[i]})):_defaultSlots;
+    _evSlots.forEach(({slot,ch})=>{
+      if(!ch) return;
+      const [left,transform,width,height,extra,imgStyle]=slot;
+      const file=gawaVariantToFile(ch.vtuber.gawaVariant);
+      const vtDiv=document.createElement('div');
+      vtDiv.className='vt-slot';
+      vtDiv.style.cssText=`left:${left};transform:${transform};width:${width};height:${height};${extra?extra+';':''}`;
+      const vtImg=document.createElement('img');
+      const _evExprOvr=BANNER_EXPR_OVERRIDE[evId];
+      let _evExpr='normal';
+      if(typeof _evExprOvr==='string'){_evExpr=_evExprOvr;}
+      else if(_evExprOvr){
+        // 新フォーマット {N:[expr,...]} → _defaultSlots.length に対応するキーの先頭を使用
+        const _nKey=_defaultSlots.length;
+        const _arr=_evExprOvr[_nKey]||_evExprOvr[Object.keys(_evExprOvr)[0]];
+        if(_arr&&_arr[0])_evExpr=_arr[0];
+      }
+      vtImg.src=`images/gawa/${file}_${_evExpr}.png`;
+      vtImg.alt=file; vtImg.loading='lazy';
+      if(imgStyle) vtImg.style.cssText=imgStyle;
+      vtDiv.appendChild(vtImg);
+      vtLayer.appendChild(vtDiv);
+    });
+    wrap.appendChild(vtLayer);
+
+    // fg
+    if(cfg.fg){
+      const fgImg=document.createElement('img');
+      fgImg.className='layer'; fgImg.style.zIndex=4;
+      fgImg.src=cfg.fg; fgImg.alt='fg'; fgImg.loading='lazy';
+      wrap.appendChild(fgImg);
+    }
+
+    // 成功/失敗レイヤー
+    const resImg=document.createElement('img');
+    resImg.className='layer'; resImg.style.zIndex=5;
+    resImg.src=resultLayerVal==='success'?'images/event/結果レイヤー_成功.png':'images/event/結果レイヤー_失敗.png';
+    resImg.style.display=resultLayerVal==='none'?'none':'';
+    resImg.alt='result'; resImg.loading='lazy';
+    wrap.appendChild(resImg);
+
+    const label=document.createElement('div');
+    label.className='card-label';
+    const layers=[cfg.bk?'奥':'',cfg.fg?'手前':''].filter(Boolean);
+    label.textContent=`${cfg.name}${layers.length?' ['+layers.join('+')+']':''}`;
+
+    const evAdjBtn=document.createElement('button');
+    evAdjBtn.className='adj-open-btn';
+    evAdjBtn.textContent='⚙ キャラ配置調整';
+    const _eid=evId,_ename=cfg.name||evId;
+    evAdjBtn.onclick=()=>openEvAdjust(_eid,_ename);
+    card.appendChild(wrap);
+    card.appendChild(label);
+    card.appendChild(evAdjBtn);
+    grid.appendChild(card);
+  });
+}
+
+// ─── キャラ配置調整 ─────────────────────────────────────────────────────
+
+let _adjFrame = null, _adjName = '';
+let _adjMode = 'centered';
+let _adjTop=0, _adjWidth=100, _adjHeight=100;
+let _adjRotate=90, _adjScale=2.5;
+let _adjObjPos='top center', _adjObjFit='contain';
+
+function openAdjust(frameImg, frameName) {
+  _adjFrame = frameImg; _adjName = frameName;
+  const css = FRAME_GAWA_STYLE_RT[frameImg] || DEFAULT_GAWA_STYLE;
+  parseStyleToControls(css);
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-adjust').classList.add('active');
+  document.getElementById('adjTitle').textContent = frameName + ' — キャラ配置調整';
+  document.getElementById('adjColorPicker').value = document.getElementById('colorPicker').value;
+  document.getElementById('adjExprSelect').value = FRAME_EXPR_RT[frameImg] ?? '';
+  buildAdjGawaSelect();
+  syncAdjControls();
+  updateAdjustPreview();
+  updateCssOutput();
+}
+
+function closeAdjust() {
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-thumb').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
+  renderThumbs();
+}
+
+function parseStyleToControls(css) {
+  if (css.includes('inset:0') && css.includes('rotate(')) {
+    _adjMode = 'rotate';
+    const ri=css.indexOf('rotate('), re=css.indexOf('deg)',ri);
+    _adjRotate = ri>=0?parseFloat(css.slice(ri+7,re)):90;
+    const si=css.indexOf('scale('), se=css.indexOf(')',si);
+    _adjScale = si>=0?parseFloat(css.slice(si+6,se)):2.5;
+    _adjTop=0; _adjWidth=100; _adjHeight=100;
+    const oi=css.indexOf('object-position:'), oe=oi>=0?css.indexOf(';',oi):-1;
+    _adjObjPos = oi>=0?css.slice(oi+16,oe>=0?oe:undefined).trim():'center';
+  } else if (css.includes('right:0')) {
+    _adjMode = 'right';
+    const ti=css.indexOf('top:'), te=css.indexOf('%',ti);
+    _adjTop = ti>=0?parseFloat(css.slice(ti+4,te)):0;
+    const wk=';width:', wi=css.indexOf(wk), we=css.indexOf('%',wi+wk.length);
+    _adjWidth = wi>=0?parseFloat(css.slice(wi+wk.length,we)):76;
+    const hk=';height:', hi=css.indexOf(hk), he=css.indexOf('%',hi+hk.length);
+    _adjHeight = hi>=0?parseFloat(css.slice(hi+hk.length,he)):155;
+    const oi=css.indexOf('object-position:'), oe=oi>=0?css.indexOf(';',oi):-1;
+    _adjObjPos = oi>=0?css.slice(oi+16,oe>=0?oe:undefined).trim():'top right';
+  } else {
+    _adjMode = 'centered';
+    const ti=css.indexOf('top:'), te=css.indexOf('%',ti);
+    _adjTop = ti>=0?parseFloat(css.slice(ti+4,te)):0;
+    const wk=';width:', wi=css.indexOf(wk), we=css.indexOf('%',wi+wk.length);
+    _adjWidth = wi>=0?parseFloat(css.slice(wi+wk.length,we)):100;
+    const hk=';height:', hi=css.indexOf(hk), he=css.indexOf('%',hi+hk.length);
+    _adjHeight = hi>=0?parseFloat(css.slice(hi+hk.length,he)):100;
+    const oi=css.indexOf('object-position:'), oe=oi>=0?css.indexOf(';',oi):-1;
+    _adjObjPos = oi>=0?css.slice(oi+16,oe>=0?oe:undefined).trim():'top center';
+  }
+  const oi=css.indexOf('object-fit:'), oe=oi>=0?css.indexOf(';',oi):-1;
+  _adjObjFit = oi>=0?css.slice(oi+11,oe>=0?oe:undefined).trim():'contain';
+}
+
+function buildStyle() {
+  let css='position:absolute;';
+  if(_adjMode==='centered'){
+    css+=`top:${_adjTop}%;left:50%;transform:translateX(-50%);bottom:auto;width:${_adjWidth}%;height:${_adjHeight}%;`;
+  } else if(_adjMode==='right'){
+    css+=`top:${_adjTop}%;bottom:auto;right:0;left:auto;width:${_adjWidth}%;height:${_adjHeight}%;`;
+  } else {
+    css+=`inset:0;width:100%;height:100%;transform:rotate(${_adjRotate}deg) scale(${_adjScale});transform-origin:center center;`;
+  }
+  css+=`object-fit:${_adjObjFit};object-position:${_adjObjPos};`;
+  return css;
+}
+
+function syncAdjControls() {
+  document.querySelectorAll('.adj-mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===_adjMode));
+  const isRot=_adjMode==='rotate';
+  document.getElementById('adjCtrlTopWidth').style.display=isRot?'none':'block';
+  document.getElementById('adjCtrlRotate').style.display=isRot?'block':'none';
+  setSV('adjTop',_adjTop,'%'); setSV('adjWidth',_adjWidth,'%'); setSV('adjHeight',_adjHeight,'%');
+  setSV('adjRotate',_adjRotate,'°'); setSV('adjScale',_adjScale,'×',1);
+  document.querySelectorAll('.adj-pos-btn').forEach(b=>b.classList.toggle('active',b.dataset.pos===_adjObjPos));
+  document.getElementById('adjFitContain').classList.toggle('active',_adjObjFit==='contain');
+  document.getElementById('adjFitCover').classList.toggle('active',_adjObjFit==='cover');
+}
+
+function setSV(id,val,unit,dec=0) {
+  const el=document.getElementById(id); if(el) el.value=val;
+  const ve=document.getElementById(id+'Val');
+  if(ve) ve.textContent=dec>0?parseFloat(val).toFixed(dec)+unit:val+unit;
+}
+
+function setMode(mode){_adjMode=mode;syncAdjControls();updateAdjustPreview();updateCssOutput();}
+
+function onSliderChange(id,val){
+  val=parseFloat(val);
+  if(id==='adjTop') _adjTop=val;
+  else if(id==='adjWidth') _adjWidth=val;
+  else if(id==='adjHeight') _adjHeight=val;
+  else if(id==='adjRotate') _adjRotate=val;
+  else if(id==='adjScale') _adjScale=val;
+  const unit=id==='adjRotate'?'°':id==='adjScale'?'×':'%';
+  const dec=id==='adjScale'?1:0;
+  setSV(id,val,unit,dec);
+  updateAdjustPreview();updateCssOutput();
+}
+
+function setObjPos(pos){
+  _adjObjPos=pos;
+  document.querySelectorAll('.adj-pos-btn').forEach(b=>b.classList.toggle('active',b.dataset.pos===pos));
+  updateAdjustPreview();updateCssOutput();
+}
+function setObjFit(fit){
+  _adjObjFit=fit;
+  document.getElementById('adjFitContain').classList.toggle('active',fit==='contain');
+  document.getElementById('adjFitCover').classList.toggle('active',fit==='cover');
+  updateAdjustPreview();updateCssOutput();
+}
+
+
+function onAdjExprChange(val){
+  if(val) FRAME_EXPR_RT[_adjFrame]=val;
+  else delete FRAME_EXPR_RT[_adjFrame];
+  updateAdjustPreview();
+}
+
+
+async function reflectToIndexHtml() {
+  if (!_adjFrame) return;
+  const newStyle = buildStyle();
+  const frameKey = _adjFrame;
+  const exprSel = document.getElementById('adjExprSelect');
+  const exprVal = exprSel ? exprSel.value : '';
+  const btn = document.getElementById('adjReflectBtn');
+
+  // FRAME_GAWA_STYLE（index.html）の更新テキスト生成
+  function updateIndexContent(txt) {
+    const keyStr = "'" + frameKey + "':";
+    const gsS = txt.indexOf('const FRAME_GAWA_STYLE = {');
+    const gsE = txt.indexOf('\n  };', gsS);
+    if (gsS >= 0 && gsE >= 0) {
+      let block = txt.slice(gsS, gsE);
+      const ki = block.indexOf(keyStr);
+      if (ki >= 0) {
+        const ls = block.lastIndexOf('\n', ki), le = block.indexOf('\n', ki);
+        const after = le >= 0 ? block.slice(le) : '';
+        block = block.slice(0, ls + 1) + "    '" + frameKey + "': '" + newStyle + "'," + after;
+      } else {
+        block += "\n    '" + frameKey + "': '" + newStyle + "',";
+      }
+      txt = txt.slice(0, gsS) + block + txt.slice(gsE);
+    }
+    const emS = txt.indexOf('const FRAME_EXPR_MAP = {');
+    const emE = txt.indexOf('\n  };', emS);
+    if (emS >= 0 && emE >= 0) {
+      let eBlock = txt.slice(emS, emE);
+      const eki = eBlock.indexOf(keyStr);
+      if (eki >= 0) {
+        const ls = eBlock.lastIndexOf('\n', eki), le = eBlock.indexOf('\n', eki);
+        if (exprVal) eBlock = eBlock.slice(0, ls + 1) + "    '" + frameKey + "': '" + exprVal + "'," + eBlock.slice(le);
+        else eBlock = eBlock.slice(0, ls) + eBlock.slice(le);
+      } else if (exprVal) {
+        eBlock += "\n    '" + frameKey + "': '" + exprVal + "',";
+      }
+      txt = txt.slice(0, emS) + eBlock + txt.slice(emE);
+    }
+    if (!txt.includes('</html>')) throw new Error('index.html 更新エラー');
+    return txt;
+  }
+
+  // FRAME_GAWA_STYLE_RT（dbg.html）の更新テキスト生成
+  function updateDbgContent(txt) {
+    const keyStr = "'" + frameKey + "':";
+    const gsS = txt.indexOf('const FRAME_GAWA_STYLE_RT = {');
+    const gsE = txt.indexOf('\n};', gsS);
+    if (gsS >= 0 && gsE >= 0) {
+      let block = txt.slice(gsS, gsE);
+      const ki = block.indexOf(keyStr);
+      if (ki >= 0) {
+        const ls = block.lastIndexOf('\n', ki), le = block.indexOf('\n', ki);
+        block = block.slice(0, ls + 1) + "  '" + frameKey + "': '" + newStyle + "'," + block.slice(le);
+      } else {
+        block += "\n  '" + frameKey + "': '" + newStyle + "',";
+      }
+      txt = txt.slice(0, gsS) + block + txt.slice(gsE);
+    }
+    const erS = txt.indexOf('const FRAME_EXPR_RT = {');
+    const erE = txt.indexOf('\n};', erS);
+    if (erS >= 0 && erE >= 0) {
+      let eBlock = txt.slice(erS, erE);
+      const keyStr2 = "'" + frameKey + "':";
+      const eki = eBlock.indexOf(keyStr2);
+      if (eki >= 0) {
+        const ls = eBlock.lastIndexOf('\n', eki), le = eBlock.indexOf('\n', eki);
+        if (exprVal) eBlock = eBlock.slice(0, ls + 1) + "  '" + frameKey + "': '" + exprVal + "'," + eBlock.slice(le);
+        else eBlock = eBlock.slice(0, ls) + eBlock.slice(le);
+      } else if (exprVal) {
+        eBlock += "\n  '" + frameKey + "': '" + exprVal + "',";
+      }
+      txt = txt.slice(0, erS) + eBlock + txt.slice(erE);
+    }
+    if (!txt.includes('</html>')) throw new Error('dbg.html 更新エラー');
+    return txt;
+  }
+
+  function setBtn(msg, ms=0) {
+    const orig = btn._orig || btn.textContent;
+    btn._orig = orig;
+    btn.textContent = msg;
+    if (ms > 0) setTimeout(() => { btn.textContent = btn._orig; }, ms);
+  }
+
+  try {
+    if ('showDirectoryPicker' in window) {
+      setBtn('⏳ フォルダを選択してください…');
+      const dirH = await window.showDirectoryPicker({ mode: 'readwrite' });
+
+      // index.html 更新
+      const idxFH = await dirH.getFileHandle('index.html');
+      const idxTxt = await (await idxFH.getFile()).text();
+      await safeWrite(idxFH, updateIndexContent(idxTxt));
+
+      // index.html保存後にdbg側をリロードして同期
+      await loadFromIndexHtml();
+      setBtn('✅ index.html + dbg.html を保存しました！', 3000);
+    } else {
+      // フォールバック: index.html のみダウンロード
+      setBtn('⏳ 読み込み中…');
+      const resp = await fetch('index.html');
+      let txt = await resp.text();
+      txt = updateIndexContent(txt);
+      const blob = new Blob([txt], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'index.html'; a.click();
+      FRAME_GAWA_STYLE_RT[frameKey] = newStyle;
+      if (exprVal) FRAME_EXPR_RT[frameKey] = exprVal; else delete FRAME_EXPR_RT[frameKey];
+      setBtn('⬇ ダウンロード完了（上書き保存してください）', 4000);
+    }
+  } catch(e) {
+    if (e.name !== 'AbortError') setBtn('❌ ' + e.message, 4000);
+    else setBtn(btn._orig || '📝 index.htmlに反映');
+  }
+}
+
+function buildAdjGawaSelect(){
+  const sel=document.getElementById('adjGawaSelect');
+  if(!sel||sel.options.length>0) return;
+  GAWA_ALL.forEach(v=>{
+    const o=document.createElement('option');
+    o.value=v; o.textContent=gawaVariantToFile(v);
+    if(v===0) o.selected=true;
+    sel.appendChild(o);
+  });
+}
+
+function updateAdjustPreview(){
+  const preview=document.getElementById('adjPreview');
+  if(!preview||!_adjFrame) return;
+  const v=parseInt(document.getElementById('adjGawaSelect').value||0);
+  const adjExprVal=document.getElementById('adjExprSelect').value;
+  const _rawExpr=adjExprVal||document.getElementById('exprSelect').value||'smile';
+  const expr=(_rawExpr==='auto')?(STYLE_FRAMES[currentStyle]?.expr||'normal'):_rawExpr;
+  const color=document.getElementById('adjColorPicker').value||'#9b59b6';
+  const gawaImg=`images/gawa/${gawaVariantToFile(v)}_${expr}.png`;
+  const style=buildStyle();
+  preview.style.background=color;
+  preview.innerHTML=`<img src="${gawaImg}" style="${style}" loading="lazy"><img src="${_adjFrame}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" loading="lazy">`;
+}
+
+function updateCssOutput(){
+  const out=document.getElementById('adjCssOut');
+  if(out) out.value=buildStyle();
+}
+
+function copyCssOut(){
+  const out=document.getElementById('adjCssOut');
+  if(!out) return;
+  navigator.clipboard.writeText(out.value).then(()=>{
+    const btn=document.getElementById('adjCopyBtn');
+    if(btn){btn.textContent='✅ コピー済み';setTimeout(()=>btn.textContent='📋 コピー',1500);}
+  });
+}
+
+function applyToGrid(){
+  if(!_adjFrame) return;
+  FRAME_GAWA_STYLE_RT[_adjFrame]=buildStyle();
+  const btn=document.getElementById('adjApplyBtn');
+  if(btn){btn.textContent='✅ 適用済み';setTimeout(()=>btn.textContent='🖼 グリッドに適用',1500);}
+}
+
+// ─── イベントバナー キャラ配置調整 ─────────────────────────────────────────
+
+let _evAdjId=null,_evAdjName='',_evAdjN=1,_evAdjConfigs={},_evAdjExprs={};
+let _evAdjGawaVars=[0,6,12,18]; // グリッドのgawa1〜4選択値を保存
+
+function parseVtSlotToConfig(slotArr){
+  const[left='50%',transform='none',width='50%',height='100%',extra='',imgStyle='']=slotArr;
+  const rm=(imgStyle||'').match(/transform:rotate\((-?[\d.]+)deg\)/);
+  const rotate=rm?parseFloat(rm[1]):0;
+  const cleanStyle=(imgStyle||'').replace(/;?transform:rotate\([^)]*\)/g,'').replace(/^;+|;+$/g,'');
+  // extra から bottom:X% を抽出
+  const bm=(extra||'').match(/(?:^|;)bottom:(-?[\d.]+)%/);
+  const bottomVal=bm?parseFloat(bm[1]):0;
+  let cleanExtra=(extra||'').replace(/;?bottom:-?[\d.]+%/g,'').replace(/^;+|;+$/g,'');
+  // extra から top:X% を抽出（top基準配置スロット用）
+  const tm=cleanExtra.match(/(?:^|;)top:(-?[\d.]+)%/);
+  const topPct=tm?parseFloat(tm[1]):null;
+  if(topPct!==null){cleanExtra=cleanExtra.replace(/;?top:-?[\d.]+%/g,'').replace(/;?bottom:auto/g,'').replace(/^;+|;+$/g,'');}
+  return{left:parseFloat(left)||0,transform:transform||'none',width:parseFloat(width)||50,height:parseFloat(height)||100,extra:cleanExtra,imgStyle:cleanStyle,rotate:rotate||0,bottom:bottomVal,topPct:topPct};
+}
+function slotConfigToArray(s){
+  let _extra=(s.extra||'').replace(/;?bottom:-?[\d.]+%/g,'').replace(/;?top:-?[\d.]+%/g,'').replace(/;?bottom:auto/g,'').replace(/^;+|;+$/g,'');
+  if(s.topPct!==null&&s.topPct!==undefined){
+    // top基準: top:X%;bottom:auto を extra に追記
+    _extra=(_extra?_extra+';':'')+'top:'+s.topPct+'%;bottom:auto';
+  }else if(s.bottom){
+    _extra=(_extra?_extra+';':'')+'bottom:'+s.bottom+'%';
+  }
+  const a=[s.left+'%',s.transform,s.width+'%',s.height+'%',_extra];
+  let iStyle=(s.imgStyle||'').replace(/;?transform:rotate\([^)]*\)/g,'').replace(/^;+|;+$/g,'');
+  if(s.rotate){iStyle=(iStyle?iStyle+';':'')+'transform:rotate('+s.rotate+'deg)';}
+  if(iStyle)a.push(iStyle);
+  return a;
+}
+
+function openEvAdjust(evId,evName){
+  _evAdjId=evId; _evAdjName=evName;
+  document.getElementById('evAdjTitle').textContent=evName+' — キャラ配置調整';
+  const cfg=BANNER_CFG[evId];
+  const sc=[0,1,2,3].map(i=>({vtuber:{gawaVariant:parseInt(document.getElementById('gawa'+(i+1)).value)||i*6,imageColor:SAMPLE_COLORS[i],name:'VT'+(i+1)}}));
+  _evAdjGawaVars=[0,1,2,3].map(i=>parseInt(document.getElementById('gawa'+(i+1)).value)||i*6);
+  // デフォルトキャラ数＝グリッドで現在表示しているスロット数
+  let _defaultN=1;
+  try{_defaultN=cfg.vtSlots(sc).length;}catch(e){}
+  _evAdjConfigs={};
+  for(let n=1;n<=4;n++){
+    if(BANNER_SLOT_OVERRIDE[evId]?.[n]){
+      _evAdjConfigs[n]=BANNER_SLOT_OVERRIDE[evId][n].map(parseVtSlotToConfig);
+    }else{
+      try{
+        const sl=cfg.vtSlots(sc.slice(0,n));
+        _evAdjConfigs[n]=sl.map(s=>parseVtSlotToConfig(s.slot));
+        while(_evAdjConfigs[n].length<n)_evAdjConfigs[n].push({left:50,transform:'translateX(-50%)',width:50,height:100,extra:'',imgStyle:'',rotate:0,bottom:0,topPct:null});
+      }catch(e){
+        _evAdjConfigs[n]=Array.from({length:n},(_,i2)=>({left:Math.round(10+i2*80/n),transform:'none',width:Math.round(80/n),height:100,extra:'',imgStyle:'',rotate:0,bottom:0,topPct:null}));
+      }
+    }
+  }
+  _evAdjN=_defaultN;
+  {
+    const _saved=BANNER_EXPR_OVERRIDE[evId];
+    if(_saved&&typeof _saved==='object'&&!Array.isArray(_saved)){
+      _evAdjExprs=JSON.parse(JSON.stringify(_saved));
+    } else if(typeof _saved==='string'){
+      // backward compat
+      _evAdjExprs={};
+      for(let _n=1;_n<=4;_n++) _evAdjExprs[_n]=Array(_n).fill(_saved);
+    } else {
+      _evAdjExprs={};
+    }
+  }
+  const gr=document.getElementById('evAdjGawaRow');
+  gr.innerHTML=''; gr._built=false;
+  renderEvAdjNTabs();
+  renderEvAdjSlotControls();
+  updateEvAdjPreview();
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-ev-adjust').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+}
+
+function setEvAdjExpr(expr){
+  // サムネページ用ボタンのみ更新（イベント配置ページはキャラごとに管理）
+  ['Normal','Smile','Sad'].forEach(e=>{
+    const b=document.getElementById('evExprBtn'+e);
+    if(b)b.classList.toggle('active',e.toLowerCase()===expr);
+  });
+}
+function setEvSlotExpr(i,expr){
+  if(!_evAdjExprs[_evAdjN])_evAdjExprs[_evAdjN]=[];
+  while(_evAdjExprs[_evAdjN].length<=i)_evAdjExprs[_evAdjN].push('normal');
+  _evAdjExprs[_evAdjN][i]=expr;
+  ['normal','smile','sad'].forEach(e=>{
+    const b=document.getElementById('evS'+i+'Expr_'+e);
+    if(b)b.classList.toggle('active',e===expr);
+  });
+  updateEvAdjPreview();
+}
+function closeEvAdjust(){
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-event').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="event"]')?.classList.add('active');
+}
+
+function renderEvAdjNTabs(){
+  const tabs=document.getElementById('evAdjNTabs');
+  if(!tabs)return;
+  tabs.innerHTML='';
+  for(let n=1;n<=4;n++){
+    const btn=document.createElement('button');
+    btn.className='adj-mode-btn'+(n===_evAdjN?' active':'');
+    btn.textContent=n+'人';
+    const _n=n;
+    btn.onclick=()=>{_evAdjN=_n;renderEvAdjNTabs();renderEvAdjSlotControls();updateEvAdjPreview();};
+    tabs.appendChild(btn);
+  }
+}
+
+function renderEvAdjSlotControls(){
+  const panel=document.getElementById('evAdjSlotControls');
+  if(!panel)return;
+  panel.innerHTML='';
+  if(!_evAdjConfigs[_evAdjN])_evAdjConfigs[_evAdjN]=[];
+  while(_evAdjConfigs[_evAdjN].length<_evAdjN)_evAdjConfigs[_evAdjN].push({left:50,transform:'translateX(-50%)',width:50,height:100,extra:'',imgStyle:'',rotate:0,bottom:0,topPct:null});
+  _evAdjConfigs[_evAdjN]=_evAdjConfigs[_evAdjN].slice(0,_evAdjN);
+  _evAdjConfigs[_evAdjN].forEach((slot,i)=>{
+    const _curExprs=_evAdjExprs[_evAdjN]||[];
+    const _exprBtns=['normal','smile','sad'].map(function(e){var a=(_curExprs[i]||'normal')===e?' active':'';return '<button class="adj-mode-btn'+a+'" id="evS'+i+'Expr_'+e+'" onclick="setEvSlotExpr('+i+',\''+e+'\')">' +e+'</button>';}).join('');
+    const _trPresets=[['none','左端基準'],['translateX(-50%)','中心基準'],['translateX(-100%)','右端基準']];
+    const sec=document.createElement('div');
+    sec.className='ev-adj-slot-sec';
+    sec.innerHTML=`
+      <div class="adj-slabel" style="color:#bb8ae0;font-size:12px;font-weight:600;margin-bottom:8px">スロット ${i+1}</div>
+      <div class="adj-srow">
+        <span class="adj-slbl">left</span>
+        <input type="range" id="evS${i}L" min="-20" max="120" step="1" value="${Math.round(slot.left)}"
+          oninput="evSlotSet(${i},'left',+this.value);document.getElementById('evS${i}Lv').textContent=this.value+'%'">
+        <span class="adj-sval" id="evS${i}Lv">${Math.round(slot.left)}%</span>
+      </div>
+      <div style="display:flex;gap:4px;margin-bottom:4px;flex-wrap:wrap">
+        ${_trPresets.map(([v,label],j)=>`<button class="adj-mode-btn${slot.transform===v?' active':''}" id="evS${i}T${j}" onclick="evSlotTr(${i},'${v}')">${label}</button>`).join('')}
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:8px">
+        <span class="adj-slbl" style="flex-shrink:0">カスタム</span>
+        <input type="text" id="evS${i}TCustom" value="${_trPresets.some(([v])=>v===slot.transform)?'':slot.transform}" placeholder="例: translateX(-30%)" oninput="evSlotTr(${i},this.value||'none')"
+          style="flex:1;background:#161628;border:1px solid #333;color:#ccc;padding:3px 6px;border-radius:4px;font-size:11px">
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">幅</span>
+        <input type="range" id="evS${i}W" min="5" max="100" step="1" value="${Math.round(slot.width)}"
+          oninput="evSlotSet(${i},'width',+this.value);document.getElementById('evS${i}Wv').textContent=this.value+'%'">
+        <span class="adj-sval" id="evS${i}Wv">${Math.round(slot.width)}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">高さ</span>
+        <input type="range" id="evS${i}H" min="30" max="200" step="1" value="${Math.round(slot.height)}"
+          oninput="evSlotSet(${i},'height',+this.value);document.getElementById('evS${i}Hv').textContent=this.value+'%'">
+        <span class="adj-sval" id="evS${i}Hv">${Math.round(slot.height)}%</span>
+      </div>
+      ${slot.topPct!==null?`
+      <div class="adj-srow">
+        <span class="adj-slbl">縦位置(top)</span>
+        <input type="range" id="evS${i}TP" min="-20" max="80" step="1" value="${slot.topPct||0}"
+          oninput="evSlotSet(${i},'topPct',+this.value);document.getElementById('evS${i}TPv').textContent=this.value+'%'">
+        <span class="adj-sval" id="evS${i}TPv">${slot.topPct||0}%</span>
+      </div>`:` 
+      <div class="adj-srow">
+        <span class="adj-slbl">縦位置</span>
+        <input type="range" id="evS${i}B" min="-80" max="30" step="1" value="${slot.bottom||0}"
+          oninput="evSlotSet(${i},'bottom',+this.value);document.getElementById('evS${i}Bv').textContent=this.value+'%'">
+        <span class="adj-sval" id="evS${i}Bv">${slot.bottom||0}%</span>
+      </div>`}
+      <div class="adj-srow">
+        <span class="adj-slbl">回転</span>
+        <input type="range" id="evS${i}R" min="-180" max="180" step="1" value="${slot.rotate||0}"
+          oninput="evSlotSet(${i},'rotate',+this.value);document.getElementById('evS${i}Rv').textContent=this.value+'°'">
+        <span class="adj-sval" id="evS${i}Rv">${slot.rotate||0}°</span>
+      </div>
+      <div style="margin-bottom:6px">
+        <div class="adj-slabel" style="margin-bottom:4px">extra <small style="color:#555;text-transform:none">(bottom/top 等)</small></div>
+        <input type="text" value="${slot.extra}" placeholder="例: bottom:0" oninput="evSlotSet(${i},'extra',this.value)"
+          style="width:100%;background:#161628;border:1px solid #333;color:#ccc;padding:4px 8px;border-radius:4px;font-size:11px">
+      </div>
+      <div>
+        <div class="adj-slabel" style="margin-bottom:4px">imgStyle <small style="color:#555;text-transform:none">(object-fit 等)</small></div>
+        <input type="text" value="${slot.imgStyle}" placeholder="例: object-fit:cover;object-position:top center" oninput="evSlotSet(${i},'imgStyle',this.value)"
+          style="width:100%;background:#161628;border:1px solid #333;color:#ccc;padding:4px 8px;border-radius:4px;font-size:11px">
+      </div>
+      <div style="margin-top:8px">
+        <div class="adj-slabel" style="margin-bottom:4px">表情（成功・失敗共通）</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          ${_exprBtns}
+        </div>
+      </div>`;
+    panel.appendChild(sec);
+  });
+  updateEvAdjCode();
+}
+
+function evSlotSet(i,key,val){
+  if(!_evAdjConfigs[_evAdjN]?.[i])return;
+  _evAdjConfigs[_evAdjN][i][key]=val;
+  updateEvAdjPreview();updateEvAdjCode();
+}
+function evSlotTr(i,tr){
+  if(!_evAdjConfigs[_evAdjN]?.[i])return;
+  _evAdjConfigs[_evAdjN][i].transform=tr;
+  const _presets=['none','translateX(-50%)','translateX(-100%)'];
+  _presets.forEach((v,j)=>document.getElementById('evS'+i+'T'+j)?.classList.toggle('active',v===tr));
+  if(_presets.includes(tr)){const c=document.getElementById('evS'+i+'TCustom');if(c)c.value='';}
+  updateEvAdjPreview();updateEvAdjCode();
+}
+
+function _ensureEvAdjGawaRow(){
+  const row=document.getElementById('evAdjGawaRow');
+  if(!row)return;
+  if(!row._built){
+    row._built=true;
+    for(let i=0;i<4;i++){
+      const wrap=document.createElement('span');
+      wrap.id='evAdjGawaWrap'+i;
+      wrap.style.cssText='display:'+(i<_evAdjN?'inline-flex':'none')+';align-items:center;gap:3px';
+      const lbl=document.createElement('span');lbl.textContent='スロット'+(i+1)+':';
+      const sel=document.createElement('select');
+      sel.id='evAdjGawa'+i;
+      sel.style.cssText='background:#1e1e30;border:1px solid #444;color:#ccc;padding:2px 4px;font-size:11px;border-radius:3px';
+      sel.onchange=()=>updateEvAdjPreview();
+      GAWA_ALL.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=gawaVariantToFile(v);if(v===_evAdjGawaVars[i])o.selected=true;sel.appendChild(o);});
+      wrap.appendChild(lbl);wrap.appendChild(sel);row.appendChild(wrap);
+    }
+  }else{
+    for(let i=0;i<4;i++){const w=document.getElementById('evAdjGawaWrap'+i);if(w)w.style.display=i<_evAdjN?'inline-flex':'none';}
+  }
+}
+
+function updateEvAdjPreview(){
+  const preview=document.getElementById('evAdjPreview');
+  if(!preview||!_evAdjId)return;
+  const cfg=BANNER_CFG[_evAdjId];
+  _ensureEvAdjGawaRow();
+  const gvars=[];
+  for(let i=0;i<_evAdjN;i++){const s=document.getElementById('evAdjGawa'+i);gvars.push(s?parseInt(s.value):i*6);}
+  preview.innerHTML='';
+  const bg=document.createElement('img');
+  bg.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1';
+  bg.src=cfg.bg;preview.appendChild(bg);
+  if(cfg.bk){const bk=document.createElement('img');bk.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2';bk.src=cfg.bk;preview.appendChild(bk);}
+  const vl=document.createElement('div');vl.style.cssText='position:absolute;inset:0;z-index:3';
+  (_evAdjConfigs[_evAdjN]||[]).forEach((slot,i)=>{
+    const file=gawaVariantToFile(gvars[i]??0);
+    const d=document.createElement('div');d.className='vt-slot';
+    // position:absolute;bottom:0;overflow:hidden を明示（CSSクラスのスコープ外のため）
+    const _vPos=(slot.topPct!==null&&slot.topPct!==undefined)?`top:${slot.topPct}%;bottom:auto`:`bottom:${slot.bottom||0}%`;
+    d.style.cssText=`position:absolute;overflow:hidden;${_vPos};left:${slot.left}%;transform:${slot.transform};width:${slot.width}%;height:${slot.height}%;${slot.extra?slot.extra+';':''}`;
+    const _iExpr=(_evAdjExprs[_evAdjN]||[])[i]||'normal';
+    const img=document.createElement('img');img.src=`images/gawa/${file}_${_iExpr}.png`;img.alt=file;img.loading='lazy';
+    // width/height/display は常に付与し、imgStyle でオーバーライド（ゲーム内CSSクラスの .vt-slot img 相当）
+    let _iStyle='width:100%;height:100%;display:block;'+(slot.imgStyle||'object-fit:contain;object-position:bottom center');
+    if(slot.rotate){_iStyle=_iStyle.replace(/;?transform:rotate\([^)]*\)/g,'').replace(/;+$/,'')+';transform:rotate('+slot.rotate+'deg)';}
+    img.style.cssText=_iStyle;
+    d.appendChild(img);vl.appendChild(d);
+  });
+  preview.appendChild(vl);
+  if(cfg.fg){const fg=document.createElement('img');fg.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:4';fg.src=cfg.fg;preview.appendChild(fg);}
+}
+
+function updateEvAdjCode(){
+  const out=document.getElementById('evAdjCodeOut');
+  if(!out)return;
+  const slots=_evAdjConfigs[_evAdjN]||[];
+  const lines=slots.map(s=>'  '+JSON.stringify(slotConfigToArray(s)).replace(/"/g,"'"));
+  out.value=`// ${_evAdjName} (${_evAdjN}人)\n[\n${lines.join(',\n')}\n]`;
+}
+
+function copyEvAdjCode(){
+  const out=document.getElementById('evAdjCodeOut');if(!out)return;
+  navigator.clipboard.writeText(out.value).then(()=>{const b=document.getElementById('evAdjCopyBtn');if(b){b.textContent='✅ コピー済み';setTimeout(()=>b.textContent='📋 コピー',1500);}});
+}
+
+function applyEvAdjToGrid(){
+  if(!_evAdjId)return;
+  if(!BANNER_SLOT_OVERRIDE[_evAdjId])BANNER_SLOT_OVERRIDE[_evAdjId]={};
+  for(let n=1;n<=4;n++){if(_evAdjConfigs[n]?.length>0)BANNER_SLOT_OVERRIDE[_evAdjId][n]=_evAdjConfigs[n].map(slotConfigToArray);}
+  {
+    const hasNonNormal=Object.values(_evAdjExprs).some(arr=>arr.some(e=>e&&e!=='normal'));
+    if(hasNonNormal){BANNER_EXPR_OVERRIDE[_evAdjId]=JSON.parse(JSON.stringify(_evAdjExprs));}
+    else{delete BANNER_EXPR_OVERRIDE[_evAdjId];}
+  }
+  renderEvents();
+  const b=document.getElementById('evAdjApplyBtn');if(b){b.textContent='✅ 適用済み';setTimeout(()=>b.textContent='🖼 グリッドに適用',1500);}
+}
+
+async function reflectEvAdjToFiles(){
+  if(!_evAdjId)return;
+  applyEvAdjToGrid();
+  const setBtn=(txt,ms=0)=>{const b=document.getElementById('evAdjReflectBtn');if(!b)return;b.textContent=txt;if(ms)setTimeout(()=>b.textContent='📝 index.htmlに反映',ms);};
+  function overrideToJs(){
+    const lines=['const BANNER_SLOT_OVERRIDE = {'];
+    for(const[evId,nMap]of Object.entries(BANNER_SLOT_OVERRIDE)){
+      lines.push("  '"+evId+"': {");
+      for(const[n,slots]of Object.entries(nMap)){
+        const sStr=slots.map(s=>JSON.stringify(s).replace(/"/g,"'")).join(', ');
+        lines.push('    '+n+': ['+sStr+'],');
+      }
+      lines.push('  },');
+    }
+    lines.push('};');
+    return lines.join('\n');
+  }
+  function patchFile(txt){
+    const marker='const BANNER_SLOT_OVERRIDE = {';
+    const s=txt.indexOf(marker);if(s<0)return null;
+    // まず改行あり終端 '\n};' を探す（既にパッチ済みの多行ブロック）
+    let e=txt.indexOf('\n};',s);
+    let eLen=3;
+    if(e<0){
+      // 初期状態の一行 'const BANNER_SLOT_OVERRIDE = {};' に対応
+      e=txt.indexOf('};',s+marker.length);
+      if(e<0)return null;
+      eLen=2;
+    }
+    return txt.slice(0,s)+overrideToJs()+txt.slice(e+eLen);
+  }
+  function exprOverrideToJs(){
+    const entries=Object.entries(BANNER_EXPR_OVERRIDE);
+    if(entries.length===0)return'const BANNER_EXPR_OVERRIDE = {};';
+    const lines=['const BANNER_EXPR_OVERRIDE = {'];
+    entries.forEach(([evId,val])=>{
+      if(typeof val==='string'){
+        lines.push("  '"+evId+"': '"+val+"',");
+      } else {
+        lines.push("  '"+evId+"': {");
+        Object.entries(val).forEach(([n,exprs])=>{
+          lines.push('    '+n+': ['+exprs.map(e=>"'"+e+"'").join(', ')+'],');
+        });
+        lines.push('  },');
+      }
+    });
+    lines.push('};');
+    return lines.join('\n');
+  }
+  function patchExprFile(txt){
+    const marker='const BANNER_EXPR_OVERRIDE = {';
+    const s=txt.indexOf(marker);if(s<0)return null;
+    let e=txt.indexOf('\n};',s);
+    let eLen=3;
+    if(e<0){
+      e=txt.indexOf('};',s+marker.length);
+      if(e<0)return null;
+      eLen=2;
+    }
+    return txt.slice(0,s)+exprOverrideToJs()+txt.slice(e+eLen);
+  }
+  if(!('showDirectoryPicker'in window)){alert('このブラウザは File System Access API に対応していません');return;}
+  try{
+    setBtn('📂 フォルダを選択中...');
+    const dirH=await window.showDirectoryPicker({mode:'readwrite'});
+    const idxFH=await dirH.getFileHandle('index.html');
+    const idxTxt=await(await idxFH.getFile()).text();
+    const patched1=patchFile(idxTxt);
+    if(!patched1){setBtn('❌ index.html に BANNER_SLOT_OVERRIDE が見つかりません',4000);return;}
+    const newIdx=patchExprFile(patched1)||patched1;
+    await safeWrite(idxFH, newIdx);
+    await loadFromIndexHtml();
+    setBtn('✅ 保存しました！',3000);
+  }catch(e){
+    if(e.name!=='AbortError')setBtn('❌ '+e.message,4000);
+    else setBtn('📝 index.htmlに反映',0);
+  }
+}
+
+// ─── コラボサムネ キャラ配置調整 ──────────────────────────────────────
+
+let _collabAdj = {
+  left:  { containerW: 52, imgOffset: -10, imgW: 110, imgH: 100, objPos: 'right center', flip: false },
+  right: { containerW: 52, imgOffset: -10, imgW: 110, imgH: 100, objPos: 'left center',  flip: true  }
+};
+
+function openCollabAdjust() {
+  // COLLAB_THUMB_STYLE を作業コピーに
+  _collabAdj = {
+    left:  { ...COLLAB_THUMB_STYLE.left },
+    right: { ...COLLAB_THUMB_STYLE.right }
+  };
+  // ガワセレクタを初期化（初回のみ）
+  ['collabAdjGawa1','collabAdjGawa2'].forEach((id,i) => {
+    const sel = document.getElementById(id);
+    if (!sel || sel.options.length > 0) return;
+    GAWA_ALL.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v; o.textContent = gawaVariantToFile(v);
+      if (v === i * 6) o.selected = true;
+      sel.appendChild(o);
+    });
+  });
+  // カラーをグリッドの選択値で初期化
+  const c1 = document.getElementById('colorPicker')?.value || '#9b59b6';
+  const c2 = document.getElementById('colorPicker2')?.value || '#5599dd';
+  const el1 = document.getElementById('collabAdjColor1'); if (el1) el1.value = c1;
+  const el2 = document.getElementById('collabAdjColor2'); if (el2) el2.value = c2;
+  // コラボ相手のガワをグリッドの選択値で初期化
+  const g2v = document.getElementById('collabGawaSelect')?.value;
+  if (g2v) { const s = document.getElementById('collabAdjGawa2'); if (s) s.value = g2v; }
+
+  renderCollabAdjControls();
+  updateCollabAdjPreview();
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-collab-adjust').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+}
+
+function closeCollabAdjust() {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-thumb').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.tab-btn[onclick*="thumb"]')?.classList.add('active');
+}
+
+function renderCollabAdjControls() {
+  const panel = document.getElementById('collabAdjControls');
+  if (!panel) return;
+  panel.innerHTML = '';
+  [['left','← 左キャラ','#ff9980','right','imgOffset'],
+   ['right','右キャラ →','#80aaff','left','imgOffset']].forEach(([side,label,color,imgSide,offsetKey]) => {
+    const s = _collabAdj[side];
+    const sec = document.createElement('div');
+    sec.className = 'ev-adj-slot-sec';
+    const objPosPresets = ['top left','top center','top right','left center','center','right center','bottom center'];
+    const posButtons = objPosPresets.map(p =>
+      `<button class="adj-pos-btn${s.objPos===p?' active':''}" onclick="collabAdjObjPos('${side}','${p}')">${p}</button>`
+    ).join('');
+    sec.innerHTML = `
+      <div class="adj-slabel" style="color:${color};font-size:12px;font-weight:600;margin-bottom:8px">${label}</div>
+      <div class="adj-srow">
+        <span class="adj-slbl">コンテナ幅</span>
+        <input type="range" id="ca_${side}_cW" min="20" max="80" step="1" value="${s.containerW}"
+          oninput="collabAdjSet('${side}','containerW',+this.value);document.getElementById('ca_${side}_cWv').textContent=this.value+'%'">
+        <span class="adj-sval" id="ca_${side}_cWv">${s.containerW}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">画像オフセット<br><small style="color:#555">(${imgSide}:)</small></span>
+        <input type="range" id="ca_${side}_off" min="-50" max="50" step="1" value="${s.imgOffset}"
+          oninput="collabAdjSet('${side}','imgOffset',+this.value);document.getElementById('ca_${side}_offv').textContent=this.value+'%'">
+        <span class="adj-sval" id="ca_${side}_offv">${s.imgOffset}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">幅</span>
+        <input type="range" id="ca_${side}_iW" min="50" max="200" step="5" value="${s.imgW}"
+          oninput="collabAdjSet('${side}','imgW',+this.value);document.getElementById('ca_${side}_iWv').textContent=this.value+'%'">
+        <span class="adj-sval" id="ca_${side}_iWv">${s.imgW}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">高さ</span>
+        <input type="range" id="ca_${side}_iH" min="30" max="200" step="5" value="${s.imgH}"
+          oninput="collabAdjSet('${side}','imgH',+this.value);document.getElementById('ca_${side}_iHv').textContent=this.value+'%'">
+        <span class="adj-sval" id="ca_${side}_iHv">${s.imgH}%</span>
+      </div>
+      <div style="margin-bottom:8px">
+        <div class="adj-slabel" style="margin-bottom:4px">object-position</div>
+        <div class="adj-posrow">${posButtons}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="adj-slbl">左右反転</span>
+        <button class="adj-mode-btn${s.flip?' active':''}" id="ca_${side}_flip" onclick="collabAdjFlip('${side}')">${s.flip?'ON（反転中）':'OFF'}</button>
+      </div>`;
+    panel.appendChild(sec);
+  });
+}
+
+function collabAdjSet(side, key, val) {
+  _collabAdj[side][key] = val;
+  updateCollabAdjPreview();
+}
+function collabAdjObjPos(side, pos) {
+  _collabAdj[side].objPos = pos;
+  renderCollabAdjControls();
+  updateCollabAdjPreview();
+}
+function collabAdjFlip(side) {
+  _collabAdj[side].flip = !_collabAdj[side].flip;
+  const btn = document.getElementById('ca_' + side + '_flip');
+  if (btn) { btn.textContent = _collabAdj[side].flip ? 'ON（反転中）' : 'OFF'; btn.classList.toggle('active', _collabAdj[side].flip); }
+  updateCollabAdjPreview();
+}
+
+function updateCollabAdjPreview() {
+  const preview = document.getElementById('collabAdjPreview');
+  if (!preview) return;
+  const gawa1V = parseInt(document.getElementById('collabAdjGawa1')?.value ?? 0) || 0;
+  const gawa2V = parseInt(document.getElementById('collabAdjGawa2')?.value ?? 6) || 6;
+  const c1 = document.getElementById('collabAdjColor1')?.value || '#9b59b6';
+  const c2 = document.getElementById('collabAdjColor2')?.value || '#5599dd';
+  const expr = document.getElementById('exprSelect')?.value || 'smile';
+  const file1 = gawaVariantToFile(gawa1V);
+  const file2 = gawaVariantToFile(gawa2V);
+  const img1 = `images/gawa/${file1}_${expr}.png`;
+  const img2 = `images/gawa/${file2}_${expr}.png`;
+  const L = _collabAdj.left, R = _collabAdj.right;
+  preview.innerHTML = `
+    <div style="position:absolute;inset:0;background:linear-gradient(90deg,${c1} 50%,${c2} 50%);overflow:hidden;">
+      <div style="position:absolute;top:0;left:0;width:${L.containerW}%;height:100%;overflow:hidden;">
+        <img src="${img1}" style="position:absolute;top:0;right:${L.imgOffset}%;width:${L.imgW}%;height:${L.imgH}%;object-fit:contain;object-position:${L.objPos};${L.flip?'transform:scaleX(-1);':''}" loading="lazy">
+      </div>
+      <div style="position:absolute;top:0;right:0;width:${R.containerW}%;height:100%;overflow:hidden;">
+        <img src="${img2}" style="position:absolute;top:0;left:${R.imgOffset}%;width:${R.imgW}%;height:${R.imgH}%;object-fit:contain;object-position:${R.objPos};${R.flip?'transform:scaleX(-1);':''}" loading="lazy">
+      </div>
+      <img src="images/thumbnail/共通/コラボ.png" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" loading="lazy">
+    </div>`;
+}
+
+function applyCollabAdjToGrid() {
+  Object.assign(COLLAB_THUMB_STYLE.left,  _collabAdj.left);
+  Object.assign(COLLAB_THUMB_STYLE.right, _collabAdj.right);
+  renderThumbs();
+  const b = document.getElementById('collabAdjApplyBtn');
+  if (b) { b.textContent = '✅ 適用済み'; setTimeout(() => b.textContent = '🖼 グリッドに適用', 1500); }
+}
+
+async function reflectCollabAdjToFiles() {
+  applyCollabAdjToGrid();
+  const setBtn = (txt, ms=0) => {
+    const b = document.getElementById('collabAdjReflectBtn');
+    if (!b) return; b.textContent = txt;
+    if (ms) setTimeout(() => b.textContent = '📝 index.htmlに反映', ms);
+  };
+  function collabStyleToJs() {
+    const L = COLLAB_THUMB_STYLE.left, R = COLLAB_THUMB_STYLE.right;
+    return (
+      'const COLLAB_THUMB_STYLE = {\n' +
+      `  left:  { containerW: ${L.containerW}, imgOffset: ${L.imgOffset}, imgW: ${L.imgW}, imgH: ${L.imgH}, objPos: '${L.objPos}', flip: ${L.flip} },\n` +
+      `  right: { containerW: ${R.containerW}, imgOffset: ${R.imgOffset}, imgW: ${R.imgW}, imgH: ${R.imgH}, objPos: '${R.objPos}', flip: ${R.flip}  }\n` +
+      '};'
+    );
+  }
+  function patchFile(src) {
+    const marker = 'const COLLAB_THUMB_STYLE = {';
+    const s = src.indexOf(marker); if (s < 0) return null;
+    let e = src.indexOf('\n};', s);
+    let eLen = 3;
+    if (e < 0) { e = src.indexOf('};', s + marker.length); if (e < 0) return null; eLen = 2; }
+    return src.slice(0, s) + collabStyleToJs() + src.slice(e + eLen);
+  }
+  if (!('showDirectoryPicker' in window)) { alert('このブラウザは File System Access API に対応していません'); return; }
+  try {
+    setBtn('📂 フォルダを選択中...');
+    const dirH = await window.showDirectoryPicker({ mode: 'readwrite' });
+    const idxFH = await dirH.getFileHandle('index.html');
+    const idxTxt = await (await idxFH.getFile()).text();
+    const newIdx = patchFile(idxTxt);
+    if (!newIdx) { setBtn('❌ index.html に COLLAB_THUMB_STYLE が見つかりません', 4000); return; }
+    await safeWrite(idxFH, newIdx);
+    await loadFromIndexHtml();
+    setBtn('✅ 保存しました！', 3000);
+  } catch(e) {
+    if (e.name !== 'AbortError') setBtn('❌ ' + e.message, 4000);
+    else setBtn('📝 index.htmlに反映', 0);
+  }
+}
+
+function showTab(tabName) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const sec=document.getElementById('sec-'+tabName);
+  if(sec)sec.classList.add('active');
+  const btn=document.querySelector('.tab-btn[data-tab="'+tabName+'"]');
+  if(btn)btn.classList.add('active');
+}
+buildGawaSelects();
+renderEvents();
+buildStyleTabs();
+renderThumbs();
+showTab('event');
+loadFromIndexHtml();
+
+</script>
+
+<script>
+/* ═══════════════════ エンディングプレビュー ═══════════════════ */
+
+// サンプルデータ
+const DBG_ENDING_SAMPLE = {
+  officeName: 'にじいろプロダクション',
+  periodStr: '3年間',
+  soul: {
+    badge: '✦ LEGENDARY ✦',
+    title: '魂カミングアウトエンド',
+    desc: '一般知名度が頂点に達したとき、運命は思わぬ方向へ転がり始めた——',
+    cls: 'dbg-result-soul',
+    stats: [
+      {icon:'👥', label:'総登録者数（ピーク）', val:'592,800 人'},
+      {icon:'💰', label:'最終資金', val:'+¥8,500,000'},
+      {icon:'🌟', label:'叶えた夢', val:'7 / 9 個'},
+      {icon:'🎤', label:'最高知名度', val:'MAX（98以上）'},
+    ],
+    goReason: '🎤 2024年〜2026年、3年間の挑戦が幕を閉じました。世界中が驚いた歴史的カミングアウトで伝説を刻みました！',
+    levelLabel: '👑 Lv.10　伝説事務所',
+    goTitle: 'ENDING', goTitleClass: 'finale',
+    vtubers: [
+      {oshi:'🌸', name:'桜花ゆい', soul:'河野 結衣（シンガーソングライター系）', subs:'310,500', videos:'402', views:'6,820,000', status:'active', statusLabel:'◉ 現役', gawaVariant:0, soulId:'noir'},
+      {oshi:'⚡', name:'雷電ひかる', soul:'山田 光（ゲーム実況系）', subs:'282,300', videos:'377', views:'5,650,000', status:'active', statusLabel:'◉ 現役', gawaVariant:6, soulId:'luna'},
+    ],
+  },
+  good: {
+    badge: '★★★ GRAND SUCCESS ★★★',
+    title: '大成功エンディング',
+    desc: '3年間で512,400人のファンを獲得し、<br>事務所は業界に名を刻みました。<br>あなたはVTuberプロデューサーとして伝説を残しました。',
+    cls: 'dbg-result-good',
+    stats: [
+      {icon:'👥', label:'総登録者', val:'512,400 人'},
+      {icon:'💰', label:'最終資金', val:'+¥6,250,000'},
+      {icon:'🌟', label:'叶えた夢', val:'8 / 9 個'},
+      {icon:'📅', label:'期間', val:'2024.01.01 〜 2026.12.31'},
+    ],
+    goReason: '🌟 2024年〜2026年、3年間の挑戦が幕を閉じました。圧倒的な成果で伝説を刻みました！',
+    levelLabel: '👑 Lv.10　伝説事務所',
+    goTitle: 'ENDING', goTitleClass: 'finale',
+    vtubers: [
+      {oshi:'🌸', name:'桜花ゆい', soul:'河野 結衣（シンガーソングライター系）', subs:'210,500', videos:'312', views:'4,820,000', status:'active', statusLabel:'◉ 現役', gawaVariant:0},
+      {oshi:'⚡', name:'雷電ひかる', soul:'山田 光（ゲーム実況系）', subs:'182,300', videos:'287', views:'3,650,000', status:'active', statusLabel:'◉ 現役', gawaVariant:6},
+      {oshi:'🌙', name:'月詠まお', soul:'田中 真央（歌・音楽系）', subs:'119,600', videos:'241', views:'2,890,000', status:'graduate', statusLabel:'🎓 卒業', gawaVariant:12},
+    ],
+  },
+  normal: {
+    badge: '★★ SUCCESS ★★',
+    title: '成功エンディング',
+    desc: '3年間で148,200人のファンとともに歩んだ物語。<br>着実な成長を遂げ、確かな足跡を残しました。<br>あなたの努力はVTuber業界に息づいています。',
+    cls: 'dbg-result-normal',
+    stats: [
+      {icon:'👥', label:'総登録者', val:'148,200 人'},
+      {icon:'💰', label:'最終資金', val:'+¥1,840,000'},
+      {icon:'🌟', label:'叶えた夢', val:'4 / 6 個'},
+      {icon:'📅', label:'期間', val:'2024.01.01 〜 2026.12.31'},
+    ],
+    goReason: '📅 2024年〜2026年、3年間の挑戦が幕を閉じました。着実な成長を遂げた3年間でした。',
+    levelLabel: '🌟 Lv.5　中堅事務所',
+    goTitle: 'ENDING', goTitleClass: 'finale',
+    vtubers: [
+      {oshi:'🌸', name:'桜花ゆい', soul:'河野 結衣（シンガーソングライター系）', subs:'88,300', videos:'261', views:'1,820,000', status:'active', statusLabel:'◉ 現役'},
+      {oshi:'⚡', name:'雷電ひかる', soul:'山田 光（ゲーム実況系）', subs:'59,900', videos:'198', views:'1,120,000', status:'active', statusLabel:'◉ 現役'},
+    ],
+  },
+  bad: {
+    badge: '★ STRUGGLE ★',
+    title: '苦戦エンディング',
+    desc: '3年間、あなたはVTuber業界の厳しさと<br>向き合い続けました。34,100人のファンが<br>あなたの挑戦を見守っていました。',
+    cls: 'dbg-result-bad',
+    stats: [
+      {icon:'👥', label:'総登録者', val:'34,100 人'},
+      {icon:'💰', label:'最終資金', val:'−¥420,000'},
+      {icon:'🌟', label:'叶えた夢', val:'1 / 4 個'},
+      {icon:'📅', label:'期間', val:'2024.01.01 〜 2026.12.31'},
+    ],
+    goReason: '📅 2024年〜2026年、3年間の挑戦が幕を閉じました。VTuber業界の厳しさと向き合い続けた日々でした。',
+    levelLabel: '🏢 Lv.1　駆け出し事務所',
+    goTitle: 'ENDING', goTitleClass: 'finale',
+    vtubers: [
+      {oshi:'🌸', name:'桜花ゆい', soul:'河野 結衣（シンガーソングライター系）', subs:'21,600', videos:'142', views:'560,000', status:'graduate', statusLabel:'🎓 卒業'},
+      {oshi:'⚡', name:'雷電ひかる', soul:'山田 光（ゲーム実況系）', subs:'12,500', videos:'98', views:'280,000', status:'active', statusLabel:'◉ 現役'},
+    ],
+  },
+  president: {
+    badge: '👑 LEGENDARY RARE ★',
+    title: '社長デビューエンド',
+    desc: '誰もいなくなった事務所で、社長はある決断を下した——',
+    cls: 'dbg-result-president',
+    stats: [
+      {icon:'👑', label:'事務所レベル', val:'Lv.10（伝説事務所）'},
+      {icon:'🎭', label:'卒業VTuber数', val:'全員'},
+      {icon:'🌟', label:'叶えた夢', val:'9 / 9 個'},
+      {icon:'📅', label:'発生条件', val:'全員卒業 ＋ Lv.10'},
+    ],
+    goReason: '👑 誰もいなくなった事務所で——社長は、ある決断を下した。',
+    levelLabel: '👑 Lv.10　伝説事務所',
+    goTitle: 'ENDING', goTitleClass: 'finale',
+    vtubers: [],
+  },
+  gameover: {
+    badge: '💀 GAME OVER',
+    title: 'ゲームオーバー',
+    desc: '事務所の運営が行き詰まり、<br>解散・倒産を余儀なくされました。<br>VTuber業界の厳しさを痛感した日々でした。',
+    cls: 'dbg-result-bad',
+    stats: [
+      {icon:'👥', label:'総登録者', val:'12,800 人'},
+      {icon:'💰', label:'最終資金', val:'−¥12,500,000'},
+      {icon:'🌟', label:'叶えた夢', val:'0 / 2 個'},
+      {icon:'📅', label:'プレイ期間', val:'1年3ヶ月（465日）'},
+    ],
+    goReason: '⚠️ 資金が底をつきました。事務所を継続できません…',
+    levelLabel: '🌱 Lv.0　新興事務所',
+    goTitle: 'GAME OVER', goTitleClass: '',
+    vtubers: [
+      {oshi:'🌸', name:'桜花ゆい', soul:'河野 結衣（シンガーソングライター系）', subs:'12,800', videos:'89', views:'340,000', status:'active', statusLabel:'◉ 現役'},
+    ],
+  },
+};
+
+let _currentEndingType = 'good';
+
+// 初期化
+document.addEventListener('DOMContentLoaded', () => {
+  renderEndingTypeCards();
+});
+
+function selectEndingType(etype) {
+  _currentEndingType = etype;
+  document.querySelectorAll('.ending-sel-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.etype === etype);
+  });
+}
+
+function renderEndingTypeCards() {
+  const container = document.getElementById('endingTypeCards');
+  if (!container) return;
+  const defs = [
+    { key:'soul',     cls:'card-soul',     badge:'✦ LEGENDARY ✦',         title:'魂カミングアウトエンド', desc:'知名度が頂点に達したとき、運命は思わぬ方向へ——', cond:'条件: 一般知名度が最大値（≥490/500）' },
+    { key:'good',     cls:'card-good',     badge:'★★★ GRAND SUCCESS ★★★', title:'大成功エンディング', desc:'総登録者数50万人以上を達成。業界に伝説を刻んだ事務所。', cond:'条件: 現役VTuber12人以上 ＋ 叶えた夢30個以上' },
+    { key:'normal',   cls:'card-normal',   badge:'★★ SUCCESS ★★',         title:'成功エンディング',   desc:'黒字を維持しつつ堅実な成長を遂げた3年間。着実な足跡を残した。', cond:'条件: 現役VTuber6人以上 ＋ 叶えた夢10個以上' },
+    { key:'bad',      cls:'card-bad',       badge:'★ STRUGGLE ★',          title:'苦戦エンディング',   desc:'厳しい3年間だったが、最後まで諦めずに事務所を続けた。', cond:'条件: 上記いずれにも当てはまらず3年経過' },
+    { key:'president', cls:'card-president', badge:'👑 LEGENDARY RARE ★', title:'社長デビューエンド', desc:'誰もいなくなった事務所で、ある決断が下された——', cond:'条件: 全VTuber卒業 ＋ 事務所Lv.10' },
+    { key:'gameover', cls:'card-gameover',  badge:'💀 GAME OVER',          title:'ゲームオーバー',     desc:'債務超過・全員卒業・解散などにより、3年を待たず強制終了。', cond:'条件: 負債¥1,000万超 / 全員卒業 / 手動解散' },
+  ];
+  container.innerHTML = defs.map(d => `
+    <div class="ending-type-card ${d.cls}" style="cursor:pointer" onclick="selectEndingType('${d.key}'); showEndingPreview('ending-roll');">
+      <div class="ending-type-card-badge">${d.badge}</div>
+      <div class="ending-type-card-title">${d.title}</div>
+      <div class="ending-type-card-desc">${d.desc}</div>
+      <div class="ending-type-card-cond">${d.cond}</div>
+    </div>
+  `).join('');
+}
+
+function buildGameOverScreenHtml(etype) {
+  const d = DBG_ENDING_SAMPLE[etype];
+  const isFinale = (etype === 'good' || etype === 'normal' || etype === 'bad' || etype === 'soul' || etype === 'president');
+  const finaleClass = isFinale ? 'finale' : '';
+  return `
+  <div class="dbg-go-screen">
+    <div class="dbg-go-title ${finaleClass}">${isFinale ? 'ENDING' : 'GAME OVER'}</div>
+    <div class="dbg-go-reason">${d.goReason}</div>
+    <div class="dbg-go-results ${finaleClass}">
+      <div class="dbg-go-results-title">── 最終結果 ──</div>
+      <div class="dbg-go-row"><span class="dbg-go-row-label">事務所名</span><span class="dbg-go-row-val">${DBG_ENDING_SAMPLE.officeName}</span></div>
+      <div class="dbg-go-row"><span class="dbg-go-row-label">事務所レベル</span><span class="dbg-go-row-val highlight">${d.levelLabel || '─'}</span></div>
+      <div class="dbg-go-row"><span class="dbg-go-row-label">プレイ期間</span><span class="dbg-go-row-val">${etype === 'gameover' ? '1年3ヶ月（465日）' : '3年0ヶ月（1095日）'}</span></div>
+      <div class="dbg-go-row"><span class="dbg-go-row-label">最終資金</span><span class="dbg-go-row-val">${d.stats[1].val}</span></div>
+      <div class="dbg-go-row"><span class="dbg-go-row-label">総登録者数（ピーク）</span><span class="dbg-go-row-val">${d.stats[0].val}</span></div>
+      <div class="dbg-go-row"><span class="dbg-go-row-label">輩出したVTuber数</span><span class="dbg-go-row-val">${d.vtubers.length} 人</span></div>
+      <div class="dbg-go-row"><span class="dbg-go-row-label">卒業したVTuber数</span><span class="dbg-go-row-val">${d.vtubers.filter(v=>v.status==='graduate').length} 人</span></div>
+      <div class="dbg-go-row"><span class="dbg-go-row-label">叶えた夢の数</span><span class="dbg-go-row-val highlight">${d.stats[2]?.val ?? '─'}</span></div>
+      ${d.vtubers[0] ? `<div class="dbg-go-row"><span class="dbg-go-row-label">最高登録者のVTuber</span><span class="dbg-go-row-val highlight">${d.vtubers[0].name}（${d.vtubers[0].subs}人）</span></div>` : ''}
+    </div>
+    <button class="dbg-btn-go-ending">✦ エンディングを見る ✦</button>
+  </div>`;
+}
+
+function buildEndingRollHtml(etype) {
+  const d = DBG_ENDING_SAMPLE[etype];
+  const isTimeUp = (etype === 'good' || etype === 'normal' || etype === 'bad');
+
+  let resultSection = '';
+  if (isTimeUp || etype === 'soul' || etype === 'president') {
+    resultSection = `
+    <div class="dbg-ending-result-section ${d.cls}" style="padding:56px 24px 48px;text-align:center;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:8px">
+      <div class="dbg-ending-result-badge">${d.badge}</div>
+      
+      <div class="dbg-ending-result-desc">${d.desc}</div>
+      <div class="dbg-ending-result-stats">
+        ${d.stats.map(s => `<div class="dbg-ending-result-stat">${s.icon} ${s.label} ${s.val}</div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  const vtSections = d.vtubers.map(vt => `
+    <div class="dbg-ending-vtuber">
+      <div class="dbg-ending-vt-oshi">${vt.oshi}</div>
+      <div class="dbg-ending-vt-name">${vt.name}</div>
+      <div class="dbg-ending-vt-soul">${vt.soul}</div>
+      <div class="dbg-ending-status-badge ${vt.status === 'active' ? 'dbg-ending-status-active' : 'dbg-ending-status-graduate'}">${vt.statusLabel}</div>
+      <div class="dbg-ending-vt-stats">
+        <span>👥 ${vt.subs} 人</span>
+        <span>🎬 ${vt.videos} 本</span>
+        <span>👁 ${vt.views} 回視聴</span>
+      </div>
+      <div class="dbg-ending-sep">・ ・ ・</div>
+    </div>`).join('');
+
+  return `
+  <div class="dbg-ending-scroll-wrap">
+    ${resultSection}
+    <div class="dbg-ending-opening">
+      <div class="dbg-ending-stars-line">✦ ✦ ✦</div>
+      <div class="dbg-ending-office-name-big">${DBG_ENDING_SAMPLE.officeName}</div>
+      <div class="dbg-ending-agency-label">VTUBER AGENCY</div>
+      <div class="dbg-ending-period-label">${DBG_ENDING_SAMPLE.periodStr}の物語</div>
+      <div class="dbg-ending-h-rule"></div>
+    </div>
+    ${vtSections}
+    ${etype === 'soul' ? `
+    <div class="dbg-ending-world-section">
+      <div class="dbg-ending-h-rule"></div>
+      <div class="dbg-ending-world-label">── COMING OUT ──</div>
+      <div class="dbg-ending-world-img-wrap">
+        <img class="dbg-ending-world-bg" src="images/ending/魂カミングアウトend_背景.png" alt="">
+        <div class="dbg-ending-world-vts">${(() => {
+          const svts = (d.vtubers || []).filter(v => v.status === 'active').slice(0, 4);
+          const sn = Math.max(1, svts.length);
+          const sslots = ENDING_SOUL_VT_SLOTS_RT[sn] || ENDING_SOUL_VT_SLOTS_RT[1];
+          const SOUL_MAP = {'noir':'noir.png','popo':'popo.png','lily':'lily.png','gonta':'gonta.png','himari':'himari.png','rei':'rei.png','kumo':'tenma.png','flame':'enta.png','luna':'luna.png','yuki':'yukika.png','ryu':'ryuuzaki.png','fuwari':'fuwari.png','pon':'pon.png','yura':'yura.png','tenshin':'tensin.png','fukami':'fukami.png','konkon':'konkon.png','musashi':'musasi.png'};
+          return svts.map((sv, si) => {
+            const slotArr = sslots[si] || sslots[0];
+            const slot = parseVtSlotToConfig(slotArr);
+            const soulFile = sv.soulId ? SOUL_MAP[sv.soulId] : null;
+            const imgSrc = soulFile ? 'images/tamashii/'+soulFile : 'images/gawa/'+gawaVariantToFile(sv.gawaVariant||0)+'_smile.png';
+            const vPos = (slot.topPct !== null && slot.topPct !== undefined)
+              ? 'top:'+slot.topPct+'%;bottom:auto' : 'bottom:'+(slot.bottom||0)+'%';
+            const dStyle = 'position:absolute;overflow:hidden;'+vPos+';left:'+slot.left+'%;transform:'+slot.transform+';width:'+slot.width+'%;height:'+slot.height+'%;'+(slot.extra?slot.extra+';':'');
+            const iStyle = 'width:100%;height:100%;object-fit:cover;object-position:top center;display:block;';
+            return '<div style="'+dStyle+'"><img src="'+imgSrc+'" alt="'+sv.name+'" style="'+iStyle+'"></div>';
+          }).join('');
+        })()}</div>
+        <img class="dbg-ending-world-fg" src="images/ending/魂カミングアウトend_手前.png" alt="">
+        <div class="dbg-ending-world-text-overlay">
+          <div class="dbg-ending-world-caption">ガワの向こうにいた、本当の「私」と出会った日</div>
+        </div>
+      </div>
+      <div class="dbg-ending-world-desc">
+        暴露系インフルエンサーが投稿した一本の動画が、すべてを変えた。<br>
+        追い詰められた末に選んだのは——逃げるのではなく、前に出ること。<br>
+        記者会見でのカミングアウトは世界中に配信され、<br>
+        VTuberという文化そのものを、次の時代へ押し上げた。<br><br>
+        <span style="color:rgba(255,215,0,.9);letter-spacing:.2em;font-size:1.05em;">あなたがいたから、この物語は始まった。</span><br>
+        <span style="color:rgba(255,210,100,1);letter-spacing:.4em;font-size:1.3em;font-weight:bold;display:inline-block;margin-top:18px;text-shadow:0 0 12px rgba(255,200,50,.6);">魂カミングアウトエンド</span>
+      </div>
+    </div>` : ''}
+    ${etype === 'good' ? `
+    <div class="dbg-ending-world-section">
+      <div class="dbg-ending-h-rule"></div>
+      <div class="dbg-ending-world-label">── WORLD DOMINATION ──</div>
+      <div class="dbg-ending-world-img-wrap">
+        <img class="dbg-ending-world-bg" src="images/ending/世界征服end_背景.png" alt="">
+        <div class="dbg-ending-world-vts">${(() => {
+          const wvts = (d.vtubers || []).filter(v => v.status === 'active').slice(0, 4);
+          const wn = Math.max(1, wvts.length);
+          const wslots = ENDING_WORLD_VT_SLOTS_RT[wn] || ENDING_WORLD_VT_SLOTS_RT[1];
+          return wvts.map((wv, wi) => {
+            const slotArr = wslots[wi] || wslots[0];
+            const slot = parseVtSlotToConfig(slotArr);
+            const file = gawaVariantToFile(wv.gawaVariant || wi * 6);
+            const vPos = (slot.topPct !== null && slot.topPct !== undefined)
+              ? 'top:'+slot.topPct+'%;bottom:auto' : 'bottom:'+(slot.bottom||0)+'%';
+            const dStyle = 'position:absolute;overflow:hidden;'+vPos+';left:'+slot.left+'%;transform:'+slot.transform+';width:'+slot.width+'%;height:'+slot.height+'%;'+(slot.extra?slot.extra+';':'');
+            let iStyle = 'width:100%;height:100%;object-fit:contain;object-position:bottom center;display:block;'+(slot.imgStyle||'');
+            if (slot.rotate) iStyle += ';transform:rotate('+slot.rotate+'deg)';
+            return '<div style="'+dStyle+'"><img src="images/gawa/'+file+'_smile.png" alt="'+wv.name+'" style="'+iStyle+'"></div>';
+          }).join('');
+        })()}</div>
+        <img class="dbg-ending-world-fg" src="images/ending/世界征服end_手前.png" alt="">
+        <div class="dbg-ending-world-text-overlay">
+          <div class="dbg-ending-world-caption">全世界へ、その名を轟かせた伝説の事務所</div>
+        </div>
+      </div>
+      <div class="dbg-ending-world-desc">
+        小さな夢から始まったこの事務所は、いつしか世界中のファンに愛される<br>
+        巨大グループへと成長を遂げた。<br>
+        日本を飛び越え、言葉の壁を越え——<br>
+        VTuberたちの歌声と笑い声が、今や地球のあちこちで響いている。<br><br>
+        <span style="color:rgba(255,215,0,.9);letter-spacing:.2em;font-size:1.05em;">あなたがいたから、この物語は始まった。</span><br>
+        <span style="color:rgba(180,230,255,1);letter-spacing:.4em;font-size:1.3em;font-weight:bold;display:inline-block;margin-top:18px;text-shadow:0 0 12px rgba(100,200,255,.6);">世界征服エンド</span>
+      </div>
+    </div>` : ''}
+    ${etype === 'normal' ? `
+    <div class="dbg-ending-world-section">
+      <div class="dbg-ending-h-rule"></div>
+      <div class="dbg-ending-world-label">── FAMILY STREAMING ──</div>
+      <div class="dbg-ending-world-img-wrap">
+        <img class="dbg-ending-world-bg" src="images/ending/親子配信end_背景.png" alt="">
+        <div class="dbg-ending-world-vts">${(() => {
+          const fvt = (d.vtubers || []).find(v => v.status === 'active') || (d.vtubers || [])[0];
+          if (!fvt) return '';
+          const fslots = ENDING_FAMILY_VT_SLOTS_RT[2];
+          const file = gawaVariantToFile(fvt.gawaVariant || 0);
+          return fslots.map((slotArr, fi) => {
+            const slot = parseVtSlotToConfig(slotArr);
+            const vPos = (slot.topPct !== null && slot.topPct !== undefined)
+              ? 'top:'+slot.topPct+'%;bottom:auto' : 'bottom:'+(slot.bottom||0)+'%';
+            const dStyle = 'position:absolute;overflow:hidden;'+vPos+';left:'+slot.left+'%;transform:'+slot.transform+';width:'+slot.width+'%;height:'+slot.height+'%;'+(slot.extra?slot.extra+';':'');
+            let iStyle = 'width:100%;height:100%;object-fit:contain;object-position:bottom center;display:block;'+(slot.imgStyle||'');
+            if (slot.rotate) iStyle += ';transform:rotate('+slot.rotate+'deg)';
+            return '<div style="'+dStyle+'"><img src="images/gawa/'+file+'_smile.png" alt="'+fvt.name+'" style="'+iStyle+'"></div>';
+          }).join('');
+        })()}</div>
+        <img class="dbg-ending-world-fg" src="images/ending/親子配信end_手前.png" alt="">
+        <div class="dbg-ending-world-text-overlay">
+          <div class="dbg-ending-world-caption">その絆は、次の世代へと受け継がれていく</div>
+        </div>
+      </div>
+      <div class="dbg-ending-world-desc">
+        事務所は末永く続いた。<br>
+        VTuberたちは恋をして、結婚をして——<br>
+        やがてその子供たちもVTuberとしてデビューした。<br>
+        画面越しに紡がれた笑顔は、家族の絆へと変わっていく。<br><br>
+        <span style="color:rgba(255,215,0,.9);letter-spacing:.2em;font-size:1.05em;">あなたがいたから、この物語は始まった。</span><br>
+        <span style="color:rgba(255,190,200,1);letter-spacing:.4em;font-size:1.3em;font-weight:bold;display:inline-block;margin-top:18px;text-shadow:0 0 12px rgba(255,150,180,.6);">あったか家族エンド</span>
+      </div>
+    </div>` : ''}
+    ${etype === 'bad' ? `
+    <div class="dbg-ending-world-section">
+      <div class="dbg-ending-h-rule"></div>
+      <div class="dbg-ending-world-label">── THE END ──</div>
+      <div class="dbg-ending-world-img-wrap">
+        <img class="dbg-ending-world-bg" src="images/ending/通常end_背景.png" alt="">
+        <div class="dbg-ending-world-vts">${(() => {
+          const nvts = (d.vtubers || []).filter(v => v.status === 'active').slice(0, 4);
+          const nn = Math.max(1, nvts.length);
+          const nslots = ENDING_NORMAL_VT_SLOTS_RT[nn] || ENDING_NORMAL_VT_SLOTS_RT[1];
+          return nvts.map((nv, ni) => {
+            const slotArr = nslots[ni] || nslots[0];
+            const slot = parseVtSlotToConfig(slotArr);
+            const file = gawaVariantToFile(nv.gawaVariant || ni * 6);
+            const vPos = (slot.topPct !== null && slot.topPct !== undefined)
+              ? 'top:'+slot.topPct+'%;bottom:auto' : 'bottom:'+(slot.bottom||0)+'%';
+            const dStyle = 'position:absolute;overflow:hidden;'+vPos+';left:'+slot.left+'%;transform:'+slot.transform+';width:'+slot.width+'%;height:'+slot.height+'%;'+(slot.extra?slot.extra+';':'');
+            let iStyle = 'width:100%;height:100%;object-fit:contain;object-position:bottom center;display:block;'+(slot.imgStyle||'');
+            if (slot.rotate) iStyle += ';transform:rotate('+slot.rotate+'deg)';
+            return '<div style="'+dStyle+'"><img src="images/gawa/'+file+'_smile.png" alt="'+nv.name+'" style="'+iStyle+'"></div>';
+          }).join('');
+        })()}</div>
+        <div class="dbg-ending-world-text-overlay">
+          <div class="dbg-ending-world-caption">それでも、歩んだ日々は本物だった</div>
+        </div>
+      </div>
+      <div class="dbg-ending-world-desc">
+        思い描いた夢には届かなかったかもしれない。<br>
+        けれど、VTuberたちと過ごしたその日々は<br>
+        確かにあなたの物語だった。<br><br>
+        <span style="color:rgba(255,215,0,.9);letter-spacing:.2em;font-size:1.05em;">あなたがいたから、この物語は始まった。</span><br>
+        <span style="color:rgba(200,220,255,1);letter-spacing:.4em;font-size:1.3em;font-weight:bold;display:inline-block;margin-top:18px;text-shadow:0 0 12px rgba(150,180,255,.6);">通常エンド</span>
+      </div>
+    </div>` : ''}
+    ${etype === 'president' ? `
+    <div class="dbg-ending-world-section">
+      <div class="dbg-ending-h-rule"></div>
+      <div class="dbg-ending-world-label">── PRESIDENT DEBUT ──</div>
+      <div class="dbg-ending-gameover-img-wrap">
+        <img src="images/ending/社長デビューend.png" alt="社長デビューエンド">
+      </div>
+      <div class="dbg-ending-world-desc">
+        タレントが一人もいなくなった事務所に、静寂が訪れた。<br>
+        しかし社長は諦めなかった——<br>
+        「ならば、私がなればいい。」<br><br>
+        そうして伝説の事務所から、まったく新しい物語が始まった。<br><br>
+        <span style="color:rgba(255,215,0,.9);letter-spacing:.2em;font-size:1.05em;">あなたがいたから、この物語は始まった。</span><br>
+        <span style="color:rgba(255,180,80,1);letter-spacing:.4em;font-size:1.3em;font-weight:bold;display:inline-block;margin-top:18px;text-shadow:0 0 12px rgba(255,160,50,.6);">社長デビューエンド</span>
+      </div>
+    </div>` : ''}
+    ${etype === 'gameover' ? `
+    <div class="dbg-ending-world-section">
+      <div class="dbg-ending-h-rule"></div>
+      <div class="dbg-ending-world-label">── DISSOLUTION ──</div>
+      <div class="dbg-ending-gameover-img-wrap">
+        <img src="images/ending/gameover.png" alt="">
+      </div>
+      <div class="dbg-ending-world-desc">
+        夢を追いかけたその日々は、<br>
+        決して無駄ではなかった。<br>
+        挑戦したすべてが、この物語の一部だった。<br><br>
+        <span style="color:rgba(255,215,0,.9);letter-spacing:.2em;font-size:1.05em;">あなたがいたから、この物語は始まった。</span><br>
+        <span style="color:rgba(180,210,255,1);letter-spacing:.4em;font-size:1.3em;font-weight:bold;display:inline-block;margin-top:18px;text-shadow:0 0 12px rgba(100,160,255,.6);">解散エンド</span>
+      </div>
+    </div>` : ''}
+    <div class="dbg-ending-closing">
+      <div class="dbg-ending-h-rule"></div>
+      <div class="dbg-ending-stars-line">✦ ✦ ✦</div>
+      <div class="dbg-ending-thank">THANK YOU</div>
+      <div class="dbg-ending-thank-sub">また会う日まで</div>
+      <div style="font-size:.62rem;color:rgba(176,140,220,.45);letter-spacing:.3em;margin-top:12px;">2024.01.01 — 2026.12.31</div>
+      <div class="dbg-ending-blank"></div>
+    </div>
+  </div>`;
+}
+
+function showEndingPreview(mode) {
+  const overlay = document.getElementById('dbgEndingOverlay');
+  const contentEl = document.getElementById('dbgEndingContent');
+  const etype = _currentEndingType;
+
+  if (mode === 'gameover-screen') {
+    contentEl.innerHTML = buildGameOverScreenHtml(etype);
+  } else {
+    contentEl.innerHTML = buildEndingRollHtml(etype);
+  }
+
+  overlay.style.display = 'block';
+  overlay.scrollTop = 0;
+}
+
+function closeEndingPreview() {
+  document.getElementById('dbgEndingOverlay').style.display = 'none';
+}
+</script>
+
+
+<script>
+/* ═══════════ 大成功エンド キャラ配置調整 ═══════════ */
+
+let _weN = 2;
+let _weConfigs = {};  // {1: [{left,transform,width,height,extra},...], ...}
+let _weExpr = 'smile';
+
+function openWorldEndingAdjust() {
+  // 現在のRTデータを読み込んでconfigsに変換
+  for (let n = 1; n <= 4; n++) {
+    const slots = ENDING_WORLD_VT_SLOTS_RT[n] || [];
+    _weConfigs[n] = slots.map(s => parseVtSlotToConfig(s));
+    while (_weConfigs[n].length < n) {
+      _weConfigs[n].push({left:50, transform:'translateX(-50%)', width:40, height:100, extra:'', imgStyle:'', rotate:0, bottom:0, topPct:null});
+    }
+  }
+  _weN = 2;
+  renderWeNTabs();
+  renderWeSlotControls();
+  updateWePreview();
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-world-ending-adjust').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+}
+
+function closeWorldEndingAdjust() {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-ending').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.dataset.tab === 'ending') b.classList.add('active');
+  });
+}
+
+function setWeExpr(expr) {
+  _weExpr = expr;
+  ['Normal','Smile','Sad'].forEach(e => {
+    const b = document.getElementById('weExpr' + e);
+    if (b) b.classList.toggle('active', e.toLowerCase() === expr);
+  });
+  updateWePreview();
+}
+
+function renderWeNTabs() {
+  const container = document.getElementById('weNTabs');
+  if (!container) return;
+  container.innerHTML = [1,2,3,4].map(n =>
+    `<button class="adj-mode-btn${_weN===n?' active':''}" onclick="setWeN(${n})">${n}人</button>`
+  ).join('');
+}
+
+function setWeN(n) {
+  _weN = n;
+  renderWeNTabs();
+  renderWeSlotControls();
+  updateWePreview();
+}
+
+function weSlotSet(i, key, val) {
+  if (!_weConfigs[_weN]) return;
+  _weConfigs[_weN][i][key] = val;
+  updateWePreview();
+}
+
+function weSlotTr(i, val) {
+  if (!_weConfigs[_weN]) return;
+  _weConfigs[_weN][i].transform = val;
+  // ボタンアクティブ更新
+  [['none','left'],['translateX(-50%)','center'],['translateX(-100%)','right']].forEach(([v,cls]) => {
+    const b = document.getElementById(`weS${i}T_${cls}`);
+    if (b) b.classList.toggle('active', v === val);
+  });
+  updateWePreview();
+}
+
+function renderWeSlotControls() {
+  const panel = document.getElementById('weSlotControls');
+  if (!panel) return;
+  if (!_weConfigs[_weN]) _weConfigs[_weN] = [];
+  while (_weConfigs[_weN].length < _weN) {
+    _weConfigs[_weN].push({left:50, transform:'translateX(-50%)', width:40, height:100, extra:'', imgStyle:'', rotate:0, bottom:0, topPct:null});
+  }
+  _weConfigs[_weN] = _weConfigs[_weN].slice(0, _weN);
+
+  panel.innerHTML = _weConfigs[_weN].map((slot, i) => {
+    const trPresets = [['none','左端'],['translateX(-50%)','中央'],['translateX(-100%)','右端']];
+    return `
+    <div class="ev-adj-slot-sec" style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #2a2a40">
+      <div class="adj-slabel" style="color:#bb8ae0;font-size:12px;font-weight:600;margin-bottom:8px">スロット ${i+1}</div>
+      <div class="adj-srow">
+        <span class="adj-slbl">キャラ</span>
+        <select id="weGawa${i}" onchange="updateWePreview()" style="background:#1e1e30;color:#ddd;border:1px solid #444;border-radius:4px;padding:2px 4px;font-size:12px">
+          ${GAWA_ALL.map(v => `<option value="${v}" ${v===(i*6)?'selected':''}>${gawaVariantToFile(v)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">left</span>
+        <input type="range" id="weS${i}L" min="-20" max="120" step="1" value="${Math.round(slot.left)}"
+          oninput="weSlotSet(${i},'left',+this.value);document.getElementById('weS${i}Lv').textContent=this.value+'%'">
+        <span class="adj-sval" id="weS${i}Lv">${Math.round(slot.left)}%</span>
+      </div>
+      <div style="display:flex;gap:4px;margin-bottom:4px;flex-wrap:wrap">
+        ${trPresets.map(([v,label]) => `<button class="adj-mode-btn${slot.transform===v?' active':''}" id="weS${i}T_${label==='左端'?'left':label==='中央'?'center':'right'}" onclick="weSlotTr(${i},'${v}')">${label}</button>`).join('')}
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">幅</span>
+        <input type="range" id="weS${i}W" min="10" max="100" step="1" value="${Math.round(slot.width)}"
+          oninput="weSlotSet(${i},'width',+this.value);document.getElementById('weS${i}Wv').textContent=this.value+'%'">
+        <span class="adj-sval" id="weS${i}Wv">${Math.round(slot.width)}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">高さ</span>
+        <input type="range" id="weS${i}H" min="30" max="150" step="1" value="${Math.round(slot.height)}"
+          oninput="weSlotSet(${i},'height',+this.value);document.getElementById('weS${i}Hv').textContent=this.value+'%'">
+        <span class="adj-sval" id="weS${i}Hv">${Math.round(slot.height)}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">bottom</span>
+        <input type="range" id="weS${i}B" min="-50" max="50" step="1" value="${Math.round(slot.bottom||0)}"
+          oninput="weSlotSet(${i},'bottom',+this.value);document.getElementById('weS${i}Bv').textContent=this.value+'%'">
+        <span class="adj-sval" id="weS${i}Bv">${Math.round(slot.bottom||0)}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">回転</span>
+        <input type="range" id="weS${i}R" min="-45" max="45" step="1" value="${Math.round(slot.rotate||0)}"
+          oninput="weSlotSet(${i},'rotate',+this.value);document.getElementById('weS${i}Rv').textContent=this.value+'°'">
+        <span class="adj-sval" id="weS${i}Rv">${Math.round(slot.rotate||0)}°</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateWePreview() {
+  const preview = document.getElementById('weAdjPreview');
+  if (!preview) return;
+  preview.innerHTML = '';
+
+  const bg = document.createElement('img');
+  bg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0';
+  bg.src = 'images/ending/世界征服end_背景.png';
+  preview.appendChild(bg);
+
+  const vtLayer = document.createElement('div');
+  vtLayer.style.cssText = 'position:absolute;inset:0;z-index:1';
+  (_weConfigs[_weN] || []).forEach((slot, i) => {
+    const gSel = document.getElementById('weGawa' + i);
+    const gVar = gSel ? parseInt(gSel.value) : i * 6;
+    const file = gawaVariantToFile(gVar);
+    const d = document.createElement('div');
+    const vPos = (slot.topPct !== null && slot.topPct !== undefined)
+      ? `top:${slot.topPct}%;bottom:auto` : `bottom:${slot.bottom||0}%`;
+    d.style.cssText = `position:absolute;overflow:hidden;${vPos};left:${slot.left}%;transform:${slot.transform};width:${slot.width}%;height:${slot.height}%;${slot.extra?slot.extra+';':''}`;
+    const img = document.createElement('img');
+    img.src = `images/gawa/${file}_${_weExpr}.png`;
+    img.style.cssText = `width:100%;height:100%;object-fit:contain;object-position:bottom center;display:block;${slot.imgStyle||''}`;
+    if (slot.rotate) img.style.transform = `rotate(${slot.rotate}deg)`;
+    d.appendChild(img);
+    vtLayer.appendChild(d);
+  });
+  preview.appendChild(vtLayer);
+
+  const fg = document.createElement('img');
+  fg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2';
+  fg.src = 'images/ending/世界征服end_手前.png';
+  preview.appendChild(fg);
+}
+
+async function reflectWorldEndingToFile() {
+  // RTに反映
+  for (let n = 1; n <= 4; n++) {
+    if (_weConfigs[n]?.length > 0) {
+      ENDING_WORLD_VT_SLOTS_RT[n] = _weConfigs[n].map(slotConfigToArray);
+    }
+  }
+
+  function slotsToJs() {
+    const lines = ['const ENDING_WORLD_VT_SLOTS = {'];
+    for (let n = 1; n <= 4; n++) {
+      const slots = ENDING_WORLD_VT_SLOTS_RT[n] || [];
+      const sStr = slots.map(s => JSON.stringify(s).replace(/"/g, "'")).join(', ');
+      lines.push(`  ${n}: [${sStr}],`);
+    }
+    lines.push('};');
+    return lines.join('\n');
+  }
+
+  function patchFile(txt) {
+    const marker = 'const ENDING_WORLD_VT_SLOTS = {';
+    const s = txt.indexOf(marker); if (s < 0) return null;
+    let e = txt.indexOf('\n};', s); let eLen = 3;
+    if (e < 0) { e = txt.indexOf('};', s + marker.length); if (e < 0) return null; eLen = 2; }
+    return txt.slice(0, s) + slotsToJs() + txt.slice(e + eLen);
+  }
+
+  const setBtn = (txt, ms=0) => {
+    const b = document.getElementById('weReflectBtn');
+    if (!b) return;
+    b.textContent = txt;
+    if (ms) setTimeout(() => b.textContent = '📝 index.htmlに反映', ms);
+  };
+
+  if (!('showDirectoryPicker' in window)) { alert('File System Access API 非対応ブラウザ'); return; }
+  try {
+    setBtn('📂 フォルダを選択中...');
+    const dirH = await window.showDirectoryPicker({ mode: 'readwrite' });
+    const idxFH = await dirH.getFileHandle('index.html');
+    const idxTxt = await (await idxFH.getFile()).text();
+    const patched = patchFile(idxTxt);
+    if (!patched) { setBtn('❌ ENDING_WORLD_VT_SLOTS が見つかりません', 4000); return; }
+    await safeWrite(idxFH, patched);
+    await loadFromIndexHtml();
+    setBtn('✅ 保存しました！', 3000);
+  } catch(e) {
+    if (e.name !== 'AbortError') setBtn('❌ ' + e.message, 4000);
+    else setBtn('📝 index.htmlに反映', 0);
+  }
+}
+
+// ═══ 成功エンド キャラ配置調整 ═══
+let _feConfigs = {};
+let _feN = 2;
+let _feExpr = 'smile';
+
+function openFamilyEndingAdjust() {
+  for (let n = 1; n <= 4; n++) {
+    const slots = ENDING_FAMILY_VT_SLOTS_RT[n] || [];
+    _feConfigs[n] = slots.map(s => parseVtSlotToConfig(s));
+    while (_feConfigs[n].length < n) {
+      _feConfigs[n].push({left:50, transform:'translateX(-50%)', width:50, height:100, extra:'', imgStyle:'', bottom:0, topPct:null, rotate:0});
+    }
+  }
+  _feN = 2;
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-family-ending-adjust').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  renderFeNTabs();
+  renderFeSlotControls();
+  updateFePreview();
+}
+
+function closeFamilyEndingAdjust() {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-ending').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.dataset.tab === 'ending') b.classList.add('active');
+  });
+}
+
+function setFeExpr(expr) {
+  _feExpr = expr;
+  ['Normal','Smile','Sad'].forEach(e => {
+    const b = document.getElementById('feExpr'+e);
+    if (b) b.classList.toggle('active', expr === e.toLowerCase());
+  });
+  updateFePreview();
+}
+
+function renderFeNTabs() {
+  const el = document.getElementById('feNTabs');
+  if (!el) return;
+  el.innerHTML = [1,2,3,4].map(n =>
+    `<button class="adj-mode-btn${n===_feN?' active':''}" onclick="setFeN(${n})">${n}人</button>`
+  ).join('');
+}
+
+function setFeN(n) {
+  _feN = n;
+  renderFeNTabs();
+  renderFeSlotControls();
+  updateFePreview();
+}
+
+function feSlotSet(i, key, val) {
+  if (!_feConfigs[_feN]) return;
+  _feConfigs[_feN][i][key] = val;
+  updateFePreview();
+}
+
+function feSlotTr(i, val) {
+  if (!_feConfigs[_feN]) return;
+  _feConfigs[_feN][i].transform = val;
+  [['none','left'],['translateX(-50%)','center'],['translateX(-100%)','right']].forEach(([v,cls]) => {
+    const b = document.getElementById(`feS${i}T_${cls}`);
+    if (b) b.classList.toggle('active', val === v);
+  });
+  updateFePreview();
+}
+
+function renderFeSlotControls() {
+  const el = document.getElementById('feSlotControls');
+  if (!el || !_feConfigs[_feN]) return;
+  el.innerHTML = _feConfigs[_feN].map((slot, i) => `
+    <div class="adj-section" style="margin-bottom:14px">
+      <div class="adj-slabel">スロット ${i+1}</div>
+      <div class="adj-srow" style="margin-bottom:6px">
+        <span class="adj-slbl">キャラ</span>
+        <select id="feGawa${i}" onchange="updateFePreview()" style="flex:1;background:#1a1a2a;border:1px solid #333;color:#ccc;padding:3px;border-radius:4px;font-size:11px">
+          ${GAWA_ALL.map(v => `<option value="${v}" ${v===(i*6)?'selected':''}>${gawaVariantToFile(v)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">left</span>
+        <input type="range" id="feS${i}L" min="-20" max="120" step="1" value="${Math.round(slot.left)}"
+          oninput="feSlotSet(${i},'left',+this.value);document.getElementById('feS${i}Lv').textContent=this.value+'%'">
+        <span class="adj-sval" id="feS${i}Lv">${Math.round(slot.left)}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">揃え</span>
+        <button id="feS${i}T_left" class="adj-mode-btn${slot.transform==='none'?' active':''}" onclick="feSlotTr(${i},'none')">左</button>
+        <button id="feS${i}T_center" class="adj-mode-btn${slot.transform==='translateX(-50%)'?' active':''}" onclick="feSlotTr(${i},'translateX(-50%)')">中</button>
+        <button id="feS${i}T_right" class="adj-mode-btn${slot.transform==='translateX(-100%)'?' active':''}" onclick="feSlotTr(${i},'translateX(-100%)')">右</button>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">width</span>
+        <input type="range" id="feS${i}W" min="5" max="150" step="1" value="${Math.round(slot.width)}"
+          oninput="feSlotSet(${i},'width',+this.value);document.getElementById('feS${i}Wv').textContent=this.value+'%'">
+        <span class="adj-sval" id="feS${i}Wv">${Math.round(slot.width)}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">height</span>
+        <input type="range" id="feS${i}H" min="20" max="200" step="1" value="${Math.round(slot.height)}"
+          oninput="feSlotSet(${i},'height',+this.value);document.getElementById('feS${i}Hv').textContent=this.value+'%'">
+        <span class="adj-sval" id="feS${i}Hv">${Math.round(slot.height)}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">bottom</span>
+        <input type="range" id="feS${i}B" min="-50" max="50" step="1" value="${Math.round(slot.bottom||0)}"
+          oninput="feSlotSet(${i},'bottom',+this.value);document.getElementById('feS${i}Bv').textContent=this.value+'%'">
+        <span class="adj-sval" id="feS${i}Bv">${Math.round(slot.bottom||0)}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">回転</span>
+        <input type="range" id="feS${i}R" min="-45" max="45" step="1" value="${Math.round(slot.rotate||0)}"
+          oninput="feSlotSet(${i},'rotate',+this.value);document.getElementById('feS${i}Rv').textContent=this.value+'°'">
+        <span class="adj-sval" id="feS${i}Rv">${Math.round(slot.rotate||0)}°</span>
+      </div>
+    </div>`).join('');
+}
+
+function updateFePreview() {
+  const preview = document.getElementById('feAdjPreview');
+  if (!preview) return;
+  preview.innerHTML = '';
+  const bg = document.createElement('img');
+  bg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0';
+  bg.src = 'images/ending/親子配信end_背景.png';
+  preview.appendChild(bg);
+  const vtLayer = document.createElement('div');
+  vtLayer.style.cssText = 'position:absolute;inset:0;z-index:1';
+  (_feConfigs[_feN] || []).forEach((slot, i) => {
+    const gSel = document.getElementById('feGawa' + i);
+    const gVar = gSel ? parseInt(gSel.value) : i * 6;
+    const file = gawaVariantToFile(gVar);
+    const d = document.createElement('div');
+    const vPos = (slot.topPct !== null && slot.topPct !== undefined)
+      ? `top:${slot.topPct}%;bottom:auto` : `bottom:${slot.bottom||0}%`;
+    d.style.cssText = `position:absolute;overflow:hidden;${vPos};left:${slot.left}%;transform:${slot.transform};width:${slot.width}%;height:${slot.height}%;${slot.extra?slot.extra+';':''}`;
+    const img = document.createElement('img');
+    img.src = `images/gawa/${file}_${_feExpr}.png`;
+    img.style.cssText = `width:100%;height:100%;object-fit:contain;object-position:bottom center;display:block;${slot.imgStyle||''}`;
+    if (slot.rotate) img.style.transform = `rotate(${slot.rotate}deg)`;
+    d.appendChild(img);
+    vtLayer.appendChild(d);
+  });
+  preview.appendChild(vtLayer);
+  const fg = document.createElement('img');
+  fg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2';
+  fg.src = 'images/ending/親子配信end_手前.png';
+  preview.appendChild(fg);
+}
+
+async function reflectFamilyEndingToFile() {
+  for (let n = 1; n <= 4; n++) {
+    if (_feConfigs[n]?.length > 0) {
+      ENDING_FAMILY_VT_SLOTS_RT[n] = _feConfigs[n].map(slotConfigToArray);
+    }
+  }
+  function slotsToJs() {
+    const lines = ['const ENDING_FAMILY_VT_SLOTS = {'];
+    for (let n = 1; n <= 4; n++) {
+      const slots = ENDING_FAMILY_VT_SLOTS_RT[n] || [];
+      const sStr = slots.map(s => JSON.stringify(s).replace(/"/g, "'")).join(', ');
+      lines.push(`  ${n}: [${sStr}],`);
+    }
+    lines.push('};');
+    return lines.join('\n');
+  }
+  function patchFile(txt) {
+    const marker = 'const ENDING_FAMILY_VT_SLOTS = {';
+    const s = txt.indexOf(marker); if (s < 0) return null;
+    let e = txt.indexOf('\n};', s); let eLen = 3;
+    if (e < 0) { e = txt.indexOf('};', s + marker.length); if (e < 0) return null; eLen = 2; }
+    return txt.slice(0, s) + slotsToJs() + txt.slice(e + eLen);
+  }
+  const setBtn = (txt, ms=0) => {
+    const b = document.getElementById('feReflectBtn');
+    if (!b) return;
+    b.textContent = txt;
+    if (ms) setTimeout(() => b.textContent = '📝 index.htmlに反映', ms);
+  };
+  if (!('showDirectoryPicker' in window)) { alert('File System Access API 非対応ブラウザ'); return; }
+  try {
+    setBtn('📂 フォルダを選択中...');
+    const dirH = await window.showDirectoryPicker({ mode: 'readwrite' });
+    const idxFH = await dirH.getFileHandle('index.html');
+    const idxTxt = await (await idxFH.getFile()).text();
+    const patched = patchFile(idxTxt);
+    if (!patched) { setBtn('❌ ENDING_FAMILY_VT_SLOTS が見つかりません', 4000); return; }
+    await safeWrite(idxFH, patched);
+    await loadFromIndexHtml();
+    setBtn('✅ 保存しました！', 3000);
+  } catch(e) {
+    if (e.name !== 'AbortError') setBtn('❌ ' + e.message, 4000);
+    else setBtn('📝 index.htmlに反映', 0);
+  }
+}
+
+// ═══ 苦戦エンド キャラ配置調整 ═══
+let _neConfigs = {};
+let _neN = 2;
+let _neExpr = 'smile';
+
+function openNormalEndingAdjust() {
+  for (let n = 1; n <= 4; n++) {
+    const slots = ENDING_NORMAL_VT_SLOTS_RT[n] || [];
+    _neConfigs[n] = slots.map(s => parseVtSlotToConfig(s));
+    while (_neConfigs[n].length < n) {
+      _neConfigs[n].push({left:50, transform:'translateX(-50%)', width:50, height:100, extra:'', imgStyle:'', bottom:0, topPct:null, rotate:0});
+    }
+  }
+  _neN = 2;
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-normal-ending-adjust').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  renderNeNTabs();
+  renderNeSlotControls();
+  updateNePreview();
+}
+
+function closeNormalEndingAdjust() {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-ending').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.dataset.tab === 'ending') b.classList.add('active');
+  });
+}
+
+function setNeExpr(expr) {
+  _neExpr = expr;
+  ['Normal','Smile','Sad'].forEach(e => {
+    const b = document.getElementById('neExpr'+e);
+    if (b) b.classList.toggle('active', expr === e.toLowerCase());
+  });
+  updateNePreview();
+}
+
+function renderNeNTabs() {
+  const el = document.getElementById('neNTabs');
+  if (!el) return;
+  el.innerHTML = [1,2,3,4].map(n =>
+    `<button class="adj-mode-btn${n===_neN?' active':''}" onclick="setNeN(${n})">${n}人</button>`
+  ).join('');
+}
+
+function setNeN(n) {
+  _neN = n;
+  renderNeNTabs();
+  renderNeSlotControls();
+  updateNePreview();
+}
+
+function neSlotSet(i, key, val) {
+  if (!_neConfigs[_neN]) return;
+  _neConfigs[_neN][i][key] = val;
+  updateNePreview();
+}
+
+function neSlotTr(i, val) {
+  if (!_neConfigs[_neN]) return;
+  _neConfigs[_neN][i].transform = val;
+  [['none','left'],['translateX(-50%)','center'],['translateX(-100%)','right']].forEach(([v,cls]) => {
+    const b = document.getElementById(`neS${i}T_${cls}`);
+    if (b) b.classList.toggle('active', val === v);
+  });
+  updateNePreview();
+}
+
+function renderNeSlotControls() {
+  const el = document.getElementById('neSlotControls');
+  if (!el || !_neConfigs[_neN]) return;
+  el.innerHTML = _neConfigs[_neN].map((slot, i) => `
+    <div class="adj-section" style="margin-bottom:14px">
+      <div class="adj-slabel">スロット ${i+1}</div>
+      <div class="adj-srow" style="margin-bottom:6px">
+        <span class="adj-slbl">キャラ</span>
+        <select id="neGawa${i}" onchange="updateNePreview()" style="flex:1;background:#1a1a2a;border:1px solid #333;color:#ccc;padding:3px;border-radius:4px;font-size:11px">
+          ${GAWA_ALL.map(v => `<option value="${v}" ${v===(i*6)?'selected':''}>${gawaVariantToFile(v)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">left</span>
+        <input type="range" id="neS${i}L" min="-20" max="120" step="1" value="${Math.round(slot.left)}"
+          oninput="neSlotSet(${i},'left',+this.value);document.getElementById('neS${i}Lv').textContent=this.value+'%'">
+        <span class="adj-sval" id="neS${i}Lv">${Math.round(slot.left)}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">揃え</span>
+        <button id="neS${i}T_left" class="adj-mode-btn${slot.transform==='none'?' active':''}" onclick="neSlotTr(${i},'none')">左</button>
+        <button id="neS${i}T_center" class="adj-mode-btn${slot.transform==='translateX(-50%)'?' active':''}" onclick="neSlotTr(${i},'translateX(-50%)')">中</button>
+        <button id="neS${i}T_right" class="adj-mode-btn${slot.transform==='translateX(-100%)'?' active':''}" onclick="neSlotTr(${i},'translateX(-100%)')">右</button>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">width</span>
+        <input type="range" id="neS${i}W" min="5" max="150" step="1" value="${Math.round(slot.width)}"
+          oninput="neSlotSet(${i},'width',+this.value);document.getElementById('neS${i}Wv').textContent=this.value+'%'">
+        <span class="adj-sval" id="neS${i}Wv">${Math.round(slot.width)}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">height</span>
+        <input type="range" id="neS${i}H" min="20" max="200" step="1" value="${Math.round(slot.height)}"
+          oninput="neSlotSet(${i},'height',+this.value);document.getElementById('neS${i}Hv').textContent=this.value+'%'">
+        <span class="adj-sval" id="neS${i}Hv">${Math.round(slot.height)}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">bottom</span>
+        <input type="range" id="neS${i}B" min="-50" max="50" step="1" value="${Math.round(slot.bottom||0)}"
+          oninput="neSlotSet(${i},'bottom',+this.value);document.getElementById('neS${i}Bv').textContent=this.value+'%'">
+        <span class="adj-sval" id="neS${i}Bv">${Math.round(slot.bottom||0)}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">回転</span>
+        <input type="range" id="neS${i}R" min="-45" max="45" step="1" value="${Math.round(slot.rotate||0)}"
+          oninput="neSlotSet(${i},'rotate',+this.value);document.getElementById('neS${i}Rv').textContent=this.value+'°'">
+        <span class="adj-sval" id="neS${i}Rv">${Math.round(slot.rotate||0)}°</span>
+      </div>
+    </div>`).join('');
+}
+
+function updateNePreview() {
+  const preview = document.getElementById('neAdjPreview');
+  if (!preview) return;
+  preview.innerHTML = '';
+  const bg = document.createElement('img');
+  bg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0';
+  bg.src = 'images/ending/通常end_背景.png';
+  preview.appendChild(bg);
+  const vtLayer = document.createElement('div');
+  vtLayer.style.cssText = 'position:absolute;inset:0;z-index:1';
+  (_neConfigs[_neN] || []).forEach((slot, i) => {
+    const gSel = document.getElementById('neGawa' + i);
+    const gVar = gSel ? parseInt(gSel.value) : i * 6;
+    const file = gawaVariantToFile(gVar);
+    const d = document.createElement('div');
+    const vPos = (slot.topPct !== null && slot.topPct !== undefined)
+      ? `top:${slot.topPct}%;bottom:auto` : `bottom:${slot.bottom||0}%`;
+    d.style.cssText = `position:absolute;overflow:hidden;${vPos};left:${slot.left}%;transform:${slot.transform};width:${slot.width}%;height:${slot.height}%;${slot.extra?slot.extra+';':''}`;
+    const img = document.createElement('img');
+    img.src = `images/gawa/${file}_${_neExpr}.png`;
+    img.style.cssText = `width:100%;height:100%;object-fit:contain;object-position:bottom center;display:block;${slot.imgStyle||''}`;
+    if (slot.rotate) img.style.transform = `rotate(${slot.rotate}deg)`;
+    d.appendChild(img);
+    vtLayer.appendChild(d);
+  });
+  preview.appendChild(vtLayer);
+}
+
+async function reflectNormalEndingToFile() {
+  for (let n = 1; n <= 4; n++) {
+    if (_neConfigs[n]?.length > 0) {
+      ENDING_NORMAL_VT_SLOTS_RT[n] = _neConfigs[n].map(slotConfigToArray);
+    }
+  }
+  function slotsToJs() {
+    const lines = ['const ENDING_NORMAL_VT_SLOTS = {'];
+    for (let n = 1; n <= 4; n++) {
+      const slots = ENDING_NORMAL_VT_SLOTS_RT[n] || [];
+      const sStr = slots.map(s => JSON.stringify(s).replace(/"/g, "'")).join(', ');
+      lines.push(`  ${n}: [${sStr}],`);
+    }
+    lines.push('};');
+    return lines.join('\n');
+  }
+  function patchFile(txt) {
+    const marker = 'const ENDING_NORMAL_VT_SLOTS = {';
+    const s = txt.indexOf(marker); if (s < 0) return null;
+    let e = txt.indexOf('\n};', s); let eLen = 3;
+    if (e < 0) { e = txt.indexOf('};', s + marker.length); if (e < 0) return null; eLen = 2; }
+    return txt.slice(0, s) + slotsToJs() + txt.slice(e + eLen);
+  }
+  const setBtn = (txt, ms=0) => {
+    const b = document.getElementById('neReflectBtn');
+    if (!b) return;
+    b.textContent = txt;
+    if (ms) setTimeout(() => b.textContent = '📝 index.htmlに反映', ms);
+  };
+  if (!('showDirectoryPicker' in window)) { alert('File System Access API 非対応ブラウザ'); return; }
+  try {
+    setBtn('📂 フォルダを選択中...');
+    const dirH = await window.showDirectoryPicker({ mode: 'readwrite' });
+    const idxFH = await dirH.getFileHandle('index.html');
+    const idxTxt = await (await idxFH.getFile()).text();
+    const patched = patchFile(idxTxt);
+    if (!patched) { setBtn('❌ ENDING_NORMAL_VT_SLOTS が見つかりません', 4000); return; }
+    await safeWrite(idxFH, patched);
+    await loadFromIndexHtml();
+    setBtn('✅ 保存しました！', 3000);
+  } catch(e) {
+    if (e.name !== 'AbortError') setBtn('❌ ' + e.message, 4000);
+    else setBtn('📝 index.htmlに反映', 0);
+  }
+}
+// ══ 魂カミングアウトエンド キャラ配置調整 ══
+const SOUL_FILE_LIST = [
+  {id:'noir',name:'ノワール',file:'noir.png'},
+  {id:'popo',name:'ぽぽ',file:'popo.png'},
+  {id:'lily',name:'リリー',file:'lily.png'},
+  {id:'gonta',name:'ごんた',file:'gonta.png'},
+  {id:'himari',name:'ひまり',file:'himari.png'},
+  {id:'rei',name:'レイ',file:'rei.png'},
+  {id:'kumo',name:'天魔',file:'tenma.png'},
+  {id:'flame',name:'焔',file:'enta.png'},
+  {id:'luna',name:'ルナ',file:'luna.png'},
+  {id:'yuki',name:'雪花',file:'yukika.png'},
+  {id:'ryu',name:'龍崎',file:'ryuuzaki.png'},
+  {id:'fuwari',name:'ふわり',file:'fuwari.png'},
+  {id:'pon',name:'ぽん',file:'pon.png'},
+  {id:'yura',name:'ゆら',file:'yura.png'},
+  {id:'tenshin',name:'天心',file:'tensin.png'},
+  {id:'fukami',name:'深海',file:'fukami.png'},
+  {id:'konkon',name:'こんこん',file:'konkon.png'},
+  {id:'musashi',name:'武蔵',file:'musasi.png'},
+  {id:'airi',name:'アイリ',file:'airi.png'},
+];
+
+let _seConfigs = {};
+let _seN = 2;
+
+function openSoulEndingAdjust() {
+  for (let n = 1; n <= 4; n++) {
+    const slots = ENDING_SOUL_VT_SLOTS_RT[n] || [];
+    _seConfigs[n] = slots.map(s => parseVtSlotToConfig(s));
+    while (_seConfigs[n].length < n) {
+      _seConfigs[n].push({left:50, transform:'translateX(-50%)', width:50, height:100, extra:'', imgStyle:'', bottom:0, topPct:null, rotate:0});
+    }
+  }
+  _seN = 2;
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-soul-ending-adjust').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  renderSeNTabs();
+  renderSeSlotControls();
+  updateSePreview();
+}
+
+function closeSoulEndingAdjust() {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-ending').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.dataset.tab === 'ending') b.classList.add('active');
+  });
+}
+
+function renderSeNTabs() {
+  const el = document.getElementById('seNTabs');
+  if (!el) return;
+  el.innerHTML = [1,2,3,4].map(n =>
+    `<button class="adj-mode-btn${n===_seN?' active':''}" onclick="setSeN(${n})">${n}人</button>`
+  ).join('');
+}
+
+function setSeN(n) {
+  _seN = n;
+  renderSeNTabs();
+  renderSeSlotControls();
+  updateSePreview();
+}
+
+function seSlotSet(i, key, val) {
+  if (!_seConfigs[_seN]) return;
+  _seConfigs[_seN][i][key] = val;
+  updateSePreview();
+}
+
+function seSlotTr(i, val) {
+  if (!_seConfigs[_seN]) return;
+  _seConfigs[_seN][i].transform = val;
+  [['none','left'],['translateX(-50%)','center'],['translateX(-100%)','right']].forEach(([v,cls]) => {
+    const b = document.getElementById(`seS${i}T_${cls}`);
+    if (b) b.classList.toggle('active', val === v);
+  });
+  updateSePreview();
+}
+
+function renderSeSlotControls() {
+  const el = document.getElementById('seSlotControls');
+  if (!el || !_seConfigs[_seN]) return;
+  el.innerHTML = _seConfigs[_seN].map((slot, i) => `
+    <div class="adj-section" style="margin-bottom:14px">
+      <div class="adj-slabel">スロット ${i+1}</div>
+      <div class="adj-srow" style="margin-bottom:6px">
+        <span class="adj-slbl">魂キャラ</span>
+        <select id="seSoul${i}" onchange="updateSePreview()" style="flex:1;background:#1a1a2a;border:1px solid #333;color:#ccc;padding:3px;border-radius:4px;font-size:11px">
+          ${SOUL_FILE_LIST.map((s,si) => `<option value="${s.file}" ${si===i?'selected':''}>[${s.id}] ${s.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">left</span>
+        <input type="range" id="seS${i}L" min="-20" max="120" step="1" value="${Math.round(slot.left)}"
+          oninput="seSlotSet(${i},'left',+this.value);document.getElementById('seS${i}Lv').textContent=this.value+'%'">
+        <span class="adj-sval" id="seS${i}Lv">${Math.round(slot.left)}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">揃え</span>
+        <button id="seS${i}T_left" class="adj-mode-btn${slot.transform==='none'?' active':''}" onclick="seSlotTr(${i},'none')">左</button>
+        <button id="seS${i}T_center" class="adj-mode-btn${slot.transform==='translateX(-50%)'?' active':''}" onclick="seSlotTr(${i},'translateX(-50%)')">中</button>
+        <button id="seS${i}T_right" class="adj-mode-btn${slot.transform==='translateX(-100%)'?' active':''}" onclick="seSlotTr(${i},'translateX(-100%)')">右</button>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">width</span>
+        <input type="range" id="seS${i}W" min="5" max="150" step="1" value="${Math.round(slot.width)}"
+          oninput="seSlotSet(${i},'width',+this.value);document.getElementById('seS${i}Wv').textContent=this.value+'%'">
+        <span class="adj-sval" id="seS${i}Wv">${Math.round(slot.width)}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">height</span>
+        <input type="range" id="seS${i}H" min="20" max="200" step="1" value="${Math.round(slot.height)}"
+          oninput="seSlotSet(${i},'height',+this.value);document.getElementById('seS${i}Hv').textContent=this.value+'%'">
+        <span class="adj-sval" id="seS${i}Hv">${Math.round(slot.height)}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">bottom</span>
+        <input type="range" id="seS${i}B" min="-50" max="50" step="1" value="${Math.round(slot.bottom||0)}"
+          oninput="seSlotSet(${i},'bottom',+this.value);document.getElementById('seS${i}Bv').textContent=this.value+'%'">
+        <span class="adj-sval" id="seS${i}Bv">${Math.round(slot.bottom||0)}%</span>
+      </div>
+      <div class="adj-srow">
+        <span class="adj-slbl">回転</span>
+        <input type="range" id="seS${i}R" min="-45" max="45" step="1" value="${Math.round(slot.rotate||0)}"
+          oninput="seSlotSet(${i},'rotate',+this.value);document.getElementById('seS${i}Rv').textContent=this.value+'°'">
+        <span class="adj-sval" id="seS${i}Rv">${Math.round(slot.rotate||0)}°</span>
+      </div>
+    </div>`).join('');
+}
+
+function updateSePreview() {
+  const preview = document.getElementById('seAdjPreview');
+  if (!preview) return;
+  preview.innerHTML = '';
+  const bg = document.createElement('img');
+  bg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0';
+  bg.src = 'images/ending/魂カミングアウトend_背景.png';
+  preview.appendChild(bg);
+  const vtLayer = document.createElement('div');
+  vtLayer.style.cssText = 'position:absolute;inset:0;z-index:1';
+  (_seConfigs[_seN] || []).forEach((slot, i) => {
+    const sel = document.getElementById('seSoul' + i);
+    const soulFile = sel ? sel.value : (SOUL_FILE_LIST[i] || SOUL_FILE_LIST[0]).file;
+    const d = document.createElement('div');
+    const vPos = (slot.topPct !== null && slot.topPct !== undefined)
+      ? `top:${slot.topPct}%;bottom:auto` : `bottom:${slot.bottom||0}%`;
+    d.style.cssText = `position:absolute;overflow:hidden;${vPos};left:${slot.left}%;transform:${slot.transform};width:${slot.width}%;height:${slot.height}%;${slot.extra?slot.extra+';':''}`;
+    const img = document.createElement('img');
+    img.src = `images/tamashii/${soulFile}`;
+    img.style.cssText = `width:100%;height:100%;object-fit:cover;object-position:top center;display:block;`;
+    if (slot.rotate) img.style.transform = `rotate(${slot.rotate}deg)`;
+    d.appendChild(img);
+    vtLayer.appendChild(d);
+  });
+  preview.appendChild(vtLayer);
+  const fg = document.createElement('img');
+  fg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;pointer-events:none';
+  fg.src = 'images/ending/魂カミングアウトend_手前.png';
+  preview.appendChild(fg);
+}
+
+async function reflectSoulEndingToFile() {
+  for (let n = 1; n <= 4; n++) {
+    if (_seConfigs[n]?.length > 0) {
+      ENDING_SOUL_VT_SLOTS_RT[n] = _seConfigs[n].map(slotConfigToArray);
+    }
+  }
+  function slotsToJs() {
+    const lines = ['const ENDING_SOUL_VT_SLOTS = {'];
+    for (let n = 1; n <= 4; n++) {
+      const slots = ENDING_SOUL_VT_SLOTS_RT[n] || [];
+      const sStr = slots.map(s => JSON.stringify(s).replace(/"/g, "'")).join(', ');
+      lines.push(`  ${n}: [${sStr}],`);
+    }
+    lines.push('};');
+    return lines.join('\n');
+  }
+  function patchFile(txt) {
+    const marker = 'const ENDING_SOUL_VT_SLOTS = {';
+    const s = txt.indexOf(marker); if (s < 0) return null;
+    let e = txt.indexOf('\n};', s); let eLen = 3;
+    if (e < 0) { e = txt.indexOf('};', s + marker.length); if (e < 0) return null; eLen = 2; }
+    return txt.slice(0, s) + slotsToJs() + txt.slice(e + eLen);
+  }
+  const setBtn = (txt, ms=0) => {
+    const b = document.getElementById('seReflectBtn');
+    if (!b) return;
+    b.textContent = txt;
+    if (ms) setTimeout(() => b.textContent = '📝 index.htmlに反映', ms);
+  };
+  if (!('showDirectoryPicker' in window)) { alert('File System Access API 非対応ブラウザ'); return; }
+  try {
+    setBtn('📂 フォルダを選択中...');
+    const dirH = await window.showDirectoryPicker({ mode: 'readwrite' });
+    const idxFH = await dirH.getFileHandle('index.html');
+    const idxTxt = await (await idxFH.getFile()).text();
+    const patched = patchFile(idxTxt);
+    if (!patched) { setBtn('❌ ENDING_SOUL_VT_SLOTS が見つかりません', 4000); return; }
+    await safeWrite(idxFH, patched);
+    await loadFromIndexHtml();
+    setBtn('✅ 保存しました！', 3000);
+  } catch(e) {
+    if (e.name !== 'AbortError') setBtn('❌ ' + e.message, 4000);
+    else setBtn('📝 index.htmlに反映', 0);
+  }
+}
+
+
+</script>
+
+</body>
+</html>

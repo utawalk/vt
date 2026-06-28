@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>クレジット | VTuber事務所シミュレーション</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #04040e;
+      color: #fff;
+      font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Noto Sans JP', Meiryo, sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px 60px;
+    }
+    .container { max-width: 720px; margin: 0 auto; }
+    .page-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      color: #8070a8;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, #d080ff 0%, #80d0ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 40px;
+      filter: drop-shadow(0 0 18px rgba(176,96,255,0.5));
+    }
+    .credit-block {
+      margin-bottom: 32px;
+    }
+    .credit-role {
+      font-size: 0.62rem;
+      letter-spacing: 0.3em;
+      color: #8070a8;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .credit-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #c8b8e8;
+      letter-spacing: 0.05em;
+    }
+    .credit-note {
+      font-size: 0.78rem;
+      color: #a090c8;
+      margin-top: 3px;
+    }
+    .divider {
+      border: none;
+      border-top: 1px solid rgba(176, 96, 255, 0.12);
+      margin: 36px 0;
+    }
+    .section-title {
+      font-size: 0.7rem;
+      letter-spacing: 0.35em;
+      color: #c080ff;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .license-block {
+      background: rgba(176, 96, 255, 0.05);
+      border: 1px solid rgba(176, 96, 255, 0.12);
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin-bottom: 14px;
+    }
+    .license-block p {
+      font-size: 0.78rem;
+      color: #c0aee0;
+      line-height: 1.7;
+    }
+    .license-block strong {
+      color: #b8a0d8;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 48px;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      color: #8070a8;
+      text-decoration: none;
+      transition: color 0.25s;
+    }
+    .back-link:hover { color: #c080ff; }
+    .copyright {
+      font-size: 0.65rem;
+      color: #504060;
+      letter-spacing: 0.12em;
+      margin-top: 48px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="page-label">CREDITS</div>
+    <h1>クレジット</h1>
+
+    <div class="section-title">── STAFF ──</div>
+
+    <div class="credit-block">
+      <div class="credit-role">Game Design & Planning</div>
+      <div class="credit-name">（仮）プランナー名</div>
+    </div>
+
+    <div class="credit-block">
+      <div class="credit-role">Programming</div>
+      <div class="credit-name">（仮）エンジニア名</div>
+    </div>
+
+    <div class="credit-block">
+      <div class="credit-role">Art Direction & Illustration</div>
+      <div class="credit-name">（仮）デザイナー名</div>
+    </div>
+
+    <div class="credit-block">
+      <div class="credit-role">Sound & Music</div>
+      <div class="credit-name">（仮）サウンドクリエイター名</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-title">── SPECIAL THANKS ──</div>
+
+    <div class="credit-block">
+      <div class="credit-name">（仮）スペシャルサンクス</div>
+      <div class="credit-note">テストプレイヤー・フィードバック協力者の皆さま</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-title">── LIBRARIES & ASSETS ──</div>
+
+    <div class="license-block">
+      <p><strong>Web Audio API</strong><br>ブラウザ標準 Web Audio API を使用しています。</p>
+    </div>
+
+    <div class="license-block">
+      <p><strong>Canvas API</strong><br>ブラウザ標準 Canvas 2D API を使用しています。</p>
+    </div>
+
+    <div class="license-block">
+      <p><strong>効果音・BGM</strong><br>（仮）使用素材の帰属情報をここに記載します。</p>
+    </div>
+
+    <div class="divider"></div>
+    <p style="font-size:0.72rem; color:#604870;">※ これは仮の内容です。正式リリース時に更新されます。</p>
+    <div class="copyright">© 2024 VTuber事務所シミュレーション. All rights reserved.</div>
+    <a href="index.html" class="back-link">← タイトルへ戻る</a>
+  </div>
+</body>
+</html>

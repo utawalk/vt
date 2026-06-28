@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>仕様書 | VTuber事務所シミュレーション</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #04040e;
+      color: #c8b8e8;
+      font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Noto Sans JP', Meiryo, sans-serif;
+      font-size: 0.88rem;
+      line-height: 1.8;
+      padding: 40px 20px 80px;
+    }
+    .container { max-width: 860px; margin: 0 auto; }
+
+    /* ヘッダー */
+    .doc-header {
+      border-bottom: 1px solid rgba(176,96,255,0.3);
+      padding-bottom: 24px;
+      margin-bottom: 48px;
+    }
+    .doc-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.45em;
+      color: #6050a0;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .doc-title {
+      font-size: clamp(1.4rem, 3.5vw, 2rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, #d080ff 0%, #80d0ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+    .doc-meta {
+      font-size: 0.7rem;
+      color: #604878;
+      letter-spacing: 0.1em;
+    }
+
+    /* セクション */
+    h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #c080ff;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      border-left: 3px solid rgba(176,96,255,0.6);
+      padding-left: 12px;
+      margin: 48px 0 18px;
+    }
+    h3 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #a080d8;
+      letter-spacing: 0.1em;
+      margin: 28px 0 10px;
+    }
+    h4 {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #8878c0;
+      margin: 18px 0 8px;
+    }
+    p {
+      color: #b8a8d8;
+      margin-bottom: 10px;
+    }
+
+    /* テーブル */
+    .tbl-wrap { overflow-x: auto; margin: 12px 0 20px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+    thead th {
+      background: rgba(176,96,255,0.12);
+      color: #c080ff;
+      font-weight: 700;
+      text-align: left;
+      padding: 8px 12px;
+      letter-spacing: 0.08em;
+      border-bottom: 1px solid rgba(176,96,255,0.25);
+      white-space: nowrap;
+    }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid rgba(176,96,255,0.07);
+      color: #b8a8d8;
+      vertical-align: top;
+    }
+    tbody tr:hover td { background: rgba(176,96,255,0.04); }
+    td.good { color: #7fffb0; }
+    td.bad  { color: #ff8878; }
+    td.num  { text-align: right; font-variant-numeric: tabular-nums; }
+    td.mono { font-family: 'Courier New', monospace; font-size: 0.76rem; color: #a098c8; }
+
+    /* ブロック */
+    .spec-block {
+      background: rgba(176,96,255,0.04);
+      border: 1px solid rgba(176,96,255,0.12);
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin: 12px 0 20px;
+    }
+    .spec-block p { margin-bottom: 6px; }
+    .spec-block p:last-child { margin-bottom: 0; }
+    .key { color: #9880c8; font-size: 0.75rem; }
+    .val { color: #d0c0f0; font-weight: 600; }
+
+    /* タグ */
+    .tag {
+      display: inline-block;
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      padding: 1px 8px;
+      border-radius: 3px;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    .tag-good   { background: rgba(127,255,176,0.1); border: 1px solid rgba(127,255,176,0.3); color: #7fffb0; }
+    .tag-bad    { background: rgba(255,136,120,0.1); border: 1px solid rgba(255,136,120,0.3); color: #ff8878; }
+    .tag-unlock { background: rgba(255,200,60,0.1);  border: 1px solid rgba(255,200,60,0.3);  color: #ffc83c; }
+    .tag-rank   { background: rgba(176,96,255,0.15); border: 1px solid rgba(176,96,255,0.35); color: #c080ff; }
+
+    /* 仕切り */
+    hr { border: none; border-top: 1px solid rgba(176,96,255,0.1); margin: 40px 0; }
+
+    /* TOC */
+    .toc {
+      background: rgba(176,96,255,0.04);
+      border: 1px solid rgba(176,96,255,0.12);
+      border-radius: 6px;
+      padding: 20px 24px;
+      margin-bottom: 40px;
+    }
+    .toc-title {
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: #8070a8;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .toc ol { padding-left: 1.4em; }
+    .toc li { margin-bottom: 4px; }
+    .toc a { color: #a090c8; text-decoration: none; font-size: 0.8rem; transition: color 0.2s; }
+    .toc a:hover { color: #c080ff; }
+
+    .notice {
+      font-size: 0.68rem;
+      color: #503860;
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(176,96,255,0.08);
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="doc-header">
+    <div class="doc-label">INTERNAL DOCUMENT · GAME SPECIFICATION</div>
+    <div class="doc-title">VTuber事務所シミュレーション　仕様書</div>
+    <div class="doc-meta">対象ファイル: index.html　／　最終更新: 2025年</div>
+  </div>
+
+  <div class="toc">
+    <div class="toc-title">目次</div>
+    <ol>
+      <li><a href="#overview">ゲーム概要</a></li>
+      <li><a href="#flow">ゲームフロー・画面遷移</a></li>
+      <li><a href="#talents">タレント一覧（全18人）</a></li>
+      <li><a href="#params">チャンネルパラメータ</a></li>
+      <li><a href="#styles">配信スタイル</a></li>
+      <li><a href="#cost">コスト構造</a></li>
+      <li><a href="#milestones">ミルストーン・アンロック</a></li>
+      <li><a href="#events">イベントシステム</a></li>
+      <li><a href="#mental">メンタルシステム</a></li>
+      <li><a href="#graduation">卒業システム</a></li>
+      <li><a href="#dreams">夢システム</a></li>
+      <li><a href="#vtlevel">VTuberレベル</a></li>
+      <li><a href="#random">ランダムイベント</a></li>
+      <li><a href="#ending">エンディング・ゲームオーバー</a></li>
+      <li><a href="#save">セーブ・ロード</a></li>
+    </ol>
+  </div>
+
+  <!-- ① ゲーム概要 -->
+  <h2 id="overview">01 ゲーム概要</h2>
+  <div class="spec-block">
+    <p><span class="key">ジャンル</span>　<span class="val">VTuber事務所経営シミュレーション</span></p>
+    <p><span class="key">プラットフォーム</span>　<span class="val">ブラウザ（PC・スマートフォン対応）</span></p>
+    <p><span class="key">ゲーム期間</span>　<span class="val">2024年1月1日〜2026年12月31日（全1095日）</span></p>
+    <p><span class="key">ゲーム速度</span>　<span class="val">1.5秒リアル時間 ＝ 1ゲーム内日</span></p>
+    <p><span class="key">初期資金</span>　<span class="val">¥1,000,000</span></p>
+    <p><span class="key">言語</span>　<span class="val">日本語</span></p>
+  </div>
+  <p>プレイヤーはVTuber事務所のプロデューサーとして、タレントをスカウト・デビューさせ、活動をサポートしながら事務所を成長させる。ゲーム終了日（2026年12月31日）に達するか、ゲームオーバー条件を満たした時点でエンディングへ移行する。</p>
+
+  <hr>
+
+  <!-- ② ゲームフロー -->
+  <h2 id="flow">02 ゲームフロー・画面遷移</h2>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>画面ID</th><th>画面名</th><th>説明</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">titleScreen</td><td>タイトル</td><td>GAME START・つづきからの選択</td></tr>
+        <tr><td class="mono">prologueScreen</td><td>プロローグ</td><td>世界観の説明テキスト</td></tr>
+        <tr><td class="mono">namingScreen</td><td>事務所命名</td><td>プレイヤーが事務所名を入力</td></tr>
+        <tr><td class="mono">hubScreen</td><td>ハブ（メイン）</td><td>チャンネル一覧・各種ボタン・HUDの常時表示</td></tr>
+        <tr><td class="mono">auditionScreen</td><td>オーディション</td><td>タレント候補（3択）を選択</td></tr>
+        <tr><td class="mono">gawaScreen</td><td>ガワ選択</td><td>VTuberアバターのデザイン3択を選択</td></tr>
+        <tr><td class="mono">debutScreen</td><td>デビュー設定</td><td>配信スタイル・誕生日・名前を設定</td></tr>
+        <tr><td class="mono">vtuberBornScreen</td><td>VTuber誕生</td><td>デビュー動画の演出・初期登録者数の確認</td></tr>
+        <tr><td class="mono">channelScreen</td><td>チャンネル詳細</td><td>個別VTuberのパラメータ・動画履歴・夢の管理</td></tr>
+        <tr><td class="mono">completeScreen</td><td>エンディング</td><td>結果表示・エンディングロール</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>オーディション〜デビューの流れ</h3>
+  <p>オーディション（¥300,000）→ タレント候補3択を選択 → ガワ選択（¥500,000、3択） → デビュー設定（スタイル・誕生日・VTuber名）→ VTuber誕生 → ハブに戻り活動開始</p>
+
+  <hr>
+
+  <!-- ③ タレント -->
+  <h2 id="talents">03 タレント一覧（全18人）</h2>
+  <p>各タレントは「魂」として固有のキャラクター設定・一人称・語尾を持つ。オーディション時に最大3名の候補からランダムで提示される。</p>
+
+  <h3>1期生（ゲーム開始時から選択可能）</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>ID</th><th>名前</th><th>設定</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">noir</td><td>ノワール</td><td>バケネコ</td></tr>
+        <tr><td class="mono">popo</td><td>ポポ</td><td>200歳のオウム</td></tr>
+        <tr><td class="mono">lily</td><td>リリィ</td><td>人魚</td></tr>
+        <tr><td class="mono">gonta</td><td>ゴン太</td><td>内気な小鬼</td></tr>
+        <tr><td class="mono">himari</td><td>橘ひまり</td><td>普通の女子高生</td></tr>
+        <tr><td class="mono">rei</td><td>零（れい）</td><td>量子AI</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>2期生 <span class="tag tag-unlock">総登録者10万人で解放</span></h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>ID</th><th>名前</th><th>設定</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">kumo</td><td>天魔（てんま）</td><td>天井蜘蛛</td></tr>
+        <tr><td class="mono">flame</td><td>炎太（えんた）</td><td>炎の精霊</td></tr>
+        <tr><td class="mono">luna</td><td>ルーナ</td><td>月兎の落とし子</td></tr>
+        <tr><td class="mono">yuki</td><td>雪霞（ゆきか）</td><td>雪女（7代目）</td></tr>
+        <tr><td class="mono">ryu</td><td>龍崎（りゅうざき）</td><td>千五百歳の古龍</td></tr>
+        <tr><td class="mono">fuwari</td><td>ふわり</td><td>座敷童子</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>3期生 <span class="tag tag-unlock">総登録者50万人で解放</span></h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>ID</th><th>名前</th><th>設定</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">pon</td><td>ぽん</td><td>化け狸</td></tr>
+        <tr><td class="mono">yura</td><td>ゆら</td><td>おてんば幽霊</td></tr>
+        <tr><td class="mono">tenshin</td><td>テンシン</td><td>落第天使</td></tr>
+        <tr><td class="mono">fukami</td><td>フカミ</td><td>深海サメ娘</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>4期生 <span class="tag tag-unlock">総登録者500万人で解放</span></h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>ID</th><th>名前</th><th>設定</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">konkon</td><td>こんこん</td><td>千年狐の占い師</td></tr>
+        <tr><td class="mono">musashi</td><td>むさし</td><td>サイバー忍者</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <!-- ④ パラメータ -->
+  <h2 id="params">04 チャンネルパラメータ（10種）</h2>
+  <p>各VTuberはデビュー時にランダムで初期値が設定され、レーダーチャート（10角形）として可視化される。</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>キー名</th><th>表示名</th><th>上限</th><th>備考</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">enthusiasm</td><td>活動熱意</td><td class="num">100</td><td>配信頻度・モチベーションに影響</td></tr>
+        <tr><td class="mono">talk</td><td>トーク力</td><td class="num">100</td><td>雑談・企画系コンテンツの成果に影響</td></tr>
+        <tr><td class="mono">acting</td><td>演技力</td><td class="num">100</td><td>企画動画・ロールプレイの成果に影響</td></tr>
+        <tr><td class="mono">singing</td><td>歌唱力</td><td class="num">100</td><td>歌・音楽スタイルの成果に影響</td></tr>
+        <tr><td class="mono">gaming</td><td>ゲームスキル</td><td class="num">100</td><td>ゲーム実況スタイルの成果に影響</td></tr>
+        <tr><td class="mono">commu</td><td>コミュ力</td><td class="num">100</td><td>ファンとの距離感・コラボ成果に影響</td></tr>
+        <tr><td class="mono">stamina</td><td>体力</td><td class="num">100</td><td>メンタル回復・活動継続に影響</td></tr>
+        <tr><td class="mono">gachiKoi</td><td>ガチ恋度</td><td class="num">95</td><td>コアファン形成・課金傾向に影響</td></tr>
+        <tr><td class="mono">femPop</td><td>同性人気</td><td class="num">95</td><td>女性ファン・幅広い層への訴求に影響</td></tr>
+        <tr><td class="mono">fame</td><td>知名度</td><td class="num">100</td><td>一般認知度。0〜100でゆるやかに収束</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <!-- ⑤ 配信スタイル -->
+  <h2 id="styles">05 配信スタイル（5種）</h2>
+  <p>デビュー時にプレイヤーが選択。配信スタイルによってランダムイベントの種類と登録者の伸び方が変化する。</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>ID</th><th>スタイル名</th><th>特徴</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">game</td><td>🎮 ゲーム実況</td><td>安定した視聴者層。ゲームスキルが活きる</td></tr>
+        <tr><td class="mono">song</td><td>🎤 歌・音楽</td><td>登録者の伸びが最大。炎上リスクあり</td></tr>
+        <tr><td class="mono">talk</td><td>💬 トーク・雑談</td><td>コアファンがつきやすい。コミュ力が活きる</td></tr>
+        <tr><td class="mono">plan</td><td>🎬 企画動画</td><td>高単価・高成長。制作遅延リスクあり</td></tr>
+        <tr><td class="mono">voice</td><td>🎙️ ボイス・ASMR</td><td>熱狂的なファン生成。ガチ恋度が活きる</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>動画は3日ごとに自動追加（デビュー日基準でチャンネルごとにタイミングをずらし）。最大104週分（約2年）の履歴を保持。</p>
+
+  <hr>
+
+  <!-- ⑥ コスト -->
+  <h2 id="cost">06 コスト構造</h2>
+  <h3>月次運営費（30ゲーム日ごとに自動徴収）</h3>
+  <div class="spec-block">
+    <p><span class="key">基本費</span>　<span class="val">¥400,000 / 月</span>（事務所固定費：家賃・電気・インフラ等）</p>
+    <p><span class="key">活動中VTuber 1人あたり</span>　<span class="val">¥250,000 / 月</span>（マネージャー・機材・インフラ）</p>
+    <p><span class="key">休止中VTuber 1人あたり</span>　<span class="val">¥100,000 / 月</span>（最低限のサポート費）</p>
+  </div>
+  <p>計算式：<code style="color:#a0c8ff; background:rgba(160,200,255,0.07); padding:2px 6px; border-radius:3px;">月次費用 ＝ 400,000 ＋ 活動中×250,000 ＋ 休止中×100,000</code></p>
+
+  <h3>その他の支出</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>項目</th><th>費用</th><th>備考</th></tr></thead>
+      <tbody>
+        <tr><td>オーディション開催</td><td class="num">¥300,000</td><td>キャンセル時は返金</td></tr>
+        <tr><td>ガワ（アバター）制作</td><td class="num">¥500,000</td><td>3択から選択</td></tr>
+        <tr><td>各種イベント</td><td class="num">¥180,000〜¥45,000,000</td><td>カテゴリ・ランクによる（詳細は §08）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <!-- ⑦ ミルストーン -->
+  <h2 id="milestones">07 ミルストーン・アンロック</h2>
+  <p>事務所全体の総チャンネル登録者数が一定数を超えると、ミルストーン演出とともに新機能がアンロックされる。</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Lv</th><th>達成条件（総登録者）</th><th>アンロック内容</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td class="num">10,000人</td><td>📢 全体広告 Rank1・🎪 全体イベント Rank1 解放</td></tr>
+        <tr><td class="num">2</td><td class="num">50,000人</td><td>🌟 個人イベント・個人外コラボ・個人SPグッズ Rank1 解放</td></tr>
+        <tr><td class="num">3</td><td class="num">100,000人</td><td>🎤 2期生オーディション解放</td></tr>
+        <tr><td class="num">4</td><td class="num">200,000人</td><td>⭐ 全カテゴリ Rank2 解放</td></tr>
+        <tr><td class="num">5</td><td class="num">300,000人</td><td>🌠 全カテゴリ Rank3 解放</td></tr>
+        <tr><td class="num">6</td><td class="num">500,000人</td><td>🎤 3期生オーディション解放</td></tr>
+        <tr><td class="num">7</td><td class="num">1,000,000人</td><td>💫 全カテゴリ Rank4 解放</td></tr>
+        <tr><td class="num">8</td><td class="num">2,000,000人</td><td>👑 全カテゴリ Rank5（最高峰）解放</td></tr>
+        <tr><td class="num">9</td><td class="num">5,000,000人</td><td>🎤 4期生オーディション解放</td></tr>
+        <tr><td class="num">10</td><td class="num">10,000,000人</td><td>🏆 最終マイルストーン達成</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <!-- ⑧ イベント -->
+  <h2 id="events">08 イベントシステム</h2>
+  <p>イベントは5カテゴリ × Rank1〜5の計25種（全体2カテゴリ・個人3カテゴリ）。ミルストーン達成によって段階的にランクが解放される。成功・失敗は設定された成功率に基づき判定。</p>
+
+  <h3>全体広告</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>ランク</th><th>名前</th><th>コスト</th><th>成功率</th><th>CD（ゲーム日）</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-rank">Rank1</span></td><td>📱 SNS広告</td><td class="num">¥180,000</td><td class="num">82%</td><td class="num">3日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank2</span></td><td>🖥️ 街頭ビジョン広告</td><td class="num">¥1,200,000</td><td class="num">77%</td><td class="num">7日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank3</span></td><td>🚌 ラッピングバス</td><td class="num">¥3,500,000</td><td class="num">72%</td><td class="num">14日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank4</span></td><td>📺 テレビCM</td><td class="num">¥9,000,000</td><td class="num">66%</td><td class="num">21日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank5</span></td><td>🏙️ 街ジャック広告</td><td class="num">¥28,000,000</td><td class="num">58%</td><td class="num">30日</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>全体イベント</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>ランク</th><th>名前</th><th>コスト</th><th>成功率</th><th>CD（ゲーム日）</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-rank">Rank1</span></td><td>🎮 箱内ゲーム大会</td><td class="num">¥350,000</td><td class="num">78%</td><td class="num">3日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank2</span></td><td>🎤 オンライン事務所ライブ</td><td class="num">¥1,400,000</td><td class="num">73%</td><td class="num">7日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank3</span></td><td>🔍 謎解きイベント</td><td class="num">¥3,500,000</td><td class="num">68%</td><td class="num">14日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank4</span></td><td>⚔️ VTuberバトルゲーム大会</td><td class="num">¥10,000,000</td><td class="num">63%</td><td class="num">21日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank5</span></td><td>🎵 大型ライブフェス</td><td class="num">¥45,000,000</td><td class="num">55%</td><td class="num">45日</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>個人イベント</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>ランク</th><th>名前</th><th>コスト</th><th>成功率</th><th>CD（ゲーム日）</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-rank">Rank1</span></td><td>💬 オンライントーク会</td><td class="num">¥250,000</td><td class="num">80%</td><td class="num">5日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank2</span></td><td>🎉 ファンミーティング</td><td class="num">¥1,000,000</td><td class="num">75%</td><td class="num">10日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank3</span></td><td>🎵 オンラインソロライブ</td><td class="num">¥2,500,000</td><td class="num">70%</td><td class="num">14日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank4</span></td><td>☕ コラボカフェ</td><td class="num">¥8,500,000</td><td class="num">65%</td><td class="num">21日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank5</span></td><td>🏟️ アリーナソロライブ</td><td class="num">¥30,000,000</td><td class="num">57%</td><td class="num">30日</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>個人外コラボ</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>ランク</th><th>名前</th><th>コスト</th><th>成功率</th><th>CD（ゲーム日）</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-rank">Rank1</span></td><td>👤 インフルエンサーとコラボ</td><td class="num">¥180,000</td><td class="num">78%</td><td class="num">5日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank2</span></td><td>🎮 ゲームにゲスト出演</td><td class="num">¥900,000</td><td class="num">73%</td><td class="num">10日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank3</span></td><td>🎬 アニメに声優として出演</td><td class="num">¥2,000,000</td><td class="num">67%</td><td class="num">21日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank4</span></td><td>📺 テレビ番組にゲスト出演</td><td class="num">¥10,000,000</td><td class="num">62%</td><td class="num">28日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank5</span></td><td>🎡 遊園地コラボ</td><td class="num">¥35,000,000</td><td class="num">55%</td><td class="num">45日</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>個人SPグッズ</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>ランク</th><th>名前</th><th>コスト</th><th>成功率</th><th>CD（ゲーム日）</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-rank">Rank1</span></td><td>🎶 カバー曲CD発売</td><td class="num">¥350,000</td><td class="num">82%</td><td class="num">7日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank2</span></td><td>🎶 オリジナル曲CD発売</td><td class="num">¥700,000</td><td class="num">77%</td><td class="num">14日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank3</span></td><td>📖 ファン投票で選ばれた名言集が書籍化</td><td class="num">¥2,500,000</td><td class="num">72%</td><td class="num">21日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank4</span></td><td>🕹️ ゲーム実況の教科書に掲載され伝説になる</td><td class="num">¥10,000,000</td><td class="num">63%</td><td class="num">28日</td></tr>
+        <tr><td><span class="tag tag-rank">Rank5</span></td><td>🍜 オリジナルラーメン発売</td><td class="num">¥5,000,000</td><td class="num">75%</td><td class="num">14日</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>夢イベントの対象（ランク別）</h3>
+  <p>VTuberの「夢」として割り当てられる可能性があるのは以下のイベント。</p>
+  <div class="spec-block">
+    <p><span class="key">Rank2〜3相当（夢の初期候補）</span>　街頭ビジョン広告・オンライン事務所ライブ・ファンミーティング・ゲームにゲスト出演・オリジナル曲CD発売・ラッピングバス・謎解きイベント・オンラインソロライブ・アニメに声優として出演・ファン投票で選ばれた名言集が書籍化</p>
+    <p><span class="key">Rank4〜5相当（上位夢候補）</span>　テレビCM・VTuberバトルゲーム大会・コラボカフェ・テレビ番組にゲスト出演・ゲーム実況の教科書に掲載され伝説になる・街ジャック広告・大型ライブフェス・アリーナソロライブ・遊園地コラボ・オリジナルラーメン発売</p>
+  </div>
+
+  <hr>
+
+  <!-- ⑨ メンタル -->
+  <h2 id="mental">09 メンタルシステム</h2>
+  <p>各VTuberは個別のメンタル値（0〜100）を持つ。ランダムイベントや活動状況によって変動し、低下すると卒業確率が上昇する。</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>メンタル値</th><th>状態</th><th>説明</th></tr></thead>
+      <tbody>
+        <tr><td class="num">≥ 90</td><td class="good">💪 絶好調！</td><td>活動効率が高い</td></tr>
+        <tr><td class="num">≥ 70</td><td class="good">😊 好調</td><td>安定した活動</td></tr>
+        <tr><td class="num">≥ 50</td><td>😐 普通</td><td>標準状態</td></tr>
+        <tr><td class="num">≥ 30</td><td class="bad">😟 不調</td><td>卒業確率がやや上昇</td></tr>
+        <tr><td class="num">≤ 20</td><td class="bad">😴 限界（活動休止）</td><td>hiatusRemaining=30日の活動休止に入る</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <!-- ⑩ 卒業 -->
+  <h2 id="graduation">10 卒業システム</h2>
+  <p>ゲームティックごとに各VTuberの卒業確率を計算。一定確率で「卒業相談」イベントが発生し、プレイヤーは引き留めるか承認するかを選択できる。</p>
+
+  <h3>卒業確率計算</h3>
+  <div class="spec-block">
+    <p><span class="key">安定期</span>　<span class="val">デビューから180ゲーム日間は卒業なし</span></p>
+    <p><span class="key">基本確率</span>　<span class="val">7 / 1095 ≒ 0.64% / ゲーム日</span></p>
+    <p><span class="key">上限</span>　<span class="val">40% / 週（夢ボーナス込み）</span></p>
+  </div>
+
+  <h3>修正倍率</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>条件</th><th>倍率</th></tr></thead>
+      <tbody>
+        <tr><td>メンタル &lt; 20</td><td class="bad num">× 5.0</td></tr>
+        <tr><td>メンタル &lt; 30</td><td class="bad num">× 3.0</td></tr>
+        <tr><td>メンタル &lt; 50</td><td class="bad num">× 1.8</td></tr>
+        <tr><td>メンタル ≥ 70</td><td class="good num">× 0.6</td></tr>
+        <tr><td>メンタル ≥ 80</td><td class="good num">× 0.4</td></tr>
+        <tr><td>活動休止 ≥ 30日</td><td class="bad num">× 2.5</td></tr>
+        <tr><td>活動休止 ≥ 14日</td><td class="bad num">× 1.8</td></tr>
+        <tr><td>夢達成ボーナス</td><td class="bad">確率に gradBoost 加算</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>卒業相談フロー</h3>
+  <p>卒業相談が発生すると、プレイヤーは引き留めるか承認するかを選択できる。引き留め成功時は活動継続、失敗または承認時は卒業確定となる。</p>
+
+  <hr>
+
+  <!-- ⑪ 夢 -->
+  <h2 id="dreams">11 夢システム</h2>
+  <p>VTuberがレベルアップすると夢が割り当てられる。夢を達成するとボーナスが得られるが、達成後は卒業確率が上昇（gradBoost）する。</p>
+  <div class="spec-block">
+    <p><span class="key">夢の最大数</span>　<span class="val">1体あたり3つ（dream1・dream2・dream3）</span></p>
+    <p><span class="key">夢1の割り当て条件</span>　<span class="val">VTuber Lv.1 達成時</span></p>
+    <p><span class="key">夢のフェーズ</span>　<span class="val">phase（0〜3）で進行管理</span></p>
+    <p><span class="key">スター数</span>　<span class="val">stars で達成数を記録</span></p>
+    <p><span class="key">達成後の影響</span>　<span class="val">gradBoost 加算により卒業確率が上昇</span></p>
+  </div>
+  <p>総登録者1000万人達成時、在籍中の全VTuberは特別な卒業申告を行う。</p>
+
+  <hr>
+
+  <!-- ⑫ VTuberレベル -->
+  <h2 id="vtlevel">12 VTuberレベル</h2>
+  <p>各VTuberは個人チャンネルの登録者数に応じて自動的にLv.0〜Lv.10が付与される。レベルアップ時には演出（オーバーレイ）が発生し、配信スタイルに応じたエピソードが表示される。Lv.1達成で夢1が割り当てられる。</p>
+
+  <h3>レベル閾値</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>レベル</th><th>必要登録者数</th><th>備考</th></tr></thead>
+      <tbody>
+        <tr><td class="num">Lv.0</td><td class="num">−</td><td>デビュー時の初期状態</td></tr>
+        <tr><td class="num">Lv.1</td><td class="num">1,000人</td><td>夢1が割り当てられる</td></tr>
+        <tr><td class="num">Lv.2</td><td class="num">10,000人</td><td></td></tr>
+        <tr><td class="num">Lv.3</td><td class="num">50,000人</td><td></td></tr>
+        <tr><td class="num">Lv.4</td><td class="num">100,000人</td><td></td></tr>
+        <tr><td class="num">Lv.5</td><td class="num">200,000人</td><td></td></tr>
+        <tr><td class="num">Lv.6</td><td class="num">500,000人</td><td></td></tr>
+        <tr><td class="num">Lv.7</td><td class="num">1,000,000人</td><td></td></tr>
+        <tr><td class="num">Lv.8</td><td class="num">2,000,000人</td><td></td></tr>
+        <tr><td class="num">Lv.9</td><td class="num">3,000,000人</td><td></td></tr>
+        <tr><td class="num">Lv.10</td><td class="num">5,000,000人</td><td>最大レベル。ファンファーレ演出あり</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>レベルアップエピソード（配信スタイル別）</h3>
+  <p>レベルアップ時に表示されるエピソードテキストは配信スタイルごとに異なる。</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Lv</th>
+          <th>🎮 ゲーム実況</th>
+          <th>🎤 歌・音楽</th>
+          <th>💬 トーク・雑談</th>
+          <th>🎬 企画動画</th>
+          <th>🎙️ ボイス・ASMR</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="num">1</td><td>耐久の鬼として話題になる</td><td>うたみたショート動画が話題に</td><td>リスナーとのプロレス切り抜きがバズる</td><td>大食い動画で無理をする</td><td>自作ボイスドラマ台本が好評</td></tr>
+        <tr><td class="num">2</td><td>新作ゲームのβテスター第1号に選ばれる</td><td>歌ってみた動画がSNSトレンド1位に</td><td>配信トーク番組のMCに抜擢</td><td>実写配信で事故ってバズる</td><td>早朝ASMRが最高の目覚ましと話題に</td></tr>
+        <tr><td class="num">3</td><td>神プレイ動画がバズる</td><td>ライブハウスで生バンドライブ</td><td>何気ない言葉がミームになり流行</td><td>独特の編集がパクられまくる</td><td>人気ゲームのメインキャラのCVを担当</td></tr>
+        <tr><td class="num">4</td><td>プロゲーマーに弟子入り</td><td>アニメの主題歌に抜擢</td><td>名言日めくりカレンダー発売</td><td>作ったティア表が賛否両論</td><td>ボイスドラマCD発売</td></tr>
+        <tr><td class="num">5</td><td>炊きまくり実況がトレンド1位に</td><td>有名歌い手とのコラボうたみた動画を投稿</td><td>アニメの副音声のオファーが来る</td><td>パクリすぎて訴えられる</td><td>テレビ番組のナレーターのオファーが来る</td></tr>
+        <tr><td class="num">6</td><td>ゲーム会社の公式アンバサダーに就任</td><td>テレビの歌番組に出演</td><td>オフライントークショーを開催</td><td>人気芸人とマブダチになる</td><td>後輩のボイスドラマをプロデュース</td></tr>
+        <tr><td class="num">7</td><td>人気ゲームのトレーラー映像に出演</td><td>外部ライブにサプライズ出演</td><td>深夜ラジオのレギュラー番組開始</td><td>世界一周旅行ブイログが話題に</td><td>オリジナル子守唄が異例のヒット</td></tr>
+        <tr><td class="num">8</td><td>海外ゲーマーと24時間コラボ配信が大成功</td><td>アニメMVがバズる</td><td>ファン投票で選ばれた名言集が書籍化</td><td>VTuber1000人とのコラボ動画達成</td><td>ハリウッド映画の吹き替えに抜擢</td></tr>
+        <tr><td class="num">9</td><td>eスポーツ国際大会のゲスト解説者に抜擢</td><td>海外の大型フェスに出演</td><td>弟子をとる</td><td>コラボアパレルラインが即日完売</td><td>朗読劇イベントが即完</td></tr>
+        <tr><td class="num">10</td><td>ゲーム実況の教科書に掲載され伝説になる</td><td>複数国を巡る海外ワールドツアーを完走</td><td>ミームの帝王と呼ばれる</td><td>収益全額をボランティアに寄付する</td><td>世界配信ドラマの日本語吹き替え主演に抜擢</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <!-- ⑬ ランダムイベント -->
+  <h2 id="random">13 ランダムイベント（チャンネル個別）</h2>
+  <p>一定確率で発生するチャンネル固有のイベント。メンタル値と登録者数（増減）に影響する。</p>
+
+  <h3>共通イベント</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>種別</th><th>イベント名</th><th>メンタル変動</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-good">GOOD</span></td><td>🔥 動画がバズった！</td><td class="good num">+18</td></tr>
+        <tr><td><span class="tag tag-good">GOOD</span></td><td>🎨 ファンアートが話題に！</td><td class="good num">+14</td></tr>
+        <tr><td><span class="tag tag-good">GOOD</span></td><td>📈 トレンドに入った！</td><td class="good num">+12</td></tr>
+        <tr><td><span class="tag tag-good">GOOD</span></td><td>🎁 グッズが完売！</td><td class="good num">+10</td></tr>
+        <tr><td><span class="tag tag-good">GOOD</span></td><td>🤝 コラボが大成功！</td><td class="good num">+10</td></tr>
+        <tr><td><span class="tag tag-good">GOOD</span></td><td>💼 スポンサー獲得！</td><td class="good num">+8</td></tr>
+        <tr><td><span class="tag tag-good">GOOD</span></td><td>📰 メディアに取り上げられた！</td><td class="good num">+8</td></tr>
+        <tr><td><span class="tag tag-bad">BAD</span></td><td>😱 炎上してしまった！</td><td class="bad num">−28</td></tr>
+        <tr><td><span class="tag tag-bad">BAD</span></td><td>👿 アンチが活発化</td><td class="bad num">−20</td></tr>
+        <tr><td><span class="tag tag-bad">BAD</span></td><td>📋 誤解が広まってしまった</td><td class="bad num">−16</td></tr>
+        <tr><td><span class="tag tag-bad">BAD</span></td><td>😔 スランプ中…</td><td class="bad num">−14</td></tr>
+        <tr><td><span class="tag tag-bad">BAD</span></td><td>🔧 機材トラブル発生</td><td class="bad num">−8</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>配信スタイル別専用イベント</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>スタイル</th><th>種別</th><th>イベント名</th><th>メンタル</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="4">🎮 ゲーム実況</td><td><span class="tag tag-good">GOOD</span></td><td>ゲームクリップがバズる</td><td class="good num">+16</td></tr>
+        <tr><td><span class="tag tag-good">GOOD</span></td><td>大会で好成績</td><td class="good num">+14</td></tr>
+        <tr><td><span class="tag tag-bad">BAD</span></td><td>ネタバレ炎上</td><td class="bad num">−18</td></tr>
+        <tr><td><span class="tag tag-bad">BAD</span></td><td>激怒プレイが反感</td><td class="bad num">−12</td></tr>
+
+        <tr><td rowspan="4">🎤 歌・音楽</td><td><span class="tag tag-good">GOOD</span></td><td>カバー曲がヒット</td><td class="good num">+20</td></tr>
+        <tr><td><span class="tag tag-good">GOOD</span></td><td>オリジナル曲が反響</td><td class="good num">+16</td></tr>
+        <tr><td><span class="tag tag-bad">BAD</span></td><td>音程ミスが話題に</td><td class="bad num">−22</td></tr>
+        <tr><td><span class="tag tag-bad">BAD</span></td><td>著作権トラブル</td><td class="bad num">−15</td></tr>
+
+        <tr><td rowspan="4">💬 トーク・雑談</td><td><span class="tag tag-good">GOOD</span></td><td>神回と話題に</td><td class="good num">+16</td></tr>
+        <tr><td><span class="tag tag-good">GOOD</span></td><td>メディア取材</td><td class="good num">+12</td></tr>
+        <tr><td><span class="tag tag-bad">BAD</span></td><td>発言が誤解される</td><td class="bad num">−18</td></tr>
+        <tr><td><span class="tag tag-bad">BAD</span></td><td>スランプ長引く</td><td class="bad num">−12</td></tr>
+
+        <tr><td rowspan="4">🎬 企画動画</td><td><span class="tag tag-good">GOOD</span></td><td>動画がおすすめ入り</td><td class="good num">+15</td></tr>
+        <tr><td><span class="tag tag-good">GOOD</span></td><td>コラボ企画が好評</td><td class="good num">+12</td></tr>
+        <tr><td><span class="tag tag-bad">BAD</span></td><td>制作遅延で炎上</td><td class="bad num">−14</td></tr>
+        <tr><td><span class="tag tag-bad">BAD</span></td><td>配信日がかぶる</td><td class="bad num">−10</td></tr>
+
+        <tr><td rowspan="4">🎙️ ボイス・ASMR</td><td><span class="tag tag-good">GOOD</span></td><td>ランキング上位入り</td><td class="good num">+18</td></tr>
+        <tr><td><span class="tag tag-good">GOOD</span></td><td>ボイスドラマが好評</td><td class="good num">+14</td></tr>
+        <tr><td><span class="tag tag-bad">BAD</span></td><td>機材不具合で音質低下</td><td class="bad num">−15</td></tr>
+        <tr><td><span class="tag tag-bad">BAD</span></td><td>批評的なレビュー拡散</td><td class="bad num">−18</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <!-- ⑬ エンディング -->
+  <h2 id="ending">14 エンディング・ゲームオーバー</h2>
+
+  <h3>時間終了エンディング（2026年12月31日到達）</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>種別</th><th>条件</th></tr></thead>
+      <tbody>
+        <tr><td class="good">🌟 良エンディング</td><td>総登録者 500,000人以上</td></tr>
+        <tr><td>📊 中エンディング</td><td>総登録者 100,000人以上　または　黒字かつ50,000人以上</td></tr>
+        <tr><td class="bad">📅 悪エンディング</td><td>上記以外（低登録者・赤字等）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>ゲームオーバー条件（強制終了）</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>条件</th><th>メッセージ</th></tr></thead>
+      <tbody>
+        <tr><td class="bad">借金が1,000万円を超えた</td><td>💸 事務所が倒産</td></tr>
+        <tr><td class="bad">全VTuberが卒業した</td><td>🎓 現役メンバーが不在に</td></tr>
+        <tr><td>手動で解散を選択</td><td>🏳️ 任意解散</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>借金（資金がマイナス）の状態でも即座にはゲームオーバーにならない。借金中はHUDが赤く表示される。−10,000,000円を超えた時点で倒産。</p>
+
+  <hr>
+
+  <!-- ⑭ セーブ -->
+  <h2 id="save">15 セーブ・ロードシステム</h2>
+  <div class="spec-block">
+    <p><span class="key">保存先</span>　<span class="val">ブラウザの localStorage</span></p>
+    <p><span class="key">スロット数</span>　<span class="val">1スロットのみ（上書き保存）</span></p>
+    <p><span class="key">保存タイミング</span>　<span class="val">手動セーブ（メニューから）</span></p>
+    <p><span class="key">ゲームオーバー時</span>　<span class="val">セーブデータを自動削除</span></p>
+    <p><span class="key">タイトルの「つづきから」</span>　<span class="val">セーブデータが存在する場合のみ表示</span></p>
+  </div>
+
+  <div class="notice">
+    ※ 本ドキュメントはindex.htmlのソースコードから自動抽出・整理した内部仕様書です。実装変更時は内容を適宜更新してください。どこからもリンクされない独立ファイルです。
+  </div>
+
+</div>
+</body>
+</html>

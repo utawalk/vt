@@ -394,7 +394,7 @@
     ════════════════════════ */
     #hubScreen {
       justify-content: flex-start;
-      padding-top: clamp(60px, 10vh, 90px);
+      padding-top: clamp(90px, 13vh, 120px);
       padding-bottom: 60px;
       gap: 0;
       overflow-y: auto;
@@ -871,26 +871,32 @@
       position: absolute; inset: 0; z-index: 1;
       width: 100%; height: 100%; object-fit: cover;
     }
-    .evhost-sns-vtubers { position: absolute; inset: 0; z-index: 2; }
+    .evhost-sns-bk-img {
+      position: absolute; inset: 0; z-index: 2;
+      width: 100%; height: 100%; object-fit: cover;
+      display: none; pointer-events: none;
+    }
+    .evhost-sns-bk-img.show { display: block; }
+    .evhost-sns-vtubers { position: absolute; inset: 0; z-index: 3; }
     .evhost-sns-vt { position: absolute; bottom: 0; overflow: hidden; }
     .evhost-sns-vt img {
       width: 100%; height: 100%;
       object-fit: contain; object-position: bottom center; display: block;
     }
     .evhost-sns-fg-img {
-      position: absolute; inset: 0; z-index: 3;
+      position: absolute; inset: 0; z-index: 4;
       width: 100%; height: 100%; object-fit: cover;
       display: none; pointer-events: none;
     }
     .evhost-sns-fg-img.show { display: block; }
     .evhost-sns-result-layer {
-      position: absolute; inset: 0; z-index: 5;
+      position: absolute; inset: 0; z-index: 6;
       width: 100%; height: 100%; object-fit: cover;
       pointer-events: none; display: none;
     }
     .evhost-sns-result-layer.show { display: block; }
     .evhost-sns-label {
-      position: absolute; bottom: 0; left: 0; right: 0; z-index: 4;
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 5;
       text-align: center; padding: 14px 8px 8px;
       background: linear-gradient(to top,rgba(0,0,0,.60) 0%,transparent 100%);
       font-size: 1.3rem; font-weight: bold; color: #fff;
@@ -1008,6 +1014,7 @@
       box-shadow: 0 0 12px rgba(176,96,255,0.25);
     }
     .roster-slot svg { width: 100%; height: 100%; }
+    .roster-slot img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
 
     /* ════════════════════════
        AUDITION SCREEN
@@ -1184,6 +1191,7 @@
       margin: 0 auto 9px;
     }
     .cand-icon svg { width: 100%; height: 100%; }
+    .cand-icon img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; border-radius: 50%; }
 
     .cand-name {
       font-size: 0.8rem;
@@ -1356,6 +1364,7 @@
       margin: 0 auto 10px;
     }
     .debut-card-icon svg { width: 100%; height: 100%; }
+    .debut-card-icon img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; border-radius: 50%; }
     .debut-card-name {
       font-size: 0.88rem;
       font-weight: bold;
@@ -1512,6 +1521,7 @@
     }
     .gawa-si-icon { width:44px; height:44px; flex-shrink:0; }
     .gawa-si-icon svg { width:100%; height:100%; }
+    .gawa-si-icon img { width:100%; height:100%; object-fit:cover; object-position:center top; display:block; border-radius:50%; }
     .gawa-si-name { font-size:0.84rem; font-weight:bold; color:#e8dff8; }
     .gawa-si-type { font-size:0.6rem; color:rgba(185,168,220,0.85); letter-spacing:.1em; }
     .gawa-si-check { margin-left:auto; font-size:.95rem; color:#ffc040; opacity:0; transition:opacity .2s; }
@@ -1548,6 +1558,7 @@
     .gawa-name-gawa-thumb svg { width:100%; display:block; }
     .gawa-name-soul-thumb { width:50px; height:50px; }
     .gawa-name-soul-thumb svg { width:100%; height:100%; }
+    .gawa-name-soul-thumb img { width:100%; height:100%; object-fit:cover; object-position:center top; display:block; border-radius:50%; }
     .gawa-name-plus { font-size:1.4rem; color:rgba(176,96,255,.6); }
     .gawa-name-form { flex:1; min-width:220px; display:flex; flex-direction:column; gap:8px; }
     .gawa-name-label {
@@ -1633,6 +1644,7 @@
     .vborn-soul-row { display:flex; align-items:center; gap:10px; }
     .vborn-soul-mini { width:40px; height:40px; flex-shrink:0; }
     .vborn-soul-mini svg { width:100%; height:100%; }
+    .vborn-soul-mini img { width:100%; height:100%; object-fit:cover; object-position:center top; display:block; border-radius:50%; }
     .vborn-soul-label { font-size:.58rem; letter-spacing:.2em; color:rgba(176,140,220,.65); display:block; margin-bottom:2px; }
     .vborn-soul-name { font-size:.82rem; font-weight:bold; color:#d0c8f0; }
     .vborn-soul-type { font-size:.6rem; color:rgba(185,168,220,.8); }
@@ -2427,6 +2439,27 @@
     }
     .save-date-hint.visible { display: block; }
 
+    /* タイトル画面：フッターリンク */
+    .title-footer-links {
+      position: absolute;
+      bottom: 28px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+    }
+    .title-footer-links a {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      color: rgba(150, 130, 190, 0.65);
+      text-decoration: none;
+      transition: color 0.25s;
+    }
+    .title-footer-links a:hover {
+      color: rgba(200, 160, 255, 0.95);
+    }
+
     /* ════════════════════════
        HUB CHANNEL SECTION
     ════════════════════════ */
@@ -2489,7 +2522,15 @@
       text-overflow: ellipsis;
     }
     .ch-card-latest {
-      display: none;
+      display: block;
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: #d8d0f0;
+      padding: 7px 12px 4px;
+      line-height: 1.4;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .ch-card-views {
       font-size: 0.62rem;
@@ -2615,6 +2656,69 @@
       text-transform: uppercase;
     }
 
+    /* ── レーダーチャート ── */
+    .ch-radar-section {
+      margin: 18px 0 10px;
+      background: rgba(30,10,60,.45);
+      border: 1px solid rgba(176,96,255,.18);
+      border-radius: 14px;
+      padding: 14px 12px 12px;
+    }
+    .ch-radar-header {
+      font-size: .72rem;
+      letter-spacing: .2em;
+      color: rgba(176,120,255,.7);
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .ch-radar-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .ch-radar-svg-wrap {
+      flex-shrink: 0;
+      width: 200px;
+      height: 200px;
+    }
+    .ch-radar-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: .68rem;
+      color: rgba(200,170,255,.75);
+      justify-content: center;
+    }
+    .ch-radar-legend-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .ch-radar-legend-label { flex: 1; }
+    .ch-radar-legend-val {
+      font-size: .72rem;
+      font-weight: bold;
+      color: rgba(220,190,255,.9);
+      min-width: 28px;
+      text-align: right;
+    }
+    .ch-radar-legend-bar {
+      width: 50px;
+      height: 5px;
+      background: rgba(100,60,160,.4);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .ch-radar-legend-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #7030d0, #c060ff);
+      transition: width .6s ease;
+    }
+
     .ch-personal-log {
       padding: 0 14px 24px;
       display: flex;
@@ -2704,7 +2808,7 @@
     }
     .ch-vid-thumb svg { width: 100%; height: 100%; display: block; }
     .ch-vid-thumb > div { position: absolute; inset: 0; }
-    .ch-vid-info { display: none; }
+    .ch-vid-info { display: block; padding: 7px 9px 9px; }
     .ch-vid-title {
       font-size: .78rem;
       font-weight: bold;
@@ -2939,6 +3043,7 @@
     .gawa-step3-gawa svg { width:100%; display:block; }
     .gawa-step3-soul { width:38px; height:38px; flex-shrink:0; }
     .gawa-step3-soul svg { width:100%; height:100%; }
+    .gawa-step3-soul img { width:100%; height:100%; object-fit:cover; object-position:center top; display:block; border-radius:50%; }
     .gawa-step3-arrow { font-size:1.1rem; color:rgba(176,96,255,.55); }
     .gawa-step3-vtname {
       font-size: clamp(.9rem,2.8vw,1.25rem);
@@ -3093,6 +3198,75 @@
       letter-spacing: .04em;
       margin-bottom: 6px;
     }
+    #milestoneModal {
+      background: rgba(10,6,20,0.97);
+      border: 1px solid rgba(255,200,80,0.45);
+      border-radius: 22px;
+      padding: 32px 28px 24px;
+      max-width: 360px; width: 92%;
+      text-align: center;
+      box-shadow: 0 0 70px rgba(255,180,40,0.2), inset 0 0 40px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      position: relative; overflow: hidden;
+      animation: milestoneIn .4s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    .milestone-firework {
+      font-size: 2.2rem;
+      margin-bottom: 2px;
+    }
+    .milestone-subs {
+      font-size: .72rem;
+      color: rgba(255,220,130,.6);
+      letter-spacing: .1em;
+      margin-bottom: 2px;
+    }
+    .milestone-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #ffe8a0;
+      letter-spacing: .05em;
+      margin: 4px 0;
+    }
+    .milestone-desc {
+      font-size: .82rem;
+      color: rgba(230,210,170,.7);
+      line-height: 1.7;
+      margin: 4px 0 8px;
+      white-space: pre-line;
+    }
+    .milestone-unlock {
+      font-size: .78rem;
+      color: #ffd080;
+      background: rgba(255,180,40,.1);
+      border: 1px solid rgba(255,180,40,.25);
+      border-radius: 10px;
+      padding: 8px 14px;
+      line-height: 1.6;
+      margin: 6px 0 10px;
+      white-space: pre-line;
+    }
+    #btnMilestoneAction {
+      width: 100%; padding: 11px 0;
+      background: linear-gradient(135deg,#ffb030,#ff7040);
+      border: none; border-radius: 50px;
+      color: #fff; font-size: .88rem; font-weight: 700;
+      cursor: pointer; letter-spacing: .05em; font-family: inherit;
+      margin-bottom: 8px;
+      transition: filter .2s;
+    }
+    #btnMilestoneAction:hover { filter: brightness(1.12); }
+    #btnMilestoneClose {
+      background: transparent;
+      border: 1px solid rgba(255,200,80,.4);
+      color: rgba(255,210,120,.7);
+      padding: 10px 0; border-radius: 50px;
+      font-size: .85rem; font-family: inherit;
+      cursor: pointer; letter-spacing: .05em;
+      transition: background .25s, color .25s;
+      width: 100%;
+    }
+    #btnMilestoneClose:hover { background: rgba(255,180,40,.12); color: #ffe8a0; }
+
     /* ガワ3択選択ステップ */
     .gawa-pick-sub  { font-size:.8rem; color:rgba(200,180,255,.65); letter-spacing:.1em; margin-bottom:20px; text-align:center; }
     .gawa-pick-grid { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; width:100%; max-width:520px; }
@@ -3106,6 +3280,27 @@
     .gawa-pick-item.selected { border-color:#b060ff; box-shadow:0 0 28px rgba(176,96,255,.55); transform:translateY(-4px); }
     .gawa-pick-item img { width:100%; height:170px; object-fit:contain; display:block; padding:10px; box-sizing:border-box; }
     .gawa-pick-label { font-size:.68rem; color:rgba(200,180,255,.55); text-align:center; padding:4px 0 8px; }
+    .btn-gawa-reorder {
+      margin-top:22px; padding:10px 28px;
+      background:transparent; border:1px solid rgba(176,96,255,.35);
+      color:rgba(180,140,255,.7); border-radius:40px; cursor:pointer;
+      font-size:.75rem; letter-spacing:.12em; font-family:inherit;
+      transition:border-color .2s, color .2s, box-shadow .2s;
+    }
+    .btn-gawa-reorder:hover {
+      border-color:rgba(176,96,255,.7); color:#c8a0ff;
+      box-shadow:0 0 14px rgba(176,96,255,.25);
+    }
+    .gawa-pick-footer { display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:22px; }
+    .btn-gawa-reorder { margin-top:0; }
+    .btn-gawa-back-hub {
+      padding:8px 24px; background:transparent;
+      border:1px solid rgba(255,255,255,.15);
+      color:rgba(180,160,210,.5); border-radius:40px; cursor:pointer;
+      font-size:.72rem; letter-spacing:.1em; font-family:inherit;
+      transition:border-color .2s, color .2s;
+    }
+    .btn-gawa-back-hub:hover { border-color:rgba(255,255,255,.35); color:rgba(210,190,240,.8); }
     .grad-consult-icon  { font-size: 2.4rem; margin-bottom: 6px; }
     .grad-consult-gawa  {
       width: 80px; height: 80px;
@@ -4062,6 +4257,17 @@
     #gameOverOverlay.finale .go-results-title { color: rgba(200,160,255,.65); }
     #gameOverOverlay.finale .go-row-label { color: rgba(200,175,240,.65); }
     #gameOverOverlay.finale .go-row-val { color: #e8d8ff; }
+    /* ── ゲームオーバー画像 ── */
+    .go-gameover-img {
+      width: min(88%, 360px);
+      object-fit: contain;
+      margin: 4px auto 8px;
+      display: block;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+    }
+    .go-gameover-img.visible { opacity: 1; }
+    #gameOverOverlay.finale .go-gameover-img { display: none; }
     /* ── エンディング種別ヘッダー ── */
     .ending-result-section {
       padding: 56px 24px 48px;
@@ -4143,6 +4349,15 @@
       transition: background .2s, color .2s;
     }
     #btnEndingSkip:hover { background: rgba(255,255,255,.16); color: #fff; }
+    #btnEndingBgm {
+      position: fixed; bottom: 28px; left: 28px; z-index: 5010;
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.18);
+      color: rgba(255,255,255,.55); font-size: .78rem; letter-spacing: .1em;
+      padding: 9px 18px; border-radius: 20px; cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+    #btnEndingBgm:hover { background: rgba(255,255,255,.16); color: #fff; }
+    #btnEndingBgm.off { color: rgba(255,255,255,.3); border-color: rgba(255,255,255,.1); }
     .ending-vig-top {
       position: fixed; top: 0; left: 0; right: 0; height: 140px; z-index: 5005;
       background: linear-gradient(to bottom, #020008 0%, transparent 100%);
@@ -4221,6 +4436,54 @@
     }
     .ending-thank-sub { font-size: .95rem; color: rgba(210,175,255,.68); letter-spacing: .35em; margin-bottom: 12px; }
     .ending-blank { height: 50vh; }
+    /* ── 大成功エンディング：世界征服 ── */
+    .ending-world-section {
+      width: 100%; padding: 0 0 60px;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .ending-world-label {
+      font-size: .62rem; letter-spacing: .45em;
+      color: rgba(255,215,0,.55); margin-bottom: 20px;
+    }
+    .ending-world-img-wrap {
+      position: relative; width: min(100%, 720px);
+      aspect-ratio: 16 / 9; overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 0 60px rgba(255,200,0,.25), 0 0 120px rgba(180,100,255,.15);
+    }
+    .ending-world-img-wrap img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%; object-fit: cover;
+    }
+    .ending-world-bg { z-index: 0; }
+    .ending-world-vts { position: absolute; inset: 0; z-index: 1; }
+    .ending-world-fg { z-index: 2; }
+    .ending-world-text-overlay {
+      position: absolute; inset: 0; z-index: 3;
+      background: linear-gradient(to top, rgba(4,2,12,.82) 0%, rgba(4,2,12,.1) 55%, transparent 100%);
+      display: flex; flex-direction: column;
+      justify-content: flex-end; align-items: center;
+      padding: 0 20px 28px;
+    }
+    .ending-world-caption {
+      font-size: clamp(.75rem, 2.2vw, 1rem);
+      color: rgba(255,230,150,.85); letter-spacing: .18em;
+      line-height: 1.9; text-align: center;
+    }
+    .ending-world-desc {
+      width: min(90%, 640px); margin: 32px auto 0;
+      font-size: clamp(.8rem, 2vw, .96rem); line-height: 2;
+      color: rgba(230,215,255,.8); letter-spacing: .08em;
+      text-align: center;
+    }
+
+    /* ── エンディング：解散セクション ── */
+    .ending-gameover-img-wrap {
+      width: min(100%, 480px); border-radius: 12px; overflow: hidden;
+      box-shadow: 0 0 60px rgba(100,150,255,.25), 0 0 120px rgba(80,100,200,.15);
+      margin-bottom: 8px;
+    }
+    .ending-gameover-img-wrap img { width: 100%; display: block; object-fit: contain; }
 
     /* ── エンディング：夢セクション ── */
     .ending-dream-section {
@@ -4443,6 +4706,10 @@
     <div class="gawa-reveal-title">✦ ガワが届きました！ ✦</div>
     <div class="gawa-pick-sub">3種類の中から1つ選んでください</div>
     <div class="gawa-pick-grid" id="gawaPickGrid"></div>
+    <div class="gawa-pick-footer">
+      <button class="btn-gawa-reorder" id="btnGawaReorder">もう一度発注する（¥500,000）</button>
+      <button class="btn-gawa-back-hub" id="btnGawaPickBackHub">事務所に戻る</button>
+    </div>
   </div>
 
   <!-- Step 1: ガワ完成・魂選択 -->
@@ -4547,7 +4814,7 @@
     <div class="birthday-month-grid" id="bdayMonthGrid"></div>
     <div class="birthday-section-label" id="bdayDayLabel" style="opacity:.4">日を選んでください</div>
     <div class="birthday-day-grid" id="bdayDayGrid"></div>
-    <button class="bday-random-btn" id="btnBdayRandom">🎲 誕生日はランダムで決める</button>
+    <button class="bday-random-btn" id="btnBdayRandom">🎲 ランダムに選ぶ</button>
     <div class="bday-footer">
       <button class="btn-vtuber-born" id="btnBdayConfirm" style="opacity:.35;pointer-events:none;">配信スタイルを決める ▶</button>
     </div>
@@ -4673,6 +4940,15 @@
   <div id="chVideoMoreWrap" style="display:none;text-align:center;padding:10px 0 4px;">
     <button id="btnLoadMoreVideos">more ▾</button>
   </div>
+
+  <!-- パラメータレーダーチャート -->
+  <div class="ch-radar-section">
+    <div class="ch-radar-header">── パラメータ ──</div>
+    <div class="ch-radar-wrap">
+      <div class="ch-radar-svg-wrap" id="chRadarSvgWrap"></div>
+      <div class="ch-radar-legend" id="chRadarLegend"></div>
+    </div>
+  </div>
   <div class="ch-videos-header" style="margin-top:18px;">── イベント履歴 ──</div>
   <div class="ch-personal-log" id="chPersonalLog"></div>
 </div>
@@ -4680,6 +4956,7 @@
 <!-- ゲームオーバー画面 -->
 <div id="gameOverOverlay">
   <div class="go-title">GAME OVER</div>
+  <img id="goGameoverImg" src="images/ending/gameover.png" alt="" class="go-gameover-img">
   <div class="go-reason" id="goReason"></div>
   <div class="go-results">
     <div class="go-results-title">── 最終結果 ──</div>
@@ -4704,6 +4981,7 @@
   <div class="ending-vig-bot"></div>
   <div id="endingContent"></div>
   <button id="btnEndingSkip">SKIP ▶▶</button>
+  <button id="btnEndingBgm">🎵 BGM ON</button>
 </div>
 
 <!-- 汎用メニューボタン＋パネル -->
@@ -4728,15 +5006,9 @@
   <div class="menu-item" id="menuSeToggle">
     <span class="mi-icon">🔊</span>効果音<span class="mi-toggle on" id="menuSeBadge">ON</span>
   </div>
-  <div class="menu-item" id="menuCharinToggle">
-    <span class="mi-icon">💰</span>収益音<span class="mi-toggle" id="menuCharinBadge">OFF</span>
-  </div>
   <div class="menu-separator"></div>
   <div class="menu-item danger" id="menuDissolve">
     <span class="mi-icon">🏳️</span>事務所を解散する
-  </div>
-  <div class="menu-item danger" id="menuReset">
-    <span class="mi-icon">🗑</span>セーブを消して初めから
   </div>
 </div>
 
@@ -4967,6 +5239,7 @@
     <!-- イベント結果イメージバナー（背景／VTuber／手前／テキスト） -->
     <div class="evhost-sns-banner" id="evhostSnsBanner">
       <img class="evhost-sns-bg-img" id="evhostSnsBgImg" src="" alt="">
+      <img class="evhost-sns-bk-img" id="evhostSnsBkImg" src="" alt="">
       <div class="evhost-sns-vtubers" id="evhostSnsVtubers"></div>
       <img class="evhost-sns-fg-img" id="evhostSnsFgImg" src="" alt="">
       <div class="evhost-sns-label" id="evhostSnsLabel"></div>
@@ -5020,10 +5293,15 @@
   <div class="title-eyebrow">── SIMULATION GAME ──</div>
   <div class="title-main">VTuber事務所<br>シミュレーション</div>
   <div class="title-en">VIRTUAL TALENT AGENCY</div>
-  <button class="btn-start" id="btnStart">GAME START</button>
+  <button class="btn-start" id="btnStart" >GAME START</button>
   <button class="btn-continue-save" id="btnContinue">つづきから</button>
   <div class="save-date-hint" id="saveDateHint"></div>
   <div class="press-hint">PRESS START TO BEGIN</div>
+  <div class="title-footer-links">
+    <a href="howtoplay.html" target="_blank">遊び方</a>
+    <a href="credits.html" target="_blank">クレジット</a>
+    <a href="information.html" target="_blank">インフォメーション</a>
+  </div>
 </div>
 
 <!-- ② プロローグ画面 -->
@@ -5112,41 +5390,152 @@
 })();
 
 /* ════════════════════════════════════
-   SECRETARY ICON SVG
+   レーダーチャート描画
 ════════════════════════════════════ */
+const PARAM_DEFS = [
+  { key: 'enthusiasm', label: '活動熱意',   short: '熱意',   color: '#ff88cc' },
+  { key: 'talk',       label: 'トーク力',   short: 'トーク', color: '#c060ff' },
+  { key: 'acting',     label: '演技力',     short: '演技',   color: '#9966ff' },
+  { key: 'singing',    label: '歌唱力',     short: '歌唱',   color: '#6699ff' },
+  { key: 'gaming',     label: 'ゲームスキル', short: 'ゲーム', color: '#44ddaa' },
+  { key: 'commu',      label: 'コミュ力',   short: 'コミュ', color: '#ffcc44' },
+  { key: 'stamina',    label: '体力',       short: '体力',   color: '#ff7744' },
+  { key: 'gachiKoi',   label: 'ガチ恋度',   short: 'ガチ恋', color: '#ff4488' },
+  { key: 'femPop',     label: '同性人気',   short: '同性',   color: '#cc88ff' },
+  { key: 'fame',       label: '知名度',     short: '知名度', color: '#88ddff' },
+];
+
+function renderRadarChart(ch) {
+  const svgWrap    = document.getElementById('chRadarSvgWrap');
+  const legendWrap = document.getElementById('chRadarLegend');
+  if (!svgWrap || !legendWrap) return;
+  if (!ch.params) ch.params = initChannelParams(ch.vtuber);
+
+  const p  = ch.params;
+  const n  = PARAM_DEFS.length;           // 10
+  const CX = 100, CY = 100, R = 78;       // viewBox 200×200 の中心・半径
+  const step = (Math.PI * 2) / n;
+
+  const pt = (i, val) => {
+    const a = step * i - Math.PI / 2;
+    const r = R * Math.max(0, Math.min(100, val)) / 100;
+    return [CX + r * Math.cos(a), CY + r * Math.sin(a)];
+  };
+  const ptOuter = (i, scale) => {
+    const a = step * i - Math.PI / 2;
+    return [CX + R * scale * Math.cos(a), CY + R * scale * Math.sin(a)];
+  };
+
+  // グリッド（20%刻み）
+  let gridSvg = '';
+  [0.2, 0.4, 0.6, 0.8, 1.0].forEach(sc => {
+    const pts = Array.from({length: n}, (_, i) => ptOuter(i, sc).join(',')).join(' ');
+    gridSvg += `<polygon points="${pts}" fill="none" stroke="rgba(176,96,255,${sc === 1.0 ? '.3' : '.12'})" stroke-width="${sc === 1.0 ? '0.8' : '0.5'}"/>`;
+  });
+
+  // 軸線
+  let axesSvg = '';
+  for (let i = 0; i < n; i++) {
+    const [x, y] = ptOuter(i, 1.0);
+    axesSvg += `<line x1="${CX}" y1="${CY}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(176,96,255,.2)" stroke-width="0.5"/>`;
+  }
+
+  // データポリゴン
+  const vals = PARAM_DEFS.map(d => p[d.key] ?? 0);
+  const dataPts = vals.map((v, i) => pt(i, v).map(x => x.toFixed(1)).join(',')).join(' ');
+
+  // ラベル（外側に配置）
+  let labelSvg = '';
+  PARAM_DEFS.forEach((d, i) => {
+    const [lx, ly] = ptOuter(i, 1.28);
+    labelSvg += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="rgba(200,170,255,.82)" font-size="7.5" font-family="sans-serif">${d.short}</text>`;
+  });
+
+  svgWrap.innerHTML = `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+    ${gridSvg}
+    ${axesSvg}
+    <polygon points="${dataPts}" fill="rgba(176,96,255,.22)" stroke="#c060ff" stroke-width="1.2" stroke-linejoin="round"/>
+    ${vals.map((v, i) => {
+      const [dx, dy] = pt(i, v);
+      return `<circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="2" fill="#c060ff" opacity=".8"/>`;
+    }).join('')}
+    ${labelSvg}
+  </svg>`;
+
+  // 凡例（右側リスト）
+  legendWrap.innerHTML = PARAM_DEFS.map((d, i) => {
+    const v = Math.round(vals[i]);
+    return `<div class="ch-radar-legend-row">
+      <span class="ch-radar-legend-label">${d.label}</span>
+      <div class="ch-radar-legend-bar"><div class="ch-radar-legend-bar-fill" style="width:${v}%"></div></div>
+      <span class="ch-radar-legend-val">${v}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════
+   VTuber パラメータ初期化
+════════════════════════════════════ */
+function initChannelParams(vt) {
+  const soul = CANDIDATES.find(c => c.id === vt.soulId);
+  const base = soul?.baseParams || { enthusiasm:55, talk:55, acting:55, singing:55, gaming:55, commu:55, stamina:55 };
+  const vary = v => Math.max(5, Math.min(95, Math.round(v + (Math.random() - 0.5) * 10)));
+  return {
+    enthusiasm: vary(base.enthusiasm),
+    talk:       vary(base.talk),
+    acting:     vary(base.acting),
+    singing:    vary(base.singing),
+    gaming:     vary(base.gaming),
+    commu:      vary(base.commu),
+    stamina:    vary(base.stamina),
+    gachiKoi:   0,
+    femPop:     0,
+    fame:       0,
+  };
+}
+
+/* ════════════════════════════════════
+   SECRETARY ICON SVG
+/* ════════════════════════════════════
+   VTuber 日次パラメータ成長
+════════════════════════════════════ */
+function dailyParamGrowth() {
+  for (const ch of gameState.channels) {
+    if (ch.graduated) continue;
+    if (!ch.params) ch.params = initChannelParams(ch.vtuber);
+    const p = ch.params;
+
+    // スキル系：じわじわ上昇のみ（30%の確率で微増）
+    const skillUp = () => Math.random() < 0.30 ? +(Math.random() * 0.45 + 0.05).toFixed(2) : 0;
+    p.talk    = Math.min(100, p.talk    + skillUp());
+    p.acting  = Math.min(100, p.acting  + skillUp());
+    p.singing = Math.min(100, p.singing + skillUp());
+    p.gaming  = Math.min(100, p.gaming  + skillUp());
+    p.commu   = Math.min(100, p.commu   + skillUp());
+    p.stamina = Math.min(100, p.stamina + skillUp());
+
+    // 活動熱意：メンタルに引っ張られながらランダムウォーク
+    const mentalFactor = ((ch.vtuber.mental ?? 75) - 50) / 50; // -1〜+1
+    const enthDelta = (Math.random() - 0.5) * 5 + mentalFactor * 1.5;
+    p.enthusiasm = Math.max(5, Math.min(100, p.enthusiasm + enthDelta));
+
+    // ガチ恋度：ゆっくり増加傾向（上限95）
+    const gachiDelta = (Math.random() - 0.42) * 1.8;
+    p.gachiKoi = Math.max(0, Math.min(95, p.gachiKoi + gachiDelta));
+
+    // 同性人気：ゆっくり増加傾向（上限95）
+    const femDelta = (Math.random() - 0.44) * 1.5;
+    p.femPop = Math.max(0, Math.min(95, p.femPop + femDelta));
+
+    // 知名度：登録者数に応じたターゲット値へ緩やかに収束
+    const targetFame = Math.min(98, Math.pow(ch.subscribers / 500, 0.45));
+    p.fame = Math.max(0, Math.min(100, p.fame + (targetFame - p.fame) * 0.008 + (Math.random() - 0.48) * 0.4));
+  }
+}
+
+
 function secretarySVG(){
-  return `<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#c060ff" stop-opacity=".18"/>
-      <stop offset="100%" stop-color="#c060ff" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-  <circle cx="30" cy="30" r="28" fill="url(#glow)" stroke="rgba(176,96,255,.38)" stroke-width="1.2"/>
-  <!-- hair back -->
-  <ellipse cx="30" cy="26" rx="14.5" ry="15.5" fill="#1a0836"/>
-  <!-- cat ears -->
-  <polygon points="17,20 11,9  22,15" fill="#2d0f55"/>
-  <polygon points="17.5,19.5 12,11 21,15" fill="#c060ff" opacity=".55"/>
-  <polygon points="43,20 49,9  38,15" fill="#2d0f55"/>
-  <polygon points="42.5,19.5 48,11 39,15" fill="#c060ff" opacity=".55"/>
-  <!-- face -->
-  <ellipse cx="30" cy="31" rx="12" ry="13" fill="#f5d2be"/>
-  <!-- blush -->
-  <ellipse cx="21.5" cy="34" rx="3.5" ry="2" fill="rgba(255,130,130,.35)"/>
-  <ellipse cx="38.5" cy="34" rx="3.5" ry="2" fill="rgba(255,130,130,.35)"/>
-  <!-- eyes -->
-  <ellipse cx="25" cy="29.5" rx="3.5" ry="4" fill="#3a0e90"/>
-  <ellipse cx="35" cy="29.5" rx="3.5" ry="4" fill="#3a0e90"/>
-  <circle cx="25.8" cy="28.5" r="1.3" fill="white"/>
-  <circle cx="35.8" cy="28.5" r="1.3" fill="white"/>
-  <!-- glasses -->
-  <rect x="20.5" y="26.5" width="9" height="7" rx="2.8" fill="none" stroke="#b060ff" stroke-width="1.1" opacity=".85"/>
-  <rect x="30.5" y="26.5" width="9" height="7" rx="2.8" fill="none" stroke="#b060ff" stroke-width="1.1" opacity=".85"/>
-  <line x1="29.5" y1="30" x2="30.5" y2="30" stroke="#b060ff" stroke-width="1.1" opacity=".85"/>
-  <!-- mouth -->
-  <path d="M27 37 Q30 40.5 33 37" stroke="#d07070" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-</svg>`;
+  return `<img src="images/tamashii/airi.png" alt="アイリ" style="width:54px;height:54px;object-fit:cover;object-position:center top;border-radius:50%;display:block;">`;
 }
 
 /* ════════════════════════════════════
@@ -5343,6 +5732,7 @@ officeInput.addEventListener('keydown', e=>{
 btnConfirm.addEventListener('click', ()=>{
   const name = officeInput.value.trim();
   if(!name) return;
+  playSeNameConfirm();
   showComplete(name);
 });
 
@@ -5354,6 +5744,8 @@ document.getElementById('btnGo').addEventListener('click', ()=>{
   updateEventHostBtn();
   showScreen('hubScreen');
   money.show();
+  money.add(-200_000); // 事務所登記費用
+  playSeOfficeOpen();
   startGameTick();
 });
 
@@ -5808,6 +6200,7 @@ const gameState = {
   prepEvents: {},              // 準備中イベント { category: { evId, evType, daysRemaining } }
   celebratedMilestones: new Set(), // 達成済みマイルストーン
   auditionGeneration: 1,             // 現在の期数（1=1期生済み, 2=2期生解放済み…）
+  genHireCount: {},                  // 期生ごとの採用済み人数 { 1: 2, 2: 0, ... }
   popularity: 5,   // ファンの熱量（0-100）
   fame:       5,   // 一般知名度（0-100）
   trust:      5,   // 運営の好感度（0-100）
@@ -5998,8 +6391,10 @@ function saveGame() {
       personalLog: ch.personalLog || [],
       graduated: ch.graduated || false, vtLevel: ch.vtLevel ?? 0,
       dreams: ch.dreams || null,
+      params: ch.params || null,
     })),
     auditionGeneration: gameState.auditionGeneration || 1,
+    genHireCount: { ...gameState.genHireCount },
     gameDayCount: gameDayCount,
     celebratedMilestones: [...gameState.celebratedMilestones],
     ledgerData: _ledgerData.slice(0, 100),
@@ -6093,6 +6488,8 @@ function applyLoad(data) {
         // 既にLv.1以上なら夢1を自動割り当て
         if (ch.vtLevel >= 1) assignDream1(ch);
       }
+      // パラメータ復元（古いセーブは初期化）
+      if (!ch.params) ch.params = initChannelParams(ch.vtuber);
       addChannelCard(ch);
       if (ch.graduated) {
         const card = document.querySelector(`.ch-card[data-ch-id="${ch.id}"]`);
@@ -6109,6 +6506,7 @@ function applyLoad(data) {
   }
 
   gameState.auditionGeneration = data.auditionGeneration || 1;
+  gameState.genHireCount = data.genHireCount || {};
   updateAuditionBtnLabel();
   unlockAuditionBtnIfNeeded();
 
@@ -6487,6 +6885,63 @@ function playSeGawaArrive() {
   } catch(e) {}
 }
 
+// 事務所名確定：短い2音の決定SE
+function playSeNameConfirm() {
+  if (!_seEnabled) return;
+  try {
+    const ac = getAC(); const t = ac.currentTime;
+    [[523, 0.00, 0.10], [784, 0.10, 0.22]].forEach(([freq, dt, dur]) => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.13, t + dt);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dt + dur);
+      o.connect(g); g.connect(ac.destination);
+      o.start(t + dt); o.stop(t + dt + dur + 0.05);
+    });
+  } catch(e) {}
+}
+
+// 事務所開設（ハブ画面へ）：ファンファーレ＋キラキラ上昇
+function playSeOfficeOpen() {
+  if (!_seEnabled) return;
+  try {
+    const ac = getAC(); const t = ac.currentTime;
+    // 低音の重厚な一打
+    const buf = ac.createBuffer(1, ac.sampleRate * 0.25, ac.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ac.sampleRate * 0.06));
+    }
+    const bs = ac.createBufferSource();
+    bs.buffer = buf;
+    const bg = ac.createGain();
+    bg.gain.setValueAtTime(0.30, t);
+    bg.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    const lpf = ac.createBiquadFilter();
+    lpf.type = 'lowpass'; lpf.frequency.value = 120;
+    bs.connect(lpf); lpf.connect(bg); bg.connect(ac.destination);
+    bs.start(t); bs.stop(t + 0.3);
+    // 上昇ファンファーレ
+    [[392, 0.05, 0.18], [523, 0.18, 0.18], [659, 0.31, 0.20], [784, 0.44, 0.28]].forEach(([freq, dt, dur]) => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'triangle'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.16, t + dt);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dt + dur);
+      o.connect(g); g.connect(ac.destination);
+      o.start(t + dt); o.stop(t + dt + dur + 0.05);
+    });
+    // 最後にキラキラ
+    [1047, 1319, 1568, 2093].forEach((freq, i) => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.10, t + 0.72 + i * 0.07);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.72 + i * 0.07 + 0.25);
+      o.connect(g); g.connect(ac.destination);
+      o.start(t + 0.72 + i * 0.07); o.stop(t + 0.72 + i * 0.07 + 0.3);
+    });
+  } catch(e) {}
+}
+
 /* ════════════════════════════════════
    MENU EVENT LISTENERS
 ════════════════════════════════════ */
@@ -6563,14 +7018,6 @@ function playSeGawaArrive() {
     seBadge.classList.toggle('on', _seEnabled);
   });
 
-  // ── 収益音 ON/OFF ──
-  const charinBadge = document.getElementById('menuCharinBadge');
-  document.getElementById('menuCharinToggle').addEventListener('click', () => {
-    _charinEnabled = !_charinEnabled;
-    charinBadge.textContent = _charinEnabled ? 'ON' : 'OFF';
-    charinBadge.classList.toggle('on', _charinEnabled);
-  });
-
   // ── 事務所を解散する ──
   const dissolveOverlay = document.getElementById('dissolveConfirmOverlay');
   document.getElementById('menuDissolve').addEventListener('click', () => {
@@ -6588,20 +7035,6 @@ function playSeGawaArrive() {
     _showGameOverScreen('🏳️ 事務所を解散しました。お疲れ様でした。');
   });
 
-  // ── セーブを消して初めから（リセット）──
-  const resetOverlay = document.getElementById('resetOverlay');
-  document.getElementById('menuReset').addEventListener('click', () => {
-    menuPanel.classList.remove('open');
-    resetOverlay.classList.add('open');
-  });
-  document.getElementById('btnResetCancel').addEventListener('click', () => {
-    resetOverlay.classList.remove('open');
-  });
-  document.getElementById('btnResetConfirm').addEventListener('click', () => {
-    resetOverlay.classList.remove('open');
-    localStorage.removeItem(SAVE_KEY);
-    location.reload();
-  });
 })();
 
 /* ════════════════════════════════════
@@ -7415,6 +7848,7 @@ const CANDIDATES = [
     stats: { talk: 70, persona: 95 },
     svgFn: svgNoir,
     debutColor: '#9933ff',
+    baseParams: { enthusiasm:55, talk:22, acting:28, singing:17, gaming:20, commu:15, stamina:24 },
   },
   {
     id: 'popo',
@@ -7426,6 +7860,7 @@ const CANDIDATES = [
     stats: { talk: 95, persona: 80 },
     svgFn: svgPopo,
     debutColor: '#22aa55',
+    baseParams: { enthusiasm:70, talk:30, acting:22, singing:28, gaming:13, commu:30, stamina:19 },
   },
   {
     id: 'lily',
@@ -7437,6 +7872,7 @@ const CANDIDATES = [
     stats: { talk: 75, persona: 92 },
     svgFn: svgLily,
     debutColor: '#00bbee',
+    baseParams: { enthusiasm:75, talk:24, acting:22, singing:30, gaming:11, commu:27, stamina:17 },
   },
   {
     id: 'gonta',
@@ -7448,6 +7884,7 @@ const CANDIDATES = [
     stats: { talk: 45, persona: 98 },
     svgFn: svgGonta,
     debutColor: '#ee5522',
+    baseParams: { enthusiasm:50, talk:15, acting:26, singing:20, gaming:22, commu:13, stamina:22 },
   },
   {
     id: 'himari',
@@ -7459,6 +7896,7 @@ const CANDIDATES = [
     stats: { talk: 82, persona: 68 },
     svgFn: svgHimari,
     debutColor: '#ff5599',
+    baseParams: { enthusiasm:65, talk:26, acting:20, singing:22, gaming:24, commu:28, stamina:27 },
   },
   {
     id: 'rei',
@@ -7470,6 +7908,7 @@ const CANDIDATES = [
     stats: { talk: 62, persona: 90 },
     svgFn: svgRei,
     debutColor: '#00aaff',
+    baseParams: { enthusiasm:45, talk:20, acting:24, singing:13, gaming:32, commu:11, stamina:15 },
   },
   {
     id: 'kumo',
@@ -7481,6 +7920,7 @@ const CANDIDATES = [
     stats: { talk: 84, persona: 86 },
     svgFn: svgKumo,
     debutColor: '#aa44ff',
+    baseParams: { enthusiasm:60, talk:28, acting:26, singing:22, gaming:19, commu:27, stamina:20 },
   },
   {
     id: 'flame',
@@ -7492,6 +7932,7 @@ const CANDIDATES = [
     stats: { talk: 72, persona: 88 },
     svgFn: svgFlame,
     debutColor: '#ff6600',
+    baseParams: { enthusiasm:80, talk:24, acting:22, singing:26, gaming:28, commu:24, stamina:32 },
   },
   {
     id: 'luna',
@@ -7503,6 +7944,7 @@ const CANDIDATES = [
     stats: { talk: 78, persona: 82 },
     svgFn: svgLuna,
     debutColor: '#9999ff',
+    baseParams: { enthusiasm:55, talk:26, acting:28, singing:30, gaming:15, commu:24, stamina:19 },
   },
   {
     id: 'yuki',
@@ -7514,6 +7956,7 @@ const CANDIDATES = [
     stats: { talk: 56, persona: 94 },
     svgFn: svgYuki,
     debutColor: '#44ccee',
+    baseParams: { enthusiasm:45, talk:19, acting:27, singing:28, gaming:15, commu:11, stamina:15 },
   },
   {
     id: 'ryu',
@@ -7525,6 +7968,7 @@ const CANDIDATES = [
     stats: { talk: 88, persona: 72 },
     svgFn: svgRyu,
     debutColor: '#22bb66',
+    baseParams: { enthusiasm:60, talk:28, acting:20, singing:15, gaming:30, commu:22, stamina:30 },
   },
   {
     id: 'fuwari',
@@ -7536,6 +7980,7 @@ const CANDIDATES = [
     stats: { talk: 40, persona: 99 },
     svgFn: svgFuwari,
     debutColor: '#ffaa44',
+    baseParams: { enthusiasm:40, talk:13, acting:30, singing:22, gaming:11, commu:9, stamina:13 },
   },
   {
     id: 'pon',
@@ -7547,6 +7992,7 @@ const CANDIDATES = [
     stats: { talk: 88, persona: 78 },
     svgFn: svgPon,
     debutColor: '#cc8833',
+    baseParams: { enthusiasm:70, talk:29, acting:24, singing:20, gaming:22, commu:30, stamina:24 },
   },
   {
     id: 'yura',
@@ -7558,6 +8004,7 @@ const CANDIDATES = [
     stats: { talk: 80, persona: 90 },
     svgFn: svgYura,
     debutColor: '#8855ff',
+    baseParams: { enthusiasm:75, talk:27, acting:29, singing:19, gaming:20, commu:29, stamina:26 },
   },
   {
     id: 'tenshin',
@@ -7569,6 +8016,7 @@ const CANDIDATES = [
     stats: { talk: 74, persona: 85 },
     svgFn: svgTenshin,
     debutColor: '#ddcc22',
+    baseParams: { enthusiasm:55, talk:24, acting:25, singing:28, gaming:17, commu:26, stamina:19 },
   },
   {
     id: 'fukami',
@@ -7580,6 +8028,7 @@ const CANDIDATES = [
     stats: { talk: 55, persona: 95 },
     svgFn: svgFukami,
     debutColor: '#2266cc',
+    baseParams: { enthusiasm:50, talk:19, acting:23, singing:17, gaming:20, commu:13, stamina:30 },
   },
   {
     id: 'konkon',
@@ -7591,6 +8040,7 @@ const CANDIDATES = [
     stats: { talk: 76, persona: 96 },
     svgFn: svgKonkon,
     debutColor: '#dd7700',
+    baseParams: { enthusiasm:60, talk:25, acting:30, singing:22, gaming:17, commu:29, stamina:20 },
   },
   {
     id: 'musashi',
@@ -7602,8 +8052,41 @@ const CANDIDATES = [
     stats: { talk: 60, persona: 92 },
     svgFn: svgMusashi,
     debutColor: '#00bb99',
+    baseParams: { enthusiasm:55, talk:20, acting:24, singing:15, gaming:32, commu:15, stamina:29 },
   },
 ];
+
+/* ════════════════════════════════════
+   魂アイコン ヘルパー
+════════════════════════════════════ */
+const SOUL_IMG_MAP = {
+  noir:    'noir.png',
+  popo:    'popo.png',
+  lily:    'lily.png',
+  gonta:   'gonta.png',
+  himari:  'himari.png',
+  rei:     'rei.png',
+  kumo:    'tenma.png',
+  flame:   'enta.png',
+  luna:    'luna.png',
+  yuki:    'yukika.png',
+  ryu:     'ryuuzaki.png',
+  fuwari:  'fuwari.png',
+  pon:     'pon.png',
+  yura:    'yura.png',
+  tenshin: 'tensin.png',
+  fukami:  'fukami.png',
+  konkon:  'konkon.png',
+  musashi: 'musasi.png',
+};
+
+function soulIconHtml(c) {
+  const file = SOUL_IMG_MAP[c.id];
+  if (file) {
+    return `<img src="images/tamashii/${file}" alt="${c.name}" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;border-radius:50%;">`;
+  }
+  return c.svgFn();
+}
 
 /* ════════════════════════════════════
    グローバルボタンクリック音
@@ -7626,12 +8109,15 @@ document.addEventListener('click', e => {
 
 // ハブカードの期数ラベルを更新
 function updateAuditionBtnLabel() {
-  const gen   = gameState.auditionGeneration || 1;
+  const gen      = gameState.auditionGeneration || 1;
+  const hired    = gameState.genHireCount[gen] || 0;
+  const remaining = 3 - hired;
   const label = document.getElementById('hubAuditionLabel');
-  if (label) label.textContent = gen <= 1 ? '魂オーディション' : `魂オーディション（${gen}期生）`;
+  const baseName = gen <= 1 ? '魂オーディション' : `魂オーディション（${gen}期生）`;
+  if (label) label.textContent = remaining > 0 ? `${baseName}（残り${remaining}枠）` : baseName;
 }
 
-// 2期生オーディション解放（Lv.2 / 5万人）
+// 2期生オーディション解放（Lv.3 / 10万人）
 function openGen2Audition() {
   playBGM('sound/bgm/アトリエと電脳世界.mp3', 0.5);
   if ((gameState.auditionGeneration || 1) < 2) gameState.auditionGeneration = 2;
@@ -7665,16 +8151,33 @@ function openGen4Audition() {
 // セーブロード時・マイルストーン「あとで」クローズ時：オーディションボタンを復元
 function unlockAuditionBtnIfNeeded() {
   const btn = document.getElementById('hubAuditionBtn');
-  if (!btn.classList.contains('disabled')) return; // すでに有効
-  const ms = gameState.celebratedMilestones;
+  const ms  = gameState.celebratedMilestones;
   const gen = gameState.auditionGeneration || 1;
-  // 次の期生の解放マイルストーンを達成済みで、まだその期生のオーディションを開始していない場合に解放
-  // gen < 2: 2期生オーディション未実施（genが1のまま）
-  // gen < 3: 3期生オーディション未実施（genが2のまま）
-  // gen < 4: 4期生オーディション未実施（genが3のまま）
-  if      (gen < 2 && ms.has(50_000))       { gameState.auditionGeneration = 2; btn.classList.remove('disabled'); }
-  else if (gen < 3 && ms.has(300_000))      { gameState.auditionGeneration = 3; btn.classList.remove('disabled'); }
-  else if (gen < 4 && ms.has(5_000_000))    { gameState.auditionGeneration = 4; btn.classList.remove('disabled'); }
+
+  // 旧セーブ互換：genHireCount が空なら既存VTuber数からざっくり推定
+  if (Object.keys(gameState.genHireCount).length === 0 && gameState.vtubers.length > 0) {
+    // 全VTuberをgen順に3人ずつ割り当てる（正確な期別情報がない場合の推定）
+    for (let g = 1; g <= 4; g++) {
+      const start = (g - 1) * 3;
+      const count = Math.min(3, Math.max(0, gameState.vtubers.length - start));
+      if (count > 0) gameState.genHireCount[g] = count;
+    }
+  }
+
+  if (!btn.classList.contains('disabled')) return; // すでに有効
+
+  // 現在の期生がまだ3人未満なら再オーディション可能
+  const hired = gameState.genHireCount[gen] || 0;
+  if (hired < 3) {
+    btn.classList.remove('disabled');
+    updateAuditionBtnLabel();
+    return;
+  }
+
+  // この期生が3人揃っている場合 → 次の期生のマイルストーン解放を確認
+  if      (gen < 2 && ms.has(100_000))   { gameState.auditionGeneration = 2; btn.classList.remove('disabled'); }
+  else if (gen < 3 && ms.has(300_000))   { gameState.auditionGeneration = 3; btn.classList.remove('disabled'); }
+  else if (gen < 4 && ms.has(5_000_000)) { gameState.auditionGeneration = 4; btn.classList.remove('disabled'); }
   updateAuditionBtnLabel();
 }
 
@@ -7712,6 +8215,7 @@ document.getElementById('hubAuditionBtn').addEventListener('click', ()=>{
    AUDITION SCREEN
 ════════════════════════════════════ */
 let selectedIds = new Set();
+let currentSlotsLeft = 3; // 現在のオーディションで選べる残り枠数
 
 function buildAuditionScreen(){
   selectedIds.clear();
@@ -7722,11 +8226,24 @@ function buildAuditionScreen(){
   const titleEl = document.querySelector('#auditionScreen .aud-title');
   if (titleEl) titleEl.textContent = `✦ 魂オーディション（${gen}期生）✦`;
 
-  // 採用済みの魂を除外
-  const hiredIds = new Set((gameState.roster || []).map(r => r.id));
+  // 採用済み（ロースター＋既存VTuber）の魂を除外
+  const hiredIds = new Set([
+    ...(gameState.roster || []).map(r => r.id),
+    ...(gameState.vtubers || []).map(v => v.soulId),
+  ]);
   const available = CANDIDATES.filter(c => !hiredIds.has(c.id));
 
-  // ランダムにシャッフルして5人選ぶ
+  // この期生の残り採用枠を計算
+  const alreadyHired = gameState.genHireCount[gen] || 0;
+  currentSlotsLeft = 3 - alreadyHired;
+
+  // 残り枠をタイトル下に表示
+  const instrEl = document.querySelector('#auditionScreen .aud-instruction');
+  if (instrEl) {
+    instrEl.innerHTML = `気に入った魂を選んでください（残り <strong>${currentSlotsLeft}</strong> 枠）<span class="aud-select-count" id="audSelectCount">0 / ${currentSlotsLeft}</span>`;
+  }
+
+  // ランダムにシャッフルして5人選ぶ（残り枠数以上表示）
   const shuffled = available.slice().sort(() => Math.random() - 0.5);
   const show = shuffled.slice(0, Math.min(5, shuffled.length));
 
@@ -7751,7 +8268,7 @@ function buildAuditionScreen(){
       card.style.opacity = '0';
 
       card.innerHTML = `
-        <div class="cand-icon">${c.svgFn()}</div>
+        <div class="cand-icon">${soulIconHtml(c)}</div>
         <div class="cand-name">${c.name}</div>
         <div class="cand-type" style="color:${c.typeColor};background:${c.typeBg};">${c.type}</div>
         <div class="cand-quote">${c.quote.replace(/\n/g,'<br>')}</div>
@@ -7802,7 +8319,7 @@ function toggleCandidate(id, card){
     selectedIds.delete(id);
     card.classList.remove('selected');
   } else {
-    if(selectedIds.size >= 3) return;
+    if(selectedIds.size >= currentSlotsLeft) return;
     selectedIds.add(id);
     card.classList.add('selected');
     playSeCandSelect();
@@ -7812,13 +8329,14 @@ function toggleCandidate(id, card){
 
 function updateAuditionUI(){
   const count = selectedIds.size;
-  document.getElementById('audSelectCount').textContent = `${count} / 3`;
+  const el = document.getElementById('audSelectCount');
+  if (el) el.textContent = `${count} / ${currentSlotsLeft}`;
   const btnHire = document.getElementById('btnHire');
   btnHire.classList.toggle('ready', count > 0);
 
   // 選択上限時に非選択カードを暗く
   document.querySelectorAll('.cand-card').forEach(card=>{
-    if(count >= 3 && !card.classList.contains('selected')){
+    if(count >= currentSlotsLeft && !card.classList.contains('selected')){
       card.classList.add('maxed');
     } else {
       card.classList.remove('maxed');
@@ -7830,7 +8348,10 @@ document.getElementById('btnHire').addEventListener('click', ()=>{
   if(selectedIds.size === 0) return;
   playSeHire();
   const hired = CANDIDATES.filter(c => selectedIds.has(c.id));
-  gameState.roster = hired;
+  const gen = gameState.auditionGeneration || 1;
+  gameState.genHireCount[gen] = (gameState.genHireCount[gen] || 0) + hired.length;
+  // ロースターに追記（上書きではなく累積）してガワ選択画面で全員表示できるようにする
+  gameState.roster = (gameState.roster || []).concat(hired);
   showDebutScreen(hired);
 });
 
@@ -7863,7 +8384,7 @@ function showDebutScreen(talents){
     card.style.border = `1px solid ${t.debutColor}44`;
     card.style.boxShadow = `0 0 20px ${t.debutColor}22`;
     card.innerHTML = `
-      <div class="debut-card-icon">${t.svgFn()}</div>
+      <div class="debut-card-icon">${soulIconHtml(t)}</div>
       <div class="debut-card-name">${t.name}</div>
       <div class="debut-card-type">${t.type}</div>
     `;
@@ -7890,16 +8411,23 @@ function updateHubRoster(talents){
       slot.classList.add('filled');
       slot.style.borderColor = t.debutColor + '88';
       slot.style.boxShadow = `0 0 12px ${t.debutColor}33`;
-      slot.innerHTML = t.svgFn();
+      slot.innerHTML = soulIconHtml(t);
     }
   });
 }
 
 document.getElementById('btnToHub').addEventListener('click', ()=>{
-  document.getElementById('hubAuditionBtn').classList.add('disabled');
+  const gen = gameState.auditionGeneration || 1;
+  const totalHired = gameState.genHireCount[gen] || 0;
+  if (totalHired >= 3) {
+    // この期生が3人揃った → ボタン無効化（次の期生解放まで待機）
+    document.getElementById('hubAuditionBtn').classList.add('disabled');
+  }
+  // 3人未満なら引き続きこの期生のオーディションを開催できる（ボタン有効のまま）
   document.getElementById('hubGawaBtn').classList.remove('disabled'); // ガワ発注を解放
   showScreen('hubScreen');
   updateGawaBtn();
+  updateAuditionBtnLabel();
   // デビュー画面を離れたらキューに溜まったモーダルを処理
   setTimeout(drainGlobalModalQueue, 600);
 });
@@ -7908,14 +8436,19 @@ document.getElementById('btnToHub').addEventListener('click', ()=>{
    GAWA PLACEHOLDER SVGs
 ════════════════════════════════════ */
 function gawaVariantToFile(variant) {
-  const letters = ['A','B','C','D','E','F','G','H','I'];
+  const letters = ['A','B','C','D','E','F','G','H','L'];
   const letter = letters[Math.floor(variant / 6)] || 'A';
   const num    = (variant % 6) + 1;
   return `${letter}${num}`;
 }
-function gawaPlaceholder(variant, imageColor) {
+function gawaImgSrc(variant, expression) {
   const file = gawaVariantToFile(variant);
-  const path = `images/gawa/${file}.png`;
+  const expr = expression || 'normal';
+  return `images/gawa/${file}_${expr}.png`;
+}
+function gawaPlaceholder(variant, imageColor, expression) {
+  const path = gawaImgSrc(variant, expression || 'normal');
+  const file = gawaVariantToFile(variant);
   const bg = imageColor || 'transparent';
   return `<div style="width:100%;height:100%;background:${bg};display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:inherit;"><img src="${path}" style="width:100%;height:100%;object-fit:contain;display:block;" alt="gawa${file}"></div>`;
 }
@@ -7936,7 +8469,7 @@ function buildGawaPickScreen() {
     item.className = 'gawa-pick-item';
     const file = gawaVariantToFile(variant);
     item.innerHTML = `
-      <img src="images/gawa/${file}.png" alt="ガワ">
+      <img src="images/gawa/${file}_normal.png" alt="ガワ">
       <div class="gawa-pick-label">No.${file}</div>
     `;
     item.addEventListener('click', () => {
@@ -7948,6 +8481,38 @@ function buildGawaPickScreen() {
     grid.appendChild(item);
   });
 }
+// ── ガワ3択：もう一度発注する ──
+document.getElementById('btnGawaReorder').addEventListener('click', () => {
+  if (money.value < GAWA_COST) { flashHudRed(); return; }
+  money.add(-GAWA_COST);
+  ledgerPush('ガワ再発注費用', -GAWA_COST);
+  // 使用済みガワ＋今回の候補を除いて新たに3種をランダム選択
+  const usedVariants = new Set([
+    ...(gameState.vtubers || []).map(v => v.gawaVariant),
+    ..._gawaPickCandidates,
+  ]);
+  const ALL_VARIANTS = Array.from({length: 54}, (_, i) => i);
+  const available = ALL_VARIANTS.filter(v => !usedVariants.has(v));
+  const pool = (available.length >= 3 ? available : ALL_VARIANTS.filter(v => !(gameState.vtubers || []).some(vt => vt.gawaVariant === v))).slice();
+  _gawaPickCandidates = [];
+  while (_gawaPickCandidates.length < 3 && pool.length > 0) {
+    const idx = Math.floor(Math.random() * pool.length);
+    _gawaPickCandidates.push(pool.splice(idx, 1)[0]);
+  }
+  currentGawa = null;
+  // プログレスバーを再度走らせてから3択を表示
+  showGawaStep(0);
+  startGawaProgress();
+  playSeGawaStart();
+});
+
+// ── ガワ3択：事務所に戻る（発注済みのままハブへ） ──
+document.getElementById('btnGawaPickBackHub').addEventListener('click', () => {
+  currentGawa = null;
+  showScreen('hubScreen');
+  updateGawaBtn(); // ガワボタンの状態を更新（まだ選べる魂がいれば有効のまま）
+});
+
 let pendingVtName    = '';
 let pendingOshi      = '⭐';   // 推しマーク（絵文字）
 let pendingColor     = '#b060ff'; // イメージカラー
@@ -8020,7 +8585,7 @@ function buildGawaSoulList() {
     item.className = 'gawa-soul-item' + (taken.has(soul.id) ? ' taken' : '');
     item.dataset.id = soul.id;
     item.innerHTML = `
-      <div class="gawa-si-icon">${soul.svgFn()}</div>
+      <div class="gawa-si-icon">${soulIconHtml(soul)}</div>
       <div><div class="gawa-si-name">${soul.name}</div>
            <div class="gawa-si-type">${soul.type}</div></div>
       <div class="gawa-si-check">✓</div>
@@ -8051,7 +8616,7 @@ document.getElementById('btnGawaSoulOk').addEventListener('click', () => {
 // ── Step 2: VTuber命名 ──
 function setupGawaStep2() {
   document.getElementById('gawaNameThumb').innerHTML    = gawaPlaceholder(currentGawa.variant, '#808080');
-  document.getElementById('gawaNameSoulThumb').innerHTML = currentGawaSoul.svgFn();
+  document.getElementById('gawaNameSoulThumb').innerHTML = soulIconHtml(currentGawaSoul);
   document.getElementById('gawaAiriIcon').innerHTML      = secretarySVG();
   typewrite(
     document.getElementById('gawaAiriText'),
@@ -8080,9 +8645,9 @@ document.getElementById('btnVtuberBorn').addEventListener('click', () => {
 });
 
 function showVtuberBorn(vt, styleObj = null) {
-  document.getElementById('vbornGawaFrame').innerHTML = gawaPlaceholder(vt.gawaVariant, vt.imageColor);
+  document.getElementById('vbornGawaFrame').innerHTML = gawaPlaceholder(vt.gawaVariant, vt.imageColor, 'smile');
   document.getElementById('vbornName').textContent     = vtLabel(vt);
-  document.getElementById('vbornSoulMini').innerHTML   = vt.soul.svgFn();
+  document.getElementById('vbornSoulMini').innerHTML   = soulIconHtml(vt.soul);
   document.getElementById('vbornSoulName').textContent = vt.soul.name;
   document.getElementById('vbornSoulType').textContent = vt.soul.type;
 
@@ -8253,18 +8818,18 @@ const IMAGE_COLORS = [
   { hex: '#20c0c0', name: 'ティール' },
   { hex: '#40b0ff', name: 'スカイブルー' },
   { hex: '#2060ff', name: 'ブルー' },
-  { hex: '#8040ff', name: 'インディゴ' },
+  { hex: '#5522cc', name: 'インディゴ' },
   { hex: '#e040a0', name: 'マゼンタ' },
   { hex: '#ff6688', name: 'コーラル' },
   { hex: '#ffb0a0', name: 'サーモン' },
-  { hex: '#ffe0a0', name: 'ピーチ' },
-  { hex: '#b0ffd8', name: 'ミント' },
+  { hex: '#ffaa55', name: 'ピーチ' },
+  { hex: '#50e8a8', name: 'ミント' },
   { hex: '#a0d8ff', name: 'ベビーブルー' },
   { hex: '#e0b0ff', name: 'ラベンダー' },
   { hex: '#fff0b0', name: 'クリーム' },
   { hex: '#ffffff', name: 'ホワイト' },
   { hex: '#c0c0c0', name: 'シルバー' },
-  { hex: '#ffd700', name: 'ゴールド' },
+  { hex: '#c87800', name: 'ゴールド' },
   { hex: '#a08060', name: 'ブラウン' },
   { hex: '#203060', name: 'ネイビー' },
 ];
@@ -8432,7 +8997,7 @@ document.getElementById('btnColorConfirm').addEventListener('click', () => {
 // ── Step 4（旧Step3）: 配信スタイル選択 ──
 function setupGawaStep3() {
   document.getElementById('gawaStep3Thumb').innerHTML  = gawaPlaceholder(currentGawa.variant, pendingColor);
-  document.getElementById('gawaStep3Soul').innerHTML   = currentGawaSoul.svgFn();
+  document.getElementById('gawaStep3Soul').innerHTML   = soulIconHtml(currentGawaSoul);
   document.getElementById('gawaStep3VtName').textContent = `${pendingOshi} ${pendingVtName}`;
   document.getElementById('gawaStyleAiriIcon').innerHTML = secretarySVG();
   typewrite(
@@ -8575,7 +9140,7 @@ function thumbnailSVG(gawaVariant, vtuberName, title, views, style, imageColor) 
         'images/thumbnail/歌/曲作り.png',
       ],
     game:  [
-        'images/thumbnail/ゲーム実況/ChatGPT Image 2026年4月26日 21_47_53.png',
+        'images/thumbnail/ゲーム実況/ゲーム実況.png',
         'images/thumbnail/ゲーム実況/耐久.png',
         'images/thumbnail/ゲーム実況/ガチャ.png',
         'images/thumbnail/ゲーム実況/ランクマ.png',
@@ -8600,6 +9165,7 @@ function thumbnailSVG(gawaVariant, vtuberName, title, views, style, imageColor) 
     announcement:      ['images/thumbnail/共通/大切なお知らせ.png'],
     graduation_stream: ['images/thumbnail/共通/卒業配信.png'],
     collab:            ['images/thumbnail/共通/コラボ.png'],
+    zatsudan:          ['images/thumbnail/共通/雑談.png'],
   };
   const COMMON_FRAMES = [
     'images/thumbnail/共通/ChatGPT Image 2026年4月26日 21_26_35.png',
@@ -8608,8 +9174,96 @@ function thumbnailSVG(gawaVariant, vtuberName, title, views, style, imageColor) 
   ];
   const frames   = (style && STYLE_FRAMES[style]) ? STYLE_FRAMES[style] : COMMON_FRAMES;
   const gawaFile = gawaVariantToFile(gawaVariant);
-  const gawaImg  = `images/gawa/${gawaFile}.png`;
-  const frameImg = frames[uid % frames.length];
+  const STYLE_EXPRESSION = {
+    debut: 'smile', birthday: 'smile', anniversary: 'smile',
+    collab: 'smile', song: 'smile', plan: 'smile',
+    graduation_stream: 'sad',
+    zatsudan: 'normal',
+    talk: 'normal', game: 'normal', voice: 'normal', announcement: 'normal',
+  };
+  const expression = STYLE_EXPRESSION[style] || 'normal';
+
+  // タイトルキーワードでフレームを決定（一致しない場合はカウンター選択）
+  const FRAME_KEYWORD_MAP = {
+    voice: [
+      { keys: ['ASMR'],       frame: 'images/thumbnail/ボイス/ASMR.png' },
+      { keys: ['朗読'],        frame: 'images/thumbnail/ボイス/朗読.png' },
+      { keys: ['ボイスドラマ'], frame: 'images/thumbnail/ボイス/ボイスドラマ.png' },
+      { keys: ['寝落ち'],      frame: 'images/thumbnail/ボイス/寝落ち枠.png' },
+      { keys: ['TRPG'],       frame: 'images/thumbnail/ボイス/TRPG.png' },
+    ],
+    game: [
+      { keys: ['ガチャ'],      frame: 'images/thumbnail/ゲーム実況/ガチャ.png' },
+      { keys: ['ランクマ'],    frame: 'images/thumbnail/ゲーム実況/ランクマ.png' },
+      { keys: ['視聴者参加'],  frame: 'images/thumbnail/ゲーム実況/視聴者参加型.png' },
+      { keys: ['大会練習'],    frame: 'images/thumbnail/ゲーム実況/大会練習.png' },
+      { keys: ['耐久'],        frame: 'images/thumbnail/ゲーム実況/耐久.png' },
+    ],
+    song: [
+      { keys: ['歌枠','歌ってみた','歌配信','歌'],    frame: 'images/thumbnail/歌/歌枠.png' },
+      { keys: ['うたってみた'],                       frame: 'images/thumbnail/歌/うたってみた.png' },
+      { keys: ['楽器'],                               frame: 'images/thumbnail/歌/楽器練習.png' },
+      { keys: ['曲作り','DTM'],                       frame: 'images/thumbnail/歌/曲作り.png' },
+    ],
+    talk: [
+      { keys: ['朝'],   frame: 'images/thumbnail/トーク/朝活.png' },
+      { keys: ['作業'], frame: 'images/thumbnail/トーク/作業用.png' },
+    ],
+    plan: [
+      { keys: ['VLOG','vlog'],     frame: 'images/thumbnail/企画/VLOG.png' },
+      { keys: ['凸待ち'],          frame: 'images/thumbnail/企画/凸待ち.png' },
+      { keys: ['逆凸'],            frame: 'images/thumbnail/企画/逆凸.png' },
+      { keys: ['やってみた'],      frame: 'images/thumbnail/企画/やってみた.png' },
+      { keys: ['ティア表'],        frame: 'images/thumbnail/企画/ティア表を作る.png' },
+    ],
+  };
+  let frameImg = frames[uid % frames.length];
+  if (title && style && FRAME_KEYWORD_MAP[style]) {
+    const matched = FRAME_KEYWORD_MAP[style].find(kw => kw.keys.some(k => title.includes(k)));
+    if (matched) frameImg = matched.frame;
+  }
+
+  // フレームごとのキャラ位置上書き（frameImg 確定後）
+  const FRAME_GAWA_STYLE = {
+    'images/thumbnail/トーク/朝活.png': 'position:absolute;top:0%;bottom:auto;right:0;left:auto;width:65%;height:320%;object-fit:contain;object-position:top right;',
+    'images/thumbnail/ボイス/ASMR.png': 'position:absolute;top:-110%;left:50%;transform:translateX(-50%);bottom:auto;width:200%;height:370%;object-fit:contain;object-position:top center;',
+    'images/thumbnail/ボイス/朗読.png': 'position:absolute;top:0%;bottom:auto;right:0;left:auto;width:80%;height:110%;object-fit:contain;object-position:top center;',
+    'images/thumbnail/ボイス/ボイスドラマ.png': 'position:absolute;top:-120%;left:50%;transform:translateX(-50%);bottom:auto;width:230%;height:305%;object-fit:contain;object-position:top center;',
+    'images/thumbnail/ボイス/寝落ち枠.png': 'position:absolute;inset:0;width:100%;height:100%;transform:rotate(-95deg) scale(2.8);transform-origin:center center;object-fit:contain;object-position:center;',
+    'images/thumbnail/ボイス/TRPG.png': 'position:absolute;top:0%;left:50%;transform:translateX(-50%);bottom:auto;width:55%;height:110%;object-fit:contain;object-position:top center;',
+    'images/thumbnail/歌/歌枠.png': 'position:absolute;top:-40%;left:50%;transform:translateX(-50%);bottom:auto;width:155%;height:240%;object-fit:contain;object-position:center bottom;',
+    'images/thumbnail/企画/逆凸.png': 'position:absolute;inset:0;width:100%;height:100%;transform:rotate(15deg) scale(2.7);transform-origin:center center;object-fit:contain;object-position:center bottom;',
+    'images/thumbnail/企画/VLOG.png': 'position:absolute;inset:0;width:100%;height:100%;transform:rotate(-30deg) scale(1.8);transform-origin:center center;object-fit:contain;object-position:center bottom;',
+    'images/thumbnail/企画/やってみた.png': 'position:absolute;top:-100%;left:50%;transform:translateX(-50%);bottom:auto;width:215%;height:385%;object-fit:contain;object-position:center bottom;',
+    'images/thumbnail/ゲーム実況/耐久.png': 'position:absolute;top:-135%;left:50%;transform:translateX(-50%);bottom:auto;width:290%;height:470%;object-fit:contain;object-position:center bottom;',
+    'images/thumbnail/ゲーム実況/大会練習.png': 'position:absolute;inset:0;width:100%;height:100%;transform:rotate(-10deg) scale(2.3);transform-origin:center center;object-fit:contain;object-position:center;',
+    'images/thumbnail/ゲーム実況/ランクマ.png': 'position:absolute;top:-25%;left:50%;transform:translateX(-50%);bottom:auto;width:145%;height:175%;object-fit:contain;object-position:center bottom;',
+    'images/thumbnail/共通/卒業配信.png': 'position:absolute;top:0%;left:50%;transform:translateX(-50%);bottom:auto;width:100%;height:100%;object-fit:contain;object-position:center bottom;',
+    'images/thumbnail/共通/PR案件.png': 'position:absolute;top:-15%;left:50%;transform:translateX(-50%);bottom:auto;width:135%;height:145%;object-fit:contain;object-position:center bottom;',
+    'images/thumbnail/共通/誕生日配信.png': 'position:absolute;top:0%;left:50%;transform:translateX(-50%);bottom:auto;width:120%;height:140%;object-fit:contain;object-position:center bottom;',
+    'images/thumbnail/歌/曲作り.png': 'position:absolute;top:-60%;bottom:auto;right:0;left:auto;width:125%;height:215%;object-fit:contain;object-position:center bottom;',
+    'images/thumbnail/歌/楽器練習.png': 'position:absolute;inset:0;width:100%;height:100%;transform:rotate(-10deg) scale(1.5);transform-origin:center center;object-fit:contain;object-position:center bottom;',
+    'images/thumbnail/歌/うたってみた.png': 'position:absolute;inset:0;width:100%;height:100%;transform:rotate(10deg) scale(1.5);transform-origin:center center;object-fit:contain;object-position:center bottom;',
+    'images/thumbnail/トーク/雑談.png': 'position:absolute;top:0%;left:50%;transform:translateX(-50%);bottom:auto;width:100%;height:100%;object-fit:contain;object-position:center bottom;',
+    'images/thumbnail/トーク/作業用.png': 'position:absolute;top:-5%;left:50%;transform:translateX(-50%);bottom:auto;width:100%;height:195%;object-fit:contain;object-position:center bottom;',
+    'images/thumbnail/共通/記念日配信.png': 'position:absolute;top:-20%;left:50%;transform:translateX(-50%);bottom:auto;width:115%;height:165%;object-fit:contain;object-position:center bottom;',
+    'images/thumbnail/共通/初配信.png': 'position:absolute;top:-5%;left:50%;transform:translateX(-50%);bottom:auto;width:100%;height:120%;object-fit:contain;object-position:center bottom;',
+    'images/thumbnail/ゲーム実況/ゲーム実況.png': 'position:absolute;top:-5%;left:50%;transform:translateX(-50%);bottom:auto;width:140%;height:225%;object-fit:contain;object-position:center bottom;',
+  };
+  const gawaImgStyle = FRAME_GAWA_STYLE[frameImg] ?? 'position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;';
+  // フレームごとの表情上書き（dbg.htmlのキャラ配置調整から反映）
+  const FRAME_EXPR_MAP = {
+    'images/thumbnail/歌/曲作り.png': 'normal',
+    'images/thumbnail/歌/楽器練習.png': 'normal',
+    'images/thumbnail/共通/初配信.png': 'normal',
+    'images/thumbnail/トーク/朝活.png': 'smile',
+    'images/thumbnail/ゲーム実況/耐久.png': 'sad',
+    'images/thumbnail/企画/VLOG.png': 'normal',
+    'images/thumbnail/ボイス/TRPG.png': 'smile',
+    'images/thumbnail/共通/PR案件.png': 'normal',
+    'images/thumbnail/ゲーム実況/ゲーム実況.png': 'smile',
+  };
+  const gawaImg  = `images/gawa/${gawaFile}_${FRAME_EXPR_MAP[frameImg] ?? expression}.png`;
 
   const fmtV = views >= 10000 ? `${(views/10000).toFixed(1)}万`
              : views >= 1000  ? `${(views/1000).toFixed(1)}K`
@@ -8618,51 +9272,58 @@ function thumbnailSVG(gawaVariant, vtuberName, title, views, style, imageColor) 
   const shortName  = vtuberName.length > 8 ? vtuberName.slice(0, 7) + '…' : vtuberName;
 
   return `<div style="position:absolute;inset:0;background:${imageColor};overflow:hidden;">
-    <img src="${gawaImg}"  style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;" loading="lazy">
+    <img src="${gawaImg}"  style="position:absolute;bottom:0;${gawaImgStyle}" loading="lazy">
     <img src="${frameImg}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" loading="lazy">
-    <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0) 45%,rgba(0,0,0,.72) 100%);pointer-events:none;"></div>
-    <div style="position:absolute;bottom:0;left:0;right:0;padding:6px 8px 7px;">
-      <div style="font-size:11px;font-weight:bold;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.95);line-height:1.35;margin-bottom:3px;">${shortTitle}</div>
-      <span style="font-size:9px;color:rgba(255,255,255,.82);background:rgba(0,0,0,.52);padding:1px 5px 2px;border-radius:3px;">${fmtV}回視聴</span>
-    </div>
-    <div style="position:absolute;top:5px;left:5px;font-size:9px;color:#d8b0ff;font-weight:bold;background:rgba(0,0,0,.62);padding:2px 6px 2px;border-radius:4px;line-height:1.4;">${shortName}</div>
+
   </div>`;
 }
+
+// コラボサムネのキャラ配置設定（dbg.htmlのキャラ配置調整で更新される）
+const COLLAB_THUMB_STYLE = {
+  left:  { containerW: 50, imgOffset: 3, imgW: 115, imgH: 100, objPos: 'right center', flip: false },
+  right: { containerW: 50, imgOffset: 3, imgW: 115, imgH: 100, objPos: 'left center', flip: false  }
+};
 
 function thumbnailSVGCollab(gawa1, name1, gawa2, name2, title, views, color1, color2) {
   color1 = color1 || '#0a0518';
   color2 = color2 || '#0a0518';
-  const gawaImg1 = `images/gawa/${gawaVariantToFile(gawa1)}.png`;
-  const gawaImg2 = `images/gawa/${gawaVariantToFile(gawa2)}.png`;
+  const gawaImg1 = gawaImgSrc(gawa1, 'smile');
+  const gawaImg2 = gawaImgSrc(gawa2, 'smile');
   const fmtV = views >= 10000 ? `${(views/10000).toFixed(1)}万`
              : views >= 1000  ? `${(views/1000).toFixed(1)}K`
              : String(views);
   const shortTitle = title.length > 22 ? title.slice(0, 21) + '…' : title;
   const sn1 = name1.length > 7 ? name1.slice(0, 6) + '…' : name1;
   const sn2 = name2.length > 7 ? name2.slice(0, 6) + '…' : name2;
+  const _L = COLLAB_THUMB_STYLE.left, _R = COLLAB_THUMB_STYLE.right;
   return `<div style="position:absolute;inset:0;background:linear-gradient(90deg,${color1} 50%,${color2} 50%);overflow:hidden;">
     <!-- 左半分：キャラ1 -->
-    <div style="position:absolute;top:0;left:0;width:52%;height:100%;overflow:hidden;">
-      <img src="${gawaImg1}" style="position:absolute;top:0;right:-10%;width:110%;height:100%;object-fit:contain;object-position:right center;" loading="lazy">
+    <div style="position:absolute;top:0;left:0;width:${_L.containerW}%;height:100%;overflow:hidden;">
+      <img src="${gawaImg1}" style="position:absolute;top:0;right:${_L.imgOffset}%;width:${_L.imgW}%;height:${_L.imgH}%;object-fit:contain;object-position:${_L.objPos};${_L.flip?'transform:scaleX(-1);':''}" loading="lazy">
     </div>
-    <!-- 右半分：キャラ2（左右反転で向かい合わせ） -->
-    <div style="position:absolute;top:0;right:0;width:52%;height:100%;overflow:hidden;">
-      <img src="${gawaImg2}" style="position:absolute;top:0;left:-10%;width:110%;height:100%;object-fit:contain;object-position:left center;transform:scaleX(-1);" loading="lazy">
+    <!-- 右半分：キャラ2 -->
+    <div style="position:absolute;top:0;right:0;width:${_R.containerW}%;height:100%;overflow:hidden;">
+      <img src="${gawaImg2}" style="position:absolute;top:0;left:${_R.imgOffset}%;width:${_R.imgW}%;height:${_R.imgH}%;object-fit:contain;object-position:${_R.objPos};${_R.flip?'transform:scaleX(-1);':''}" loading="lazy">
     </div>
     <!-- コラボフレーム -->
     <img src="images/thumbnail/共通/コラボ.png" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" loading="lazy">
-    <!-- グラデーション -->
-    <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0) 40%,rgba(0,0,0,.78) 100%);pointer-events:none;"></div>
-    <!-- タイトル・視聴数 -->
-    <div style="position:absolute;bottom:0;left:0;right:0;padding:6px 8px 7px;text-align:center;">
-      <div style="font-size:11px;font-weight:bold;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.95);line-height:1.35;margin-bottom:3px;">${shortTitle}</div>
-      <span style="font-size:9px;color:rgba(255,255,255,.82);background:rgba(0,0,0,.52);padding:1px 5px 2px;border-radius:3px;">${fmtV}回視聴</span>
-    </div>
     <!-- 名前バッジ（左） -->
     <div style="position:absolute;top:5px;left:5px;font-size:9px;color:#ffe0b0;font-weight:bold;background:rgba(0,0,0,.65);padding:2px 6px 2px;border-radius:4px;line-height:1.4;">${sn1}</div>
     <!-- 名前バッジ（右） -->
     <div style="position:absolute;top:5px;right:5px;font-size:9px;color:#b0e8ff;font-weight:bold;background:rgba(0,0,0,.65);padding:2px 6px 2px;border-radius:4px;line-height:1.4;">${sn2}</div>
   </div>`;
+}
+
+// コラボ動画はパートナー情報を使って2キャラサムネを生成するヘルパー
+function makeThumbnailHtml(gawaVariant, name, vid, imageColor) {
+  if (vid.style === 'collab' && vid.collabPartner) {
+    const p = vid.collabPartner;
+    return thumbnailSVGCollab(
+      gawaVariant, name, p.gawaVariant, p.name,
+      vid.title, vid.views, imageColor, p.imageColor
+    );
+  }
+  return thumbnailSVG(gawaVariant, name, vid.title, vid.views, vid.style || 'talk', imageColor);
 }
 
 function vtLabel(vt) {
@@ -8720,6 +9381,7 @@ function createChannel(vt, styleObj = null) {
     personalLog: [],              // 個人イベント履歴
     vtLevel: 0,                   // VTuber個人レベル
     dreams: { stars: 0, dream1: null, dream2: null, dream3: null, phase: 0, gradBoost: 0 },
+    params: initChannelParams(vt),
   };
   gameState.channels.push(ch);
   changeOfficeParams({ fame: +4, trust: +8  }, false);
@@ -8763,10 +9425,10 @@ function addChannelCard(ch) {
       <div class="hiatus-thumb-overlay" id="ch-hiatus-${ch.id}" style="display:none">😴 活動休止中</div>
       <div class="graduated-thumb-overlay" id="ch-grad-${ch.id}" style="display:none">🎓 卒業済</div>
     </div>
+    <div class="ch-card-latest">${latest.title}</div>
     <div class="ch-card-info">
       <div class="ch-card-name">${vtLabel(ch.vtuber)}</div>
       <div class="ch-card-style" id="ch-style-badge-${ch.id}"></div>
-      <div class="ch-card-latest">${latest.title}</div>
       <div class="ch-card-views" id="ch-views-${ch.id}">👥 ${fmtNum(ch.subscribers)} 人</div>
       <div class="ch-card-dream" id="ch-dream-${ch.id}"></div>
       <div class="ch-card-mental" id="ch-mental-${ch.id}">
@@ -8831,6 +9493,7 @@ function showChannelScreen(chId) {
   refreshMentalDisplay(ch);
 
   renderStyleGrid(ch);
+  renderRadarChart(ch);
   renderVideoGrid(ch);
   renderPersonalLog(ch);
   renderDreamSection(ch);
@@ -8939,7 +9602,7 @@ function renderVideoGrid(ch, reset = true) {
   const start  = reset ? 0 : _videoShowCount - VIDEO_PAGE_SIZE;
   const toShow = ch.videos.slice(start, _videoShowCount);
   toShow.forEach(vid => {
-    const thumb = thumbnailSVG(vt.gawaVariant, vt.name, vid.title, vid.views, vid.style || ch.style, vt.imageColor);
+    const thumb = makeThumbnailHtml(vt.gawaVariant, vt.name, vid, vt.imageColor);
     const vidCard = document.createElement('div');
     vidCard.className = 'ch-vid-card';
     vidCard.innerHTML = `
@@ -9106,6 +9769,7 @@ const DOW_JP        = ['日','月','火','水','木','金','土'];
 let   gameTickTimer    = null;
 let   gameDayCount    = 0;
 let   _gameHasStarted = false;   // startGameTick() が一度でも呼ばれたらtrue
+let   _execRunning    = false;   // イベント実行中フラグ
 let   gameDate      = new Date(GAME_ORIGIN.getTime());
 
 // 配信スタイルごとの日次収益レート（登録者1人あたり）
@@ -9289,6 +9953,9 @@ let weeklyAccum = 0;  // 今週の累計収益
 
 // 1ゲーム日ごとに呼ばれる
 function gameTick() {
+  // 1人めのVTuberがデビューするまで時間を進めない
+  if ((gameState.channels || []).length === 0) return;
+
   gameDayCount++;
 
   // 日付を進める
@@ -9298,6 +9965,9 @@ function gameTick() {
 
   // 日次：メンタル変動・休止カウントダウン
   dailyMentalUpdate();
+
+  // 日次：VTuber個人パラメータ成長
+  dailyParamGrowth();
 
   // 日次：登録者じわじわ増加
   dailySubGrowth();
@@ -9327,6 +9997,7 @@ function gameTick() {
       if (ch.graduated) continue;
       if (!ch.subsHistory) ch.subsHistory = [];
       if (!ch.personalLog) ch.personalLog = [];
+      ch.peakSubscribers = Math.max(ch.peakSubscribers || 0, ch.subscribers);
       ch.subsHistory.push({ day: gameDayCount, subs: ch.subscribers });
       if (ch.subsHistory.length > 104) ch.subsHistory.shift(); // 最大104週（2年）
     }
@@ -9402,7 +10073,9 @@ function gameTick() {
         badge: '📅 1年経過',
         icon: '🗓️',
         title: 'あと２年！',
-        desc: '2024年が終わり、2025年が始まりました。\nここまで1年間、お疲れ様でした！\nあと２年——引き続き、全力で頑張りましょう！',
+        thumbHtml: '<div style="display:flex;align-items:center;gap:10px;margin:6px 0 10px;"><img src="images/tamashii/airi.png" style="width:52px;height:52px;object-fit:cover;object-position:center top;border-radius:50%;border:2px solid #8060d0;"><span style="font-weight:bold;font-size:14px;color:#d8d0f0;">アイリ</span></div>',
+        thumbStyle: 'display:block;aspect-ratio:auto;height:72px;background:transparent;box-shadow:none;border:none;margin:4px auto 2px;',
+        desc: '社長、2024年が終わりました！\nここまで１年間、本当にお疲れ様でした。\nあと２年——引き続き、全力でサポートいたします！',
         effectText: 'あと2年',
         logTitle: '【1年経過】あと2年',
       }));
@@ -9416,7 +10089,9 @@ function gameTick() {
         badge: '📅 2年経過',
         icon: '⏳',
         title: 'あと１年！',
-        desc: '2025年が終わり、2026年が始まりました。\nここまで2年間、お疲れ様でした！\nいよいよ最終年——あと１年、ラストスパートです！',
+        thumbHtml: '<div style="display:flex;align-items:center;gap:10px;margin:6px 0 10px;"><img src="images/tamashii/airi.png" style="width:52px;height:52px;object-fit:cover;object-position:center top;border-radius:50%;border:2px solid #8060d0;"><span style="font-weight:bold;font-size:14px;color:#d8d0f0;">アイリ</span></div>',
+        thumbStyle: 'display:block;aspect-ratio:auto;height:72px;background:transparent;box-shadow:none;border:none;margin:4px auto 2px;',
+        desc: '社長、2025年が終わりました！\nここまで２年間、本当にお疲れ様でした。\nいよいよ最終年です——あと１年、一緒にラストスパートを駆け抜けましょう！',
         effectText: 'あと1年',
         logTitle: '【2年経過】あと1年',
       }));
@@ -9431,7 +10106,9 @@ function gameTick() {
         badge: '⚠️ ラスト1か月',
         icon: '🔥',
         title: 'あと１か月！',
-        desc: 'ゲーム終了まで残り30日を切りました！\n最後の追い込みです。\nできることをすべてやり切りましょう！',
+        thumbHtml: '<div style="display:flex;align-items:center;gap:10px;margin:6px 0 10px;"><img src="images/tamashii/airi.png" style="width:52px;height:52px;object-fit:cover;object-position:center top;border-radius:50%;border:2px solid #c06030;"><span style="font-weight:bold;font-size:14px;color:#d8d0f0;">アイリ</span></div>',
+        thumbStyle: 'display:block;aspect-ratio:auto;height:72px;background:transparent;box-shadow:none;border:none;margin:4px auto 2px;',
+        desc: '社長！ゲーム終了まで残り30日を切りました！\n最後の追い込みです——できることをすべてやり切りましょう。\nアイリも全力でサポートします！',
         effectText: 'あと30日',
         logTitle: '【カウントダウン】あと1か月',
       }));
@@ -10063,8 +10740,7 @@ const SOUL_SPEECH = {
     ],
   },
   lily: {
-    pronoun: 'リリィ',
-    nameAsPronoun: true,
+    pronoun: 'わたし',
     endings: ['なの！！', 'したい！！'],
     debutTitle: '【デビュー配信】リリィ、ついに陸に上がったの！！みんなよろしくなの！！🐟',
     titles: [
@@ -10311,6 +10987,18 @@ const STREAM_TITLES = {
     '【ティア表】正直に全部ランク付けします',
     '【ティア表を作る】賛否両論ある奴やります',
   ],
+  zatsudan: [
+    '【雑談】最近ちょっと気になること！',
+    '【雑談】今日もゆるっとお話しましょ💬',
+    '【雑談】みんなに聞きたいことがあるの！',
+    '【雑談】ちょっと聞いてほしいことがある',
+    '【ゆる雑談】のんびり話します〜',
+    '【深夜雑談】眠れない夜はここへおいで🌙',
+    '【朝雑談】モーニングルーティン話します',
+    '【雑談】最近ハマってること語ります',
+    '【雑談】近況報告とお話しタイム',
+    '【ゆる配信】今日は何でも話せる日！',
+  ],
   voice: [
     '【ASMR】お耳に癒しを…',
     '【ASMR】雨音と一緒にリラックスしよ',
@@ -10342,7 +11030,7 @@ function updateCardThumbnail(ch, vid) {
   const hiatusOverlay  = document.getElementById(`ch-hiatus-${ch.id}`);
   const gradOverlay    = document.getElementById(`ch-grad-${ch.id}`);
 
-  const newThumb = thumbnailSVG(ch.vtuber.gawaVariant, ch.vtuber.name, vid.title, vid.views, vid.style || ch.style, ch.vtuber.imageColor);
+  const newThumb = makeThumbnailHtml(ch.vtuber.gawaVariant, ch.vtuber.name, vid, ch.vtuber.imageColor);
   thumbDiv.innerHTML = newThumb;
   if (hiatusOverlay) thumbDiv.appendChild(hiatusOverlay);
   if (gradOverlay)   thumbDiv.appendChild(gradOverlay);
@@ -10350,6 +11038,16 @@ function updateCardThumbnail(ch, vid) {
   // タイトルテキストも更新
   const latestEl = card.querySelector('.ch-card-latest');
   if (latestEl) latestEl.textContent = vid.title;
+}
+
+// タイトルの【】ブラケットから配信スタイルを判定する
+function getSoulTitleStyle(title) {
+  if (/【(?:雑談|朝活|作業|お話|トーク)/.test(title)) return 'talk';
+  if (/【(?:ゲーム|耐久|ガチャ|ランクマ|視聴者参加型|大会)/.test(title)) return 'game';
+  if (/【(?:歌枠|うたってみた|歌ってみた|楽器|曲作り|歌)/.test(title)) return 'song';
+  if (/【(?:ASMR|朗読|ボイス|寝落ち|TRPG)/.test(title)) return 'voice';
+  if (/【(?:VLOG|凸待ち|逆凸|やってみた|ティア表|料理|いたずら|企画|占い)/.test(title)) return 'plan';
+  return null; // 判定不能
 }
 
 // 新しい配信を1本追加
@@ -10361,11 +11059,40 @@ function addNewStream(ch) {
   // デビュー直後3日間はスキップ
   if (gameDayCount - (ch.vtuber.debutGameDay ?? 0) < 3) return;
 
-  // 魂固有タイトルを30%の確率で使用
+  // 全スタイル共通：約6%の確率で雑談配信を挿入
+  if (Math.random() < 0.06) {
+    const zatsuTitles = STREAM_TITLES.zatsudan;
+    const zatsuTitle  = zatsuTitles[Math.floor(Math.random() * zatsuTitles.length)];
+    const baseViews   = Math.max(500, Math.floor(ch.subscribers * (0.06 + Math.random() * 0.10)));
+    const vid = {
+      id: `vid_${Date.now()}_${ch.id}`,
+      title: zatsuTitle,
+      views: baseViews,
+      style: 'zatsudan',
+      publishedAt: Date.now(),
+    };
+    ch.videos.unshift(vid);
+    ch.totalViews += baseViews;
+    updateCardThumbnail(ch, vid);
+    refreshChannelCard(ch);
+    if (_currentChannel && _currentChannel.id === ch.id) {
+      renderVideoGrid(ch);
+      document.getElementById('chStatViews').textContent = fmtNum(ch.totalViews);
+      document.getElementById('chStatVids').textContent  = String(ch.videos.length);
+    }
+    return;
+  }
+
+  // 魂固有タイトルを30%の確率で使用（配信スタイルに合うものだけ選ぶ）
   const soulSpeech = SOUL_SPEECH[ch.vtuber.soulId] || null;
   let titlePool = STREAM_TITLES[ch.style] || STREAM_TITLES.talk;
   if (soulSpeech && soulSpeech.titles && soulSpeech.titles.length > 0 && Math.random() < 0.30) {
-    titlePool = soulSpeech.titles;
+    const matchingTitles = soulSpeech.titles.filter(t => {
+      const ts = getSoulTitleStyle(t);
+      return ts === null || ts === ch.style;
+    });
+    if (matchingTitles.length > 0) titlePool = matchingTitles;
+    // マッチするものがなければ通常のtitlePoolを使い続ける
   }
   const _rawTitle = titlePool[Math.floor(Math.random() * titlePool.length)];
   const title = replaceSoulPronoun(_rawTitle, soulSpeech, ch.vtuber.name);
@@ -10865,6 +11592,16 @@ function dismissEventModal() {
 
 // ── イベント開催：ボタン類のイベントリスナー ──
 
+// イベント開催ボタン群の有効/無効を更新
+function updateEventHostBtn() {
+  const activeChs = (gameState.channels || []).filter(ch => !ch.graduated);
+  const hasActive = activeChs.length > 0;
+  const isRunning = !!_execRunning;
+  document.querySelectorAll('.hub-event-btn').forEach(btn => {
+    btn.classList.toggle('disabled', !hasActive || isRunning);
+  });
+}
+
 // 5つのイベントカテゴリボタン
 function _openEvModal(category) {
   const btn = document.getElementById({
@@ -10939,11 +11676,14 @@ function openEventImageHistory() {
       item.className = 'evimg-hist-item';
       // VTuberHTML
       let vtHtml = '';
-      (entry.vts || []).forEach(vt => {
-        const [left, transform, width, height, extra] = vt.slot;
+      (entry.vts || []).forEach((vt, _vi) => {
+        const [left, transform, width, height, extra, imgStyle] = vt.slot;
         const file = gawaVariantToFile(vt.gawaVariant);
-        vtHtml += `<div class="evhost-sns-vt" style="left:${left};transform:${transform};width:${width};height:${height};${extra ? extra+';' : ''}"><img src="images/gawa/${file}.png" alt="${vt.name}"></div>`;
+        const _expr = (entry.exprs && entry.exprs[_vi]) || 'normal';
+        const _imgS = imgStyle ? ` style="width:100%;height:100%;display:block;${imgStyle}"` : '';
+        vtHtml += `<div class="evhost-sns-vt" style="left:${left};transform:${transform};width:${width};height:${height};${extra ? extra+';' : ''}"><img src="images/gawa/${file}_${_expr}.png" alt="${vt.name}"${_imgS}></div>`;
       });
+      const bkHtml = entry.bk  ? `<img class="evhost-sns-bk-img show" src="${entry.bk}" alt="">` : '';
       const fgHtml = entry.fg  ? `<img class="evhost-sns-fg-img show" src="${entry.fg}" alt="">` : '';
       const lblHtml = entry.label ? `<div class="evhost-sns-label">${entry.label}</div>` : '';
       const resultLayerSrc = entry.isSuccess ? 'images/event/結果レイヤー_成功.png' : 'images/event/結果レイヤー_失敗.png';
@@ -10952,6 +11692,7 @@ function openEventImageHistory() {
       item.innerHTML = `
         <div class="evimg-hist-banner">
           <img class="evhost-sns-bg-img" src="${entry.bg}" alt="">
+          ${bkHtml}
           <div class="evhost-sns-vtubers">${vtHtml}</div>
           ${fgHtml}${lblHtml}
           <img class="evhost-sns-result-layer show" src="${resultLayerSrc}" alt="">
@@ -11054,24 +11795,24 @@ const SOUL_GRAD_SPEECH = {
   },
   lily: {
     gradConsult: [
-      'リリィ……最近すごく疲れてきちゃったの……。卒業のこと、社長に話したかったの……。聞いてほしいの……。',
-      'リリィ、卒業について考えてるの……！みんなのことは大好きなんだけど……限界を感じてきたの……。',
+      'わたし……最近すごく疲れてきちゃったの……。卒業のこと、社長に話したかったの……。聞いてほしいの……。',
+      'わたし、卒業について考えてるの……！みんなのことは大好きなんだけど……限界を感じてきたの……。',
     ],
     gradConsultLv10: [
-      'リリィ、やりたいこと全部やりきったの！！！卒業して次のことしたいの！！社長に聞いてほしかったの！！',
-      'リリィ、頂点に来ちゃったの！！もう思い残すことないの！！卒業したいの！！どう思う？！！',
+      'わたし、やりたいこと全部やりきったの！！！卒業して次のことしたいの！！社長に聞いてほしかったの！！',
+      'わたし、頂点に来ちゃったの！！もう思い残すことないの！！卒業したいの！！どう思う？！！',
     ],
     gradMsg: [
-      'リリィ、みんなのことが大好きだったの！！ありがとう！！またどこかで会えたら、一緒にごはんしたいの！！',
-      'みんなと過ごした時間、リリィの宝物なの！！本当にありがとう！！また会おうね！！！',
+      'みんなのことが大好きだったの！！ありがとう！！またどこかで会えたら、一緒にごはんしたいの！！',
+      'みんなと過ごした時間、わたしの宝物なの！！本当にありがとう！！また会おうね！！！',
     ],
     persuadeSuccess: [
-      '社長がそう言ってくれるなら……リリィ、もう少しがんばるの！！ありがとう！！',
-      'うん！！リリィ続けるの！！社長の言葉、うれしかったの！！',
+      '社長がそう言ってくれるなら……もう少しがんばるの！！ありがとう！！',
+      'うん！！続けるの！！社長の言葉、うれしかったの！！',
     ],
     persuadeFail: [
-      '社長の気持ち、うれしいの……でも……リリィ、もう決めたの……ごめんね……。',
-      'リリィ、社長のこと悲しませちゃってごめんなさいなの……でも、やっぱり卒業させてほしいの……。',
+      '社長の気持ち、うれしいの……でも……わたし、もう決めたの……ごめんね……。',
+      '社長のこと悲しませちゃってごめんなさいなの……でも、やっぱり卒業させてほしいの……。',
     ],
   },
   gonta: {
@@ -11514,7 +12255,7 @@ const DREAM_EVENTS_RANK23 = [
   { id: 'ev_mystery',         name: '謎解きイベント',           icon: '🔍'  },
   { id: 'pev_onlinesoloshow', name: 'オンラインソロライブ',      icon: '🎵'  },
   { id: 'col_anime',          name: 'アニメに声優として出演',    icon: '🎬'  },
-  { id: 'goods_essay',        name: 'エッセイ本発売',           icon: '📖'  },
+  { id: 'goods_essay',        name: 'ファン投票で選ばれた名言集が書籍化',           icon: '📖'  },
 ];
 
 // 夢の対象イベント（ランク4〜5：10種）
@@ -11523,7 +12264,7 @@ const DREAM_EVENTS_RANK45 = [
   { id: 'ev_battlegame',      name: 'VTuberバトルゲーム大会',   icon: '⚔️'  },
   { id: 'pev_colcafe',        name: 'コラボカフェ',             icon: '☕'  },
   { id: 'col_tvguest',        name: 'テレビ番組にゲスト出演',    icon: '📺'  },
-  { id: 'goods_origgame',     name: 'オリジナルゲーム発売',      icon: '🕹️' },
+  { id: 'goods_origgame',     name: 'ゲーム実況の教科書に掲載され伝説になる',      icon: '🕹️' },
   { id: 'ad_city',            name: '街ジャック広告',            icon: '🏙️' },
   { id: 'ev_livefes',         name: '大型ライブフェス',          icon: '🏟️' },
   { id: 'pev_arenasoloshow',  name: 'アリーナソロライブ',        icon: '🏟️' },
@@ -11560,7 +12301,7 @@ const DREAM_VERB_MAP = {
 const DREAM_ANNOUNCE_SPEECH = {
   noir:   '社長……別に、言いたかったわけじゃないですけど。\n{dream}……それが、私の夢なんです。',
   popo:   '社長よ！余には夢があるぞ！ポポ！\n{dream}——それが余の夢じゃ！ポポポ！',
-  lily:   '社長！リリィ、夢ができたの！！\n{dream}——絶対叶えてみせるの！！',
+  lily:   '社長！夢ができたの！！\n{dream}——絶対叶えてみせるの！！',
   gonta:  'あの……社長……ぼく、夢があるんです……\n{dream}……叶えたいな、って……思ってて……',
   himari: 'ねえ社長、聞いてよ！あたしに夢ができたじゃん！\n{dream}——絶対やってみせるから、見ててね！',
   rei:    '社長……「夢」という概念の演算が完了しました。\n{dream}……これが、私の夢です。',
@@ -11592,7 +12333,7 @@ const DREAM_ANNOUNCE_SPEECH2 = {
 const DREAM_ANNOUNCE_SPEECH3 = {
   noir:   '……最後の夢、聞いてください。\n登録者{subs}……それが私の、最後の目標です。',
   popo:   '余の最後の夢を聞くがよい！ポポ！\n登録者{subs}達成——それが余の最後の夢じゃ！ポポポ！',
-  lily:   '社長！リリィの最後の夢を聞いて！\n登録者{subs}——絶対に叶えてみせるの！！',
+  lily:   '社長！わたしの最後の夢を聞いて！\n登録者{subs}——絶対に叶えてみせるの！！',
   gonta:  'あの……社長……最後の夢なんですけど……\n登録者{subs}……いつか、届けたいです……',
   himari: 'ねえ社長、最後の夢があるんだけど聞いてよ！\n登録者{subs}——絶対やってやるから！',
   rei:    '最終目標の演算が完了しました。\n登録者{subs}……これが、私の最後の夢です。',
@@ -11698,7 +12439,7 @@ function _showDreamFulfilledModal(ch, dreamNum) {
   const overlay = document.getElementById('dreamFulfilledOverlay');
   const d = ch.dreams;
 
-  document.getElementById('dreamFulIcon').innerHTML = gawaPlaceholder(ch.vtuber.gawaVariant, ch.vtuber.imageColor);
+  document.getElementById('dreamFulIcon').innerHTML = gawaPlaceholder(ch.vtuber.gawaVariant, ch.vtuber.imageColor, 'smile');
   document.getElementById('dreamFulName').textContent = vtLabel(ch.vtuber);
 
   let titleText, eventText;
@@ -11925,27 +12666,27 @@ const VTUBER_LEVEL_THRESHOLDS = [
 const VTUBER_LEVEL_EVENTS = {
   game: {
     1:  '耐久の鬼として話題になる',
-    2:  'Vtuberゲーム大会に出場',
+    2:  '新作ゲームのβテスター第1号に選ばれる',
     3:  '神プレイ動画がバズる',
     4:  'プロゲーマーに弟子入り',
-    5:  'ゲームにコラボキャラとして出演',
-    6:  'FPSゲーム大会で優勝',
-    7:  'オンラインゲーム大会主催',
-    8:  '海外遠征しゲーム大会で優勝',
-    9:  'アリーナ会場でゲームイベントを開催',
-    10: 'オリジナルゲーム発売',
+    5:  '炊きまくり実況がトレンド1位に',
+    6:  'ゲーム会社の公式アンバサダーに就任',
+    7:  '人気ゲームのトレーラー映像に出演',
+    8:  '海外ゲーマーと24時間コラボ配信が大成功',
+    9:  'eスポーツ国際大会のゲスト解説者に抜擢',
+    10: 'ゲーム実況の教科書に掲載され伝説になる',
   },
   song: {
     1:  'うたみたショート動画が話題に',
-    2:  'オリジナル曲発売',
+    2:  '歌ってみた動画がSNSトレンド1位に',
     3:  'ライブハウスで生バンドライブ',
     4:  'アニメの主題歌に抜擢',
-    5:  'オリジナルアルバム発売',
+    5:  '有名歌い手とのコラボうたみた動画を投稿',
     6:  'テレビの歌番組に出演',
-    7:  'アリーナでソロライブ',
+    7:  '外部ライブにサプライズ出演',
     8:  'アニメMVがバズる',
     9:  '海外の大型フェスに出演',
-    10: 'スタジアムでソロライブ',
+    10: '複数国を巡る海外ワールドツアーを完走',
   },
   talk: {
     1:  'リスナーとのプロレス切り抜きがバズる',
@@ -11955,7 +12696,7 @@ const VTUBER_LEVEL_EVENTS = {
     5:  'アニメの副音声のオファーが来る',
     6:  'オフライントークショーを開催',
     7:  '深夜ラジオのレギュラー番組開始',
-    8:  'エッセイ本発売',
+    8:  'ファン投票で選ばれた名言集が書籍化',
     9:  '弟子をとる',
     10: 'ミームの帝王と呼ばれる',
   },
@@ -11968,20 +12709,20 @@ const VTUBER_LEVEL_EVENTS = {
     6:  '人気芸人とマブダチになる',
     7:  '世界一周旅行ブイログが話題に',
     8:  'Vtuber1000人とのコラボ動画達成',
-    9:  'コラボラーメンが大ヒット',
+    9:  'コラボアパレルラインが即日完売',
     10: '収益全額をボランティアに寄付する',
   },
   voice: {
     1:  '自作ボイスドラマ台本が好評',
     2:  '早朝ASMRが最高の目覚ましと話題に',
-    3:  'テレビアニメのゲスト声優のオファーが来る',
+    3:  '人気ゲームのメインキャラのCVを担当',
     4:  'ボイスドラマCD発売',
     5:  'テレビ番組のナレーターのオファーが来る',
     6:  '後輩のボイスドラマをプロデュース',
     7:  'オリジナル子守唄が異例のヒット',
     8:  'ハリウッド映画の吹き替えに抜擢',
     9:  '朗読劇イベントが即完',
-    10: '世界配信アニメの主演声優に決定',
+    10: '世界配信ドラマの日本語吹き替え主演に抜擢',
   },
 };
 
@@ -12117,7 +12858,7 @@ function showDreamAnnounce(ch, dreamNum) {
   // ガワ画像
   const gawaEl = document.getElementById('dreamAnnounceGawa');
   gawaEl.innerHTML = ch.vtuber && ch.vtuber.gawaVariant
-    ? gawaPlaceholder(ch.vtuber.gawaVariant, ch.vtuber.imageColor)
+    ? gawaPlaceholder(ch.vtuber.gawaVariant, ch.vtuber.imageColor, 'smile')
     : '';
 
   document.getElementById('dreamAnnounceName').textContent = ch.vtuber ? vtLabel(ch.vtuber) : '';
@@ -12189,7 +12930,7 @@ function showNextVtLevelup() {
   if (newLevel === 10) badgeEl.classList.add('lv10');
   else                 badgeEl.classList.remove('lv10');
 
-  document.getElementById('vtLvIcon').innerHTML         = gawaPlaceholder(ch.vtuber.gawaVariant, ch.vtuber.imageColor);
+  document.getElementById('vtLvIcon').innerHTML         = gawaPlaceholder(ch.vtuber.gawaVariant, ch.vtuber.imageColor, 'smile');
   document.getElementById('vtLvName').textContent       = vtLabel(ch.vtuber);
   document.getElementById('vtLvSubsLabel').textContent  = subsLabel;
   document.getElementById('vtLvEvent').textContent      = eventText;
@@ -12293,7 +13034,7 @@ let _gradConsultCh = null;
 const FORCED_GRAD_MESSAGES = {
   noir:   '……1000万人。社長、聞いてください。\n私、ここで卒業します。決めていました。',
   popo:   '1000万人じゃ！ポポ！社長よ、余の旅はここまでじゃ！\nポポ……満足したぞ！ポポポ！',
-  lily:   '社長！1000万人だよ！すごいよね！\nリリィ……ここで卒業しようと思うの。ありがとう！',
+  lily:   '社長！1000万人だよ！すごいよね！\nわたし……ここで卒業しようと思うの。ありがとう！',
   gonta:  '社長……1000万人、届きましたね……\nぼく、ここで卒業しようと思います……ありがとう……',
   himari: '社長！1000万人！やってやったよ！\nだから……ここで卒業する。悔いなし！',
   rei:    '登録者1000万人、達成を確認しました。\n演算結果：卒業のタイミングです。社長、ありがとうございました。',
@@ -12317,7 +13058,7 @@ function showGraduationConsultation(ch) {
   if (isAnyStoryModalShowing()) { _globalModalQueue.push(() => showGraduationConsultation(ch)); return; }
   _gradConsultCh = ch;
   document.getElementById('gradConsultName').textContent = `💬 ${vtLabel(ch.vtuber)} より相談`;
-  document.getElementById('gradConsultGawa').innerHTML = gawaPlaceholder(ch.vtuber.gawaVariant, ch.vtuber.imageColor);
+  document.getElementById('gradConsultGawa').innerHTML = gawaPlaceholder(ch.vtuber.gawaVariant, ch.vtuber.imageColor, 'sad');
   // 魂ごとのセリフ → なければ共通メッセージにフォールバック
   const isLv10 = ch.vtLevel >= 10;
   if (_gradConsultForced) {
@@ -12545,8 +13286,10 @@ function tryTriggerCollab() {
 
   // 両チャンネルに動画追加
   const now = Date.now();
-  const vid1 = { id: `vid_${now}_c1_${ch1.id}`, title: collabTitle, views: collabViews, style: 'collab', publishedAt: now };
-  const vid2 = { id: `vid_${now}_c2_${ch2.id}`, title: collabTitle, views: collabViews, style: 'collab', publishedAt: now };
+  const vid1 = { id: `vid_${now}_c1_${ch1.id}`, title: collabTitle, views: collabViews, style: 'collab', publishedAt: now,
+    collabPartner: { gawaVariant: vt2.gawaVariant, name: vt2.name, imageColor: vt2.imageColor } };
+  const vid2 = { id: `vid_${now}_c2_${ch2.id}`, title: collabTitle, views: collabViews, style: 'collab', publishedAt: now,
+    collabPartner: { gawaVariant: vt1.gawaVariant, name: vt1.name, imageColor: vt1.imageColor } };
   ch1.videos.unshift(vid1); ch1.totalViews += collabViews;
   ch2.videos.unshift(vid2); ch2.totalViews += collabViews;
   updateCardThumbnail(ch1, vid1);
@@ -12668,8 +13411,8 @@ function triggerAnniversaryEvent(ch, years) {
   });
 }
 
-function showSpecialEventModal({ type, badge, icon, title, desc, effectText, ch, logTitle, onClose, thumbHtml, celebSound }) {
-  if (isAnyStoryModalShowing()) { _globalModalQueue.push(() => showSpecialEventModal({ type, badge, icon, title, desc, effectText, ch, logTitle, onClose, thumbHtml, celebSound })); return; }
+function showSpecialEventModal({ type, badge, icon, title, desc, effectText, ch, logTitle, onClose, thumbHtml, thumbStyle, celebSound }) {
+  if (isAnyStoryModalShowing()) { _globalModalQueue.push(() => showSpecialEventModal({ type, badge, icon, title, desc, effectText, ch, logTitle, onClose, thumbHtml, thumbStyle, celebSound })); return; }
   const modal   = document.getElementById('eventModal');
   modal._onClose = onClose || null;
   const card    = document.getElementById('eventCard');
@@ -12684,9 +13427,16 @@ function showSpecialEventModal({ type, badge, icon, title, desc, effectText, ch,
   if (thumbHtml) {
     _thumbEl.innerHTML = thumbHtml;
     _thumbEl.style.display = 'block';
+    _thumbEl.style.aspectRatio = thumbStyle ? 'auto' : '';
+    _thumbEl.style.background  = thumbStyle ? 'transparent' : '';
+    _thumbEl.style.boxShadow   = thumbStyle ? 'none' : '';
+    _thumbEl.style.border      = thumbStyle ? 'none' : '';
+    _thumbEl.style.minHeight   = thumbStyle ? '0' : '';
+    if (thumbStyle) _thumbEl.setAttribute('style', _thumbEl.getAttribute('style') + ';' + thumbStyle);
   } else {
     _thumbEl.innerHTML = '';
     _thumbEl.style.display = 'none';
+    _thumbEl.removeAttribute('style');
   }
   if (ch) {
     document.getElementById('eventChGawa').innerHTML   = gawaPlaceholder(ch.vtuber.gawaVariant, ch.vtuber.imageColor);
@@ -12736,6 +13486,15 @@ function checkGameOver() {
   if (money.value <= debtLimit) {
     reason = '💸 借金が1,000万円を超えてしまいました。事務所は倒産してしまいました…';
   } else if (allGraduated) {
+    // 事務所レベル10なら社長デビューエンド（レアエンディング）
+    const lv = getOfficeLevel(getTotalSubs());
+    if (lv >= 10) {
+      _gameOverShown = true;
+      stopGameTick();
+      try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+      _triggerPresidentDebutEnding();
+      return;
+    }
     reason = '🎓 全てのVTuberが卒業してしまいました。事務所に現役メンバーがいなくなりました…';
   }
   if (!reason) return;
@@ -12747,6 +13506,32 @@ function checkGameOver() {
   _showGameOverScreen(reason);
 }
 
+
+/* ════════════════════════════════════
+   PRESIDENT DEBUT ENDING
+════════════════════════════════════ */
+function _triggerPresidentDebutEnding() {
+  const overlay = document.getElementById('gameOverOverlay');
+  overlay.classList.add('finale');
+  const goTitle = document.querySelector('.go-title');
+  if (goTitle) goTitle.textContent = 'ENDING';
+
+  _showGameOverScreen('👑 誰もいなくなった事務所で——社長は、ある決断を下した。');
+
+  setTimeout(() => {
+    const btn = document.getElementById('btnGoEnding');
+    if (btn) btn.classList.add('visible');
+  }, 3000);
+  setTimeout(() => {
+    const btn = document.getElementById('btnGoEnding');
+    if (btn) btn.click();
+  }, 8000);
+
+  const endingEl = document.getElementById('endingRollWrap');
+  if (endingEl) {
+    endingEl.innerHTML = buildEndingHTML('president');
+  }
+}
 
 /* ════════════════════════════════════
    TIME-UP ENDING SYSTEM
@@ -12767,6 +13552,10 @@ function _determineEndingType() {
     if (ch.dreams.dream3 && ch.dreams.dream3.fulfilled) c++;
     return sum + c;
   }, 0);
+
+  // 魂カミングアウトエンド：事務所の一般知名度が最大値（≥490 / 最大500）
+  const officeFame = gameState.fame ?? 0;
+  if (officeFame >= 490) return 'soul';
 
   // 良エンディング：総登録者50万人以上
   if (totalSubs >= 500000) return 'good';
@@ -12790,9 +13579,10 @@ function _triggerTimeUpEnding() {
   overlay.classList.add('finale');
 
   const goTitle = document.querySelector('.go-title');
-  if (goTitle) goTitle.textContent = '✦ FINALE ✦';
+  if (goTitle) goTitle.textContent = 'ENDING';
 
   const reasonMessages = {
+    soul:   '🎤 2024年〜2026年、3年間の挑戦が幕を閉じました。世界中が驚いた歴史的カミングアウトで伝説を刻みました！',
     good:   '🌟 2024年〜2026年、3年間の挑戦が幕を閉じました。圧倒的な成果で伝説を刻みました！',
     normal: '📅 2024年〜2026年、3年間の挑戦が幕を閉じました。着実な成長を遂げた3年間でした。',
     bad:    '📅 2024年〜2026年、3年間の挑戦が幕を閉じました。VTuber業界の厳しさと向き合い続けた日々でした。',
@@ -12823,8 +13613,10 @@ function _showGameOverScreen(reason) {
   const totalSubs  = getTotalSubs();
   const rankInfo   = getOfficeRankInfo(totalSubs);
   const allCh      = gameState.channels || [];
-  const peakSubs   = Math.max(0, ...allCh.map(ch =>
-    Math.max(ch.subscribers, ...(ch.subsHistory || []).map(s => s.subs))));
+  const peakSubs = allCh.reduce((maxVal, ch) => {
+    const histMax = (ch.subsHistory || []).reduce((m, s) => Math.max(m, s.subs || 0), 0);
+    return Math.max(maxVal, ch.peakSubscribers || 0, ch.subscribers || 0, histMax);
+  }, 0);
   const gradCount  = allCh.filter(ch => ch.graduated).length;
   const totalViews = allCh.reduce((s, ch) => s + (ch.totalViews || 0), 0);
   const topCh      = [...allCh].sort((a,b) => b.subscribers - a.subscribers)[0];
@@ -12883,6 +13675,9 @@ function _showGameOverScreen(reason) {
   playBGM('sound/bgm/maou_14_shining_star.mp3', 0.45);
   setTimeout(() => {
     document.getElementById('gameOverOverlay').classList.add('show');
+    // ゲームオーバー画像をフェードイン
+    const _goImg = document.getElementById('goGameoverImg');
+    if (_goImg) setTimeout(() => _goImg.classList.add('visible'), 200);
     // 結果表示から4秒後にエンディングボタンを表示
     setTimeout(() => {
       document.getElementById('btnGoEnding').classList.add('visible');
@@ -12919,16 +13714,28 @@ function buildEndingHTML(endingType) {
     }, 0);
 
     const typeConfig = {
+      president: {
+        badge: '👑 LEGENDARY RARE ★',
+        title: '社長デビューエンド',
+        desc: `全VTuberが卒業したLv.10の伝説事務所。\n絶体絶命のとき、社長は自らステージへ立った。`,
+        cls: 'ending-result-president',
+      },
+      soul: {
+        badge: '✦ LEGENDARY ✦',
+        title: '魂カミングアウトエンド',
+        desc: `暴露系インフルエンサーにより魂の姿が身バレ。\n記者会見でのカミングアウトがさらなる人気を呼び、\n${fmtNum(totalSubs)}人のファンが熱狂した。`,
+        cls: 'ending-result-soul',
+      },
       good: {
         badge: '★★★ GRAND SUCCESS ★★★',
         title: '大成功エンディング',
-        desc: `3年間で${fmtNum(totalSubs)}人のファンを獲得し、\n事務所は業界に名を刻みました。\nあなたはVTuberプロデューサーとして伝説を残しました。`,
+        desc: `現役VTuber${activeCount}人・叶えた夢${fulfilledDreams}個。\n3年間で${fmtNum(totalSubs)}人のファンを獲得し、\n業界に伝説を刻んだ事務所。`,
         cls: 'ending-result-good',
       },
       normal: {
         badge: '★★ SUCCESS ★★',
         title: '成功エンディング',
-        desc: `3年間で${fmtNum(totalSubs)}人のファンとともに歩んだ物語。\n着実な成長を遂げ、確かな足跡を残しました。\nあなたの努力はVTuber業界に息づいています。`,
+        desc: `現役VTuber${activeCount}人・叶えた夢${fulfilledDreams}個。\n3年間で${fmtNum(totalSubs)}人のファンとともに歩んだ物語。\n着実な成長を遂げ、確かな足跡を残しました。`,
         cls: 'ending-result-normal',
       },
       bad: {
@@ -12943,7 +13750,7 @@ function buildEndingHTML(endingType) {
     resultSectionHtml = `
     <div class="ending-result-section ${cfg.cls}">
       <div class="ending-result-badge">${cfg.badge}</div>
-      <div class="ending-result-title">${cfg.title}</div>
+      
       <div class="ending-result-desc">${cfg.desc.replace(/\n/g, '<br>')}</div>
       <div class="ending-result-stats">
         <div class="ending-result-stat">👥 総登録者 ${fmtNum(totalSubs)} 人</div>
@@ -13016,7 +13823,7 @@ function buildEndingHTML(endingType) {
     <div class="ending-stars-line">✦ ✦ ✦</div>
     <div class="ending-office-name-big">${officeName}</div>
     <div class="ending-agency-label">VTUBER AGENCY</div>
-    <div class="ending-period-label">${periodStr}間の物語</div>
+    <div class="ending-period-label">${periodStr}の物語</div>
     <div class="ending-h-rule"></div>
   </div>`;
 
@@ -13033,7 +13840,7 @@ function buildEndingHTML(endingType) {
     const videos = ch.videos || [];
     const thumbVids = videos.slice(-4);  // 最新4本（思い出の動画）
     const thumbsHtml = thumbVids.map(vid =>
-      `<div class="ending-thumb-item">${thumbnailSVG(vt.gawaVariant, vt.name, vid.title, vid.views, vid.style || 'talk', vt.imageColor)}</div>`
+      `<div class="ending-thumb-item">${makeThumbnailHtml(vt.gawaVariant, vt.name, vid, vt.imageColor)}</div>`
     ).join('');
     const statusBadge = ch.graduated
       ? `<div class="ending-status-badge ending-status-graduate">🎓 卒業</div>`
@@ -13051,7 +13858,7 @@ function buildEndingHTML(endingType) {
       <div class="ending-vt-soul">${vt.soul ? vt.soul.name + '（' + vt.soul.type + '）' : ''}</div>
       ${statusBadge}
       ${bdStr ? `<div style="font-size:.66rem;color:rgba(200,175,255,.4);letter-spacing:.12em;margin-bottom:14px;">${colorDot}${bdStr}</div>` : ''}
-      <div class="ending-gawa-wrap"><img src="images/gawa/${file}.png" alt="${vt.name}"></div>
+      <div class="ending-gawa-wrap"><img src="images/gawa/${file}_${ch.graduated ? 'sad' : 'smile'}.png" alt="${vt.name}"></div>
       ${buildDreamsHtml(ch)}
       ${buildMomentsHtml(ch)}
       ${thumbsHtml ? `<div class="ending-thumbs">${thumbsHtml}</div>` : ''}
@@ -13072,7 +13879,7 @@ function buildEndingHTML(endingType) {
         if (!vt) return '';
         const f = gawaVariantToFile(vt.gawaVariant);
         const [left, transform, width, height, extra, imgStyle] = vt.slot;
-        return `<div class="eebm-vt" style="left:${left};transform:${transform};width:${width};height:${height};${extra ? extra+';' : ''}"><img src="images/gawa/${f}.png" alt="${vt.name}"${imgStyle ? ` style="${imgStyle}"` : ''}></div>`;
+        return `<div class="eebm-vt" style="left:${left};transform:${transform};width:${width};height:${height};${extra ? extra+';' : ''}"><img src="images/gawa/${f}_${ev.expr || 'normal'}.png" alt="${vt.name}"${imgStyle ? ` style="${imgStyle}"` : ''}></div>`;
       }).join('');
       return `
       <div class="eebm">
@@ -13092,6 +13899,193 @@ function buildEndingHTML(endingType) {
       <div class="ending-h-rule"></div>
       <div class="ending-evroll-label">── EVENT MEMORIES ──</div>
       <div class="ending-evroll-grid">${bannerCards}</div>
+    </div>`;
+  }
+
+  // ── 大成功エンディング：世界征服セクション ──
+  // ── 魂カミングアウトエンド：カミングアウトセクション ──
+  if (endingType === 'soul') {
+    html += `
+    <div class="ending-world-section">
+      <div class="ending-h-rule"></div>
+      <div class="ending-world-label">── COMING OUT ──</div>
+      <div class="ending-world-img-wrap">
+        <img class="ending-world-bg" src="images/ending/魂カミングアウトend_背景.png" alt="">
+        <div class="ending-world-vts">${(() => {
+          const activeSorted = sorted.filter(ch => !ch.graduated);
+          const sn = Math.min(Math.max(activeSorted.length, 1), 4);
+          const sslots = ENDING_SOUL_VT_SLOTS[sn] || ENDING_SOUL_VT_SLOTS[1];
+          return activeSorted.slice(0, sn).map((sch, si) => {
+            const sslot = sslots[si] || sslots[0];
+            const [sl, str, sw, sh, sex] = sslot;
+            const soulFile = SOUL_IMG_MAP[sch.vtuber.soulId];
+            const sdStyle = 'position:absolute;overflow:hidden;bottom:0;left:'+sl+';transform:'+str+';width:'+sw+';height:'+sh+';'+(sex?sex+';':'');
+            const siStyle = 'width:100%;height:100%;object-fit:cover;object-position:top center;display:block;';
+            const imgSrc = soulFile ? 'images/tamashii/'+soulFile : 'images/gawa/'+gawaVariantToFile(sch.vtuber.gawaVariant)+'_smile.png';
+            return '<div style="'+sdStyle+'"><img src="'+imgSrc+'" alt="'+sch.vtuber.name+'" style="'+siStyle+'"></div>';
+          }).join('');
+        })()}</div>
+        <img class="ending-world-fg" src="images/ending/魂カミングアウトend_手前.png" alt="">
+        <div class="ending-world-text-overlay">
+          <div class="ending-world-caption">ガワの向こうにいた、本当の「私」と出会った日</div>
+        </div>
+      </div>
+      <div class="ending-world-desc">
+        暴露系インフルエンサーが投稿した一本の動画が、すべてを変えた。<br>
+        追い詰められた末に選んだのは——逃げるのではなく、前に出ること。<br>
+        記者会見でのカミングアウトは世界中に配信され、<br>
+        VTuberという文化そのものを、次の時代へ押し上げた。<br><br>
+        <span style="color:rgba(255,215,0,.9);letter-spacing:.2em;font-size:1.05em;">あなたがいたから、この物語は始まった。</span><br>
+        <span style="color:rgba(255,210,100,1);letter-spacing:.4em;font-size:1.3em;font-weight:bold;display:inline-block;margin-top:18px;text-shadow:0 0 12px rgba(255,200,50,.6);">魂カミングアウトエンド</span>
+      </div>
+    </div>`;
+  }
+
+  // ── 大成功エンド：世界征服セクション ──
+  if (endingType === 'good') {
+    html += `
+    <div class="ending-world-section">
+      <div class="ending-h-rule"></div>
+      <div class="ending-world-label">── WORLD DOMINATION ──</div>
+      <div class="ending-world-img-wrap">
+        <img class="ending-world-bg" src="images/ending/世界征服end_背景.png" alt="">
+        <div class="ending-world-vts">${(() => {
+          const wn = Math.min(sorted.length, 4);
+          const wslots = ENDING_WORLD_VT_SLOTS[wn] || ENDING_WORLD_VT_SLOTS[1];
+          return sorted.slice(0, wn).map((wch, wi) => {
+            const wslot = wslots[wi] || wslots[0];
+            const [wl, wtr, ww, wh, wex, wimgS] = wslot;
+            const wf = gawaVariantToFile(wch.vtuber.gawaVariant);
+            const wstyle = `position:absolute;overflow:hidden;bottom:0;left:${wl};transform:${wtr};width:${ww};height:${wh};${wex ? wex+';' : ''}`;
+            const wimgStyle = `width:100%;height:100%;object-fit:contain;object-position:bottom center;display:block;${wimgS || ''}`;
+            return `<div style="${wstyle}"><img src="images/gawa/${wf}_smile.png" alt="${wch.vtuber.name}" style="${wimgStyle}"></div>`;
+          }).join('');
+        })()}</div>
+        <img class="ending-world-fg" src="images/ending/世界征服end_手前.png" alt="">
+        <div class="ending-world-text-overlay">
+          <div class="ending-world-caption">
+            全世界へ、その名を轟かせた伝説の事務所
+          </div>
+        </div>
+      </div>
+      <div class="ending-world-desc">
+        小さな夢から始まったこの事務所は、いつしか世界中のファンに愛される<br>
+        巨大グループへと成長を遂げた。<br>
+        日本を飛び越え、言葉の壁を越え——<br>
+        VTuberたちの歌声と笑い声が、今や地球のあちこちで響いている。<br><br>
+        <span style="color:rgba(255,215,0,.9);letter-spacing:.2em;font-size:1.05em;">あなたがいたから、この物語は始まった。</span><br>
+        <span style="color:rgba(180,230,255,1);letter-spacing:.4em;font-size:1.3em;font-weight:bold;display:inline-block;margin-top:18px;text-shadow:0 0 12px rgba(100,200,255,.6);">世界征服エンド</span>
+      </div>
+    </div>`;
+  }
+
+  // ── 成功エンド：親子配信セクション ──
+  if (endingType === 'normal') {
+    html += `
+    <div class="ending-world-section">
+      <div class="ending-h-rule"></div>
+      <div class="ending-world-label">── FAMILY STREAMING ──</div>
+      <div class="ending-world-img-wrap">
+        <img class="ending-world-bg" src="images/ending/親子配信end_背景.png" alt="">
+        <div class="ending-world-vts">${(() => {
+          const fch = sorted[0];
+          if (!fch) return '';
+          const fslots = ENDING_FAMILY_VT_SLOTS[2];
+          const ff = gawaVariantToFile(fch.vtuber.gawaVariant);
+          return fslots.map((fslot, fi) => {
+            const [fl, ftr, fw, fh, fex] = fslot;
+            const fdStyle = 'position:absolute;overflow:hidden;bottom:0;left:'+fl+';transform:'+ftr+';width:'+fw+';height:'+fh+';'+(fex?fex+';':'');
+            const fiStyle = 'width:100%;height:100%;object-fit:contain;object-position:bottom center;display:block;';
+            return '<div style="'+fdStyle+'"><img src="images/gawa/'+ff+'_smile.png" alt="'+fch.vtuber.name+'" style="'+fiStyle+'"></div>';
+          }).join('');
+        })()}</div>
+        <img class="ending-world-fg" src="images/ending/親子配信end_手前.png" alt="">
+        <div class="ending-world-text-overlay">
+          <div class="ending-world-caption">その絆は、次の世代へと受け継がれていく</div>
+        </div>
+      </div>
+      <div class="ending-world-desc">
+        事務所は末永く続いた。<br>
+        VTuberたちは恋をして、結婚をして——<br>
+        やがてその子供たちもVTuberとしてデビューした。<br>
+        画面越しに紡がれた笑顔は、家族の絆へと変わっていく。<br><br>
+        <span style="color:rgba(255,215,0,.9);letter-spacing:.2em;font-size:1.05em;">あなたがいたから、この物語は始まった。</span><br>
+        <span style="color:rgba(255,190,200,1);letter-spacing:.4em;font-size:1.3em;font-weight:bold;display:inline-block;margin-top:18px;text-shadow:0 0 12px rgba(255,150,180,.6);">あったか家族エンド</span>
+      </div>
+    </div>`;
+  }
+
+  // ── 苦戦エンド：通常セクション ──
+  if (endingType === 'bad') {
+    html += `
+    <div class="ending-world-section">
+      <div class="ending-h-rule"></div>
+      <div class="ending-world-label">── THE END ──</div>
+      <div class="ending-world-img-wrap">
+        <img class="ending-world-bg" src="images/ending/通常end_背景.png" alt="">
+        <div class="ending-world-vts">${(() => {
+          const nn = Math.min(sorted.length, 4);
+          const nslots = ENDING_NORMAL_VT_SLOTS[nn] || ENDING_NORMAL_VT_SLOTS[1];
+          return sorted.slice(0, nn).map((nch, ni) => {
+            const nslot = nslots[ni] || nslots[0];
+            const [nl, ntr, nw, nh, nex] = nslot;
+            const nf = gawaVariantToFile(nch.vtuber.gawaVariant);
+            const ndStyle = 'position:absolute;overflow:hidden;bottom:0;left:'+nl+';transform:'+ntr+';width:'+nw+';height:'+nh+';'+(nex?nex+';':'');
+            const niStyle = 'width:100%;height:100%;object-fit:contain;object-position:bottom center;display:block;';
+            return '<div style="'+ndStyle+'"><img src="images/gawa/'+nf+'_smile.png" alt="'+nch.vtuber.name+'" style="'+niStyle+'"></div>';
+          }).join('');
+        })()}</div>
+        <div class="ending-world-text-overlay">
+          <div class="ending-world-caption">それでも、歩んだ日々は本物だった</div>
+        </div>
+      </div>
+      <div class="ending-world-desc">
+        思い描いた夢には届かなかったかもしれない。<br>
+        けれど、VTuberたちと過ごしたその日々は<br>
+        確かにあなたの物語だった。<br><br>
+        <span style="color:rgba(255,215,0,.9);letter-spacing:.2em;font-size:1.05em;">あなたがいたから、この物語は始まった。</span><br>
+        <span style="color:rgba(200,220,255,1);letter-spacing:.4em;font-size:1.3em;font-weight:bold;display:inline-block;margin-top:18px;text-shadow:0 0 12px rgba(150,180,255,.6);">通常エンド</span>
+      </div>
+    </div>`;
+  }
+
+  // ── 解散エンド：解散セクション ──
+  // ── 社長デビューエンド ──
+  if (endingType === 'president') {
+    html += `
+    <div class="ending-world-section">
+      <div class="ending-h-rule"></div>
+      <div class="ending-world-label">── PRESIDENT DEBUT ──</div>
+      <div class="ending-gameover-img-wrap">
+        <img src="images/ending/社長デビューend.png" alt="社長デビューエンド">
+      </div>
+      <div class="ending-world-desc">
+        タレントが一人もいなくなった事務所に、静寂が訪れた。<br>
+        しかし社長は諦めなかった——<br>
+        「ならば、私がなればいい。」<br><br>
+        そうして伝説の事務所から、まったく新しい物語が始まった。<br><br>
+        <span style="color:rgba(255,215,0,.9);letter-spacing:.2em;font-size:1.05em;">あなたがいたから、この物語は始まった。</span><br>
+        <span style="color:rgba(255,180,80,1);letter-spacing:.4em;font-size:1.3em;font-weight:bold;display:inline-block;margin-top:18px;text-shadow:0 0 12px rgba(255,160,50,.6);">社長デビューエンド</span>
+      </div>
+    </div>`;
+  }
+
+  // ── ゲームオーバー（解散）エンド ──
+  if (!endingType) {
+    html += `
+    <div class="ending-world-section">
+      <div class="ending-h-rule"></div>
+      <div class="ending-world-label">── DISSOLUTION ──</div>
+      <div class="ending-gameover-img-wrap">
+        <img src="images/ending/gameover.png" alt="">
+      </div>
+      <div class="ending-world-desc">
+        夢を追いかけたその日々は、<br>
+        決して無駄ではなかった。<br>
+        挑戦したすべてが、この物語の一部だった。<br><br>
+        <span style="color:rgba(255,215,0,.9);letter-spacing:.2em;font-size:1.05em;">あなたがいたから、この物語は始まった。</span><br>
+        <span style="color:rgba(180,210,255,1);letter-spacing:.4em;font-size:1.3em;font-weight:bold;display:inline-block;margin-top:18px;text-shadow:0 0 12px rgba(100,160,255,.6);">解散エンド</span>
+      </div>
     </div>`;
   }
 
@@ -13155,6 +14149,39 @@ function resetAllHUDs() {
   // メニューボタン非表示
   document.getElementById('menuBtn').style.display = 'none';
 }
+
+// ── エンディング BGM トグル ──
+const ENDING_BGM_SRC = 'sound/bgm/maou_14_shining_star.mp3';
+const ENDING_BGM_VOL = 0.45;
+
+document.getElementById('btnEndingBgm').addEventListener('click', () => {
+  const btn = document.getElementById('btnEndingBgm');
+  _bgmEnabled = !_bgmEnabled;
+  // メニューのバッジも同期
+  const badge = document.getElementById('menuBgmBadge');
+  if (badge) { badge.textContent = _bgmEnabled ? 'ON' : 'OFF'; badge.classList.toggle('on', _bgmEnabled); }
+  if (_bgmEnabled) {
+    btn.textContent = '🎵 BGM ON';
+    btn.classList.remove('off');
+    // _bgmLastSrcに関わらず必ずエンディング用BGMを流す
+    playBGM(ENDING_BGM_SRC, ENDING_BGM_VOL);
+  } else {
+    btn.textContent = '🎵 BGM OFF';
+    btn.classList.add('off');
+    stopBGM();
+  }
+});
+
+// エンディング表示時にボタンの状態を現在のBGM設定に合わせる
+const _origShowEnding = showEnding;
+showEnding = function(endingType) {
+  _origShowEnding(endingType);
+  const btn = document.getElementById('btnEndingBgm');
+  if (btn) {
+    btn.textContent = _bgmEnabled ? '🎵 BGM ON' : '🎵 BGM OFF';
+    btn.classList.toggle('off', !_bgmEnabled);
+  }
+};
 
 document.getElementById('btnEndingSkip').addEventListener('click', () => {
   document.getElementById('endingOverlay').classList.remove('show');
@@ -13414,7 +14441,7 @@ const EVENT_HOST_LIST = {
     },
     {
       id: 'goods_essay', rank: 3, minLevel: 5, isPersonal: true,
-      icon: '📖', name: 'エッセイ本発売', scale: 'Rank3 · 個人SPグッズ',
+      icon: '📖', name: 'ファン投票で選ばれた名言集が書籍化', scale: 'Rank3 · 個人SPグッズ',
       cost: 2_500_000, successRate: 0.72, cooldown: 21,
       successDesc: 'VTuberならではの視点で綴られたエッセイが大ヒット！書店でも平積みになり、一般層へのリーチが広がりました。',
       failureDesc: '内容がファン向けに特化しすぎて、新規読者の獲得につながりませんでした。編集方針を見直しましょう。',
@@ -13423,7 +14450,7 @@ const EVENT_HOST_LIST = {
     },
     {
       id: 'goods_origgame', rank: 4, minLevel: 7, isPersonal: true,
-      icon: '🕹️', name: 'オリジナルゲーム発売', scale: 'Rank4 · 個人SPグッズ',
+      icon: '🕹️', name: 'ゲーム実況の教科書に掲載され伝説になる', scale: 'Rank4 · 個人SPグッズ',
       cost: 10_000_000, successRate: 0.63, cooldown: 28,
       successDesc: '念願のオリジナルゲームがリリース！クオリティへの絶賛が相次ぎ、ゲーマー層からも高評価を獲得しました！',
       failureDesc: 'バグや完成度の低さが批判を受け、ゲームは低評価が続出。信頼回復に向けた早急な対応が必要です。',
@@ -13982,6 +15009,242 @@ function executeEventRoulette(evId, evType, channelId) {
 }
 
 let _evhostResultPaused = false;  // 自分でpauseしたか管理するフラグ
+// イベントバナー スロット位置上書き設定（dbg.htmlのキャラ配置調整で更新）
+// 大成功エンディング：世界征服シーンのVTuber配置スロット（人数別）
+// [left, transform, width, height, extra, imgStyle]
+const ENDING_WORLD_VT_SLOTS = {
+  1: [['51%','translateX(-50%)','81%','150%','bottom:-3%']],
+  2: [['-4%','none','67%','130%','bottom:-9%','transform:rotate(-10deg)'], ['41%','none','66%','123%','bottom:-11%','transform:rotate(13deg)']],
+  3: [['-10%','none','66%','102%','bottom:-5%','transform:rotate(-35deg)'], ['51%','none','62%','94%','bottom:-2%','transform:rotate(30deg)'], ['16%','none','70%','106%','bottom:13%']],
+  4: [['-9%','none','49%','100%','bottom:-20%','transform:rotate(-45deg)'], ['49%','none','69%','82%','bottom:-15%','transform:rotate(41deg)'], ['5%','none','63%','94%','bottom:17%','transform:rotate(-16deg)'], ['41%','none','53%','100%','bottom:17%','transform:rotate(15deg)']],
+};
+
+const ENDING_FAMILY_VT_SLOTS = {
+  1: [['51%','translateX(-50%)','72%','130%','bottom:-2%']],
+  2: [['10%','none','58%','115%','bottom:-8%','transform:rotate(7deg)'], ['42%','none','47%','83%','bottom:-23%','transform:rotate(-7deg)']],
+  3: [['2%','none','48%','105%','bottom:-6%'], ['28%','none','52%','110%','bottom:-4%'], ['56%','none','48%','104%','bottom:-7%']],
+  4: [['0%','none','38%','100%','bottom:-8%'], ['22%','none','40%','102%','bottom:-5%'], ['46%','none','38%','98%','bottom:-7%'], ['68%','none','36%','100%','bottom:-6%']],
+};
+
+const ENDING_NORMAL_VT_SLOTS = {
+  1: [['50%','translateX(-50%)','70%','131%','bottom:-31%']],
+  2: [['7%','none','52%','110%','bottom:-6%'], ['45%','none','50%','108%','bottom:-4%']],
+  3: [['-6%','none','52%','102%','bottom:-5%'], ['24%','none','52%','114%','bottom:-3%'], ['57%','none','52%','102%','bottom:-5%']],
+  4: [['-12%','none','50%','98%','bottom:-6%'], ['11%','none','50%','100%','bottom:-4%'], ['39%','none','50%','98%','bottom:-4%'], ['63%','none','50%','98%','bottom:-6%']],
+};
+
+const ENDING_SOUL_VT_SLOTS = {
+  1: [['50%','translateX(-50%)','32%','58%','bottom:20%']],
+  2: [['14%','none','32%','55%','bottom:22%'], ['57%','none','32%','55%','bottom:21%']],
+  3: [['2%','none','33%','58%','bottom:23%'], ['34%','none','33%','58%','bottom:23%'], ['67%','none','31%','56%','bottom:24%']],
+  4: [['1%','none','24%','43%','bottom:29%'], ['26%','none','24%','43%','bottom:29%'], ['51%','none','24%','43%','bottom:29%'], ['76%','none','24%','43%','bottom:28%']],
+};
+
+const BANNER_SLOT_OVERRIDE = {
+  'goods_ramen': {
+    1: [['-14%','none','83%','148%','bottom:-39%','transform:rotate(19deg)']],
+    2: [['0%','none','44%','96%',''], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['0%','none','44%','96%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['0%','none','44%','96%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'goods_covercd': {
+    1: [['0%','rotate(-9deg)','75%','127%','bottom:-35%','transform:rotate(-5deg)']],
+    2: [['4%','rotate(-9deg)','48%','86%','bottom:2%'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['4%','rotate(-9deg)','48%','86%','bottom:2%'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['4%','rotate(-9deg)','48%','86%','bottom:2%'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'col_influencer': {
+    1: [['-1%','none','55%','100%','']],
+    2: [['0%','none','42%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['0%','none','42%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['0%','none','42%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'ad_sns': {
+    1: [['50%','translateX(-50%)','62%','100%','']],
+    2: [['-7%','none','68%','119%','bottom:-31%'], ['41%','none','61%','119%','bottom:-24%']],
+    3: [['-15%','none','61%','113%','bottom:-24%','transform:rotate(10deg)'], ['48%','translateX(-50%)','58%','100%','bottom:-23%'], ['54%','none','59%','105%','bottom:-20%','transform:rotate(-13deg)']],
+    4: [['-19%','none','55%','100%','bottom:-19%'], ['36%','translateX(-50%)','58%','92%','bottom:-21%'], ['65%','none','55%','100%','bottom:-16%'], ['66%','translateX(-50%)','56%','100%','bottom:-21%']],
+  },
+  'goods_essay': {
+    1: [['42%','none','45%','90%','top:33%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(8deg)']],
+    2: [['40%','none','36%','84%','top:6%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['40%','none','36%','84%','top:6%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['40%','none','36%','84%','top:6%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'ad_bus': {
+    1: [['23%','none','94%','163%','bottom:-55%']],
+    2: [['14%','none','72%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['14%','none','72%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['14%','none','72%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'ev_mystery': {
+    1: [['23%','none','87%','177%','bottom:-34%','transform:rotate(-142deg)']],
+    2: [['69%','none','36%','78%','bottom:-14%','transform:rotate(-17deg)'], ['61%','translateX(-50%)','68%','127%','','transform:rotate(-153deg)']],
+    3: [['35%','none','70%','135%','bottom:5%','transform:rotate(-135deg)'], ['3%','translateX(-50%)','49%','84%','bottom:21%','transform:rotate(54deg)'], ['79%','translateX(-50%)','57%','55%','bottom:-11%','transform:rotate(8deg)']],
+    4: [['-1%','none','27%','90%','bottom:-21%','transform:rotate(53deg)'], ['67%','translateX(-50%)','46%','100%','bottom:-31%','transform:rotate(-12deg)'], ['87%','translateX(-50%)','49%','82%','bottom:20%','transform:rotate(-64deg)'], ['51%','translateX(-50%)','72%','114%','bottom:30%','transform:rotate(-153deg)']],
+  },
+  'col_amusementpark': {
+    1: [['65%','translateX(-50%)','87%','155%','bottom:-48%']],
+    2: [['68%','translateX(-50%)','48%','98%',''], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['68%','translateX(-50%)','48%','98%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['68%','translateX(-50%)','48%','98%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'col_tvguest': {
+    1: [['66%','none','28%','55%','top:22%;bottom:auto','object-fit:cover;object-position:top center']],
+    2: [['63%','none','28%','74%','top:7%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['63%','none','28%','74%','top:7%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['63%','none','28%','74%','top:7%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'col_anime': {
+    1: [['1%','none','64%','119%','bottom:-10%']],
+    2: [['3%','none','38%','92%',''], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['3%','none','38%','92%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['3%','none','38%','92%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'pev_colcafe': {
+    1: [['41%','none','65%','122%','bottom:-21%']],
+    2: [['28%','none','48%','96%',''], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['28%','none','48%','96%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['28%','none','48%','96%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'pev_talksession': {
+    1: [['51%','translateX(-50%)','71%','119%','bottom:-15%']],
+    2: [['50%','translateX(-50%)','38%','75%','bottom:16%'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['50%','translateX(-50%)','38%','75%','bottom:16%'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['50%','translateX(-50%)','38%','75%','bottom:16%'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'pev_arenasoloshow': {
+    1: [['64%','translateX(-50%)','82%','148%','bottom:-36%','transform:rotate(-13deg)']],
+    2: [['50%','translateX(-50%)','44%','96%',''], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['50%','translateX(-50%)','44%','96%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['50%','translateX(-50%)','44%','96%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'ev_battlegame': {
+    1: [['38%','none','26%','84%','']],
+    2: [['5%','none','26%','82%',''], ['68%','none','26%','82%','']],
+    3: [['-7%','none','50%','99%','bottom:-5%','transform:rotate(59deg)'], ['26%','none','50%','84%','bottom:-15%'], ['59%','none','50%','100%','bottom:-2%','transform:rotate(-63deg)']],
+    4: [['4%','none','25%','82%',''], ['37%','none','26%','84%',''], ['70%','none','25%','82%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'ad_city': {
+    1: [['41%','translateX(-50%)','36%','65%','top:11%;bottom:auto','object-fit:cover;object-position:top center']],
+    2: [['13%','translateX(-50%)','28%','65%','top:18%;bottom:auto','object-fit:cover;object-position:top center'], ['73%','translateX(-50%)','26%','65%','top:15%;bottom:auto','object-fit:cover;object-position:top center']],
+    3: [['13%','translateX(-50%)','28%','88%','top:-11%;bottom:auto','object-fit:cover;object-position:top center'], ['35%','translateX(-50%)','29%','49%','top:22%;bottom:auto','object-fit:cover;object-position:top center'], ['83%','translateX(-50%)','52%','101%','top:15%;bottom:auto','object-fit:cover;object-position:top center']],
+    4: [['14%','translateX(-50%)','50%','65%','top:-11%;bottom:auto','object-fit:cover;object-position:top center'], ['35%','translateX(-50%)','31%','52%','top:18%;bottom:auto','object-fit:cover;object-position:top center'], ['83%','translateX(-50%)','26%','102%','top:10%;bottom:auto','object-fit:cover;object-position:top center'], ['36%','translateX(-50%)','55%','107%','bottom:-47%']],
+  },
+  'goods_origcd': {
+    1: [['54%','translateX(-50%)','100%','200%','top:-20%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(-13deg)']],
+    2: [['66%','translateX(-50%)','34%','72%','top:8%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['66%','translateX(-50%)','34%','72%','top:8%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['66%','translateX(-50%)','34%','72%','top:8%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'pev_onlinesoloshow': {
+    1: [['56%','translateX(-50%)','58%','85%','top:13%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(-17deg)']],
+    2: [['50%','translateX(-50%)','46%','85%','top:4%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['50%','translateX(-50%)','46%','85%','top:4%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['50%','translateX(-50%)','46%','85%','top:4%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'ev_livefes': {
+    1: [['33%','none','34%','56%','top:3%;bottom:auto','object-fit:cover;object-position:top center']],
+    2: [['0%','none','33%','56%','top:2%;bottom:auto','object-fit:cover;object-position:top center'], ['66%','none','34%','56%','top:2%;bottom:auto','object-fit:cover;object-position:top center']],
+    3: [['1%','none','33%','78%','top:18%;bottom:auto','object-fit:cover;object-position:top center'], ['30%','none','40%','107%','top:9%;bottom:auto','object-fit:cover;object-position:top center'], ['66%','none','34%','73%','top:20%;bottom:auto','object-fit:cover;object-position:top center']],
+    4: [['0%','none','33%','56%','top:2%;bottom:auto','object-fit:cover;object-position:top center'], ['33%','none','34%','56%','top:3%;bottom:auto','object-fit:cover;object-position:top center'], ['66%','none','34%','56%','top:2%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'col_gameguest': {
+    1: [['41%','rotate(8deg)','46%','89%','top:21%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(12deg)']],
+    2: [['63%','rotate(8deg)','26%','52%','top:5%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['63%','rotate(8deg)','26%','52%','top:5%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['63%','rotate(8deg)','26%','52%','top:5%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'goods_origgame': {
+    1: [['9%','none','50%','97%','top:10%;bottom:auto','object-fit:cover;object-position:top center']],
+    2: [['10%','none','38%','75%','top:7%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['10%','none','38%','75%','top:7%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['10%','none','38%','75%','top:7%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'pev_fanmeet': {
+    1: [['50%','translateX(-50%)','37%','77%','top:-4%;bottom:auto','object-fit:cover;object-position:top center']],
+    2: [['50%','translateX(-50%)','72%','58%','top:2%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['50%','translateX(-50%)','72%','58%','top:2%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['50%','translateX(-50%)','72%','58%','top:2%;bottom:auto','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'ev_boxgame': {
+    1: [['28%','none','44%','97%','']],
+    2: [['-4%','none','63%','127%','bottom:-16%','transform:rotate(12deg)'], ['44%','none','64%','109%','bottom:-18%','transform:rotate(-18deg)']],
+    3: [['-15%','none','52%','79%','bottom:30%','transform:rotate(85deg)'], ['59%','none','44%','97%','bottom:-22%','transform:rotate(-25deg)'], ['47%','translateX(-50%)','64%','126%','bottom:-25%','transform:rotate(8deg)']],
+    4: [['0%','none','44%','97%',''], ['54%','none','44%','97%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+  'ad_tvcm': {
+    1: [['40%','translateX(-50%)','93%','164%','bottom:-40%','object-fit:cover;object-position:top center;transform:rotate(28deg)']],
+    2: [['-10%','none','71%','100%','bottom:-18%','object-fit:cover;object-position:top center;transform:rotate(16deg)'], ['50%','none','48%','100%','bottom:-23%','object-fit:cover;object-position:top center;transform:rotate(-21deg)']],
+    3: [['-7%','none','40%','95%','bottom:-5%','object-fit:cover;object-position:top center;transform:rotate(46deg)'], ['53%','translateX(-50%)','55%','100%','bottom:-44%','object-fit:cover;object-position:top center;transform:rotate(-19deg)'], ['69%','none','38%','95%','bottom:14%','object-fit:cover;object-position:top center;transform:rotate(-150deg)']],
+    4: [['-7%','none','30%','58%','bottom:13%','object-fit:cover;object-position:top center;transform:rotate(118deg)'], ['6%','none','56%','96%','bottom:-29%','object-fit:cover;object-position:top center;transform:rotate(20deg)'], ['55%','none','47%','78%','bottom:-23%','object-fit:cover;object-position:top center;transform:rotate(-34deg)'], ['55%','none','48%','95%','bottom:30%','object-fit:cover;object-position:top center;transform:rotate(-105deg)']],
+  },
+  'ev_onlinelive': {
+    1: [['27%','none','57%','127%','top:-2%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(-17deg)']],
+    2: [['6%','none','52%','79%','top:26%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(-14deg)'], ['44%','none','47%','91%','top:13%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(-33deg)']],
+    3: [['14%','none','23%','67%','top:44%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(13deg)'], ['32%','none','39%','59%','top:42%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(-9deg)'], ['60%','none','30%','73%','top:24%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(-26deg)']],
+    4: [['11%','none','25%','59%','top:42%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(6deg)'], ['30%','none','23%','53%','top:50%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(-3deg)'], ['40%','none','35%','67%','top:34%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(-19deg)'], ['64%','none','33%','67%','top:27%;bottom:auto','object-fit:cover;object-position:top center;transform:rotate(-25deg)']],
+  },
+  'ad_vision': {
+    1: [['51%','none','38%','115%','bottom:-25%','object-fit:cover;object-position:top center']],
+    2: [['47%','none','38%','115%','bottom:-15%','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%','']],
+    3: [['47%','none','38%','115%','bottom:-15%','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+    4: [['47%','none','38%','115%','bottom:-15%','object-fit:cover;object-position:top center'], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%',''], ['50%','translateX(-50%)','50%','100%','']],
+  },
+};
+const BANNER_EXPR_OVERRIDE = {
+  'ad_sns': {
+    2: ['smile'],
+    3: ['normal', 'smile'],
+    4: ['smile', 'normal', 'normal', 'smile'],
+  },
+  'pev_talksession': {
+    1: ['smile'],
+  },
+  'col_tvguest': {
+    1: ['smile'],
+  },
+  'ad_city': {
+    4: ['normal', 'smile'],
+  },
+  'ev_livefes': {
+    3: ['smile', 'smile'],
+  },
+  'ev_battlegame': {
+    3: ['sad', 'smile'],
+  },
+  'pev_onlinesoloshow': {
+    1: ['smile'],
+  },
+  'ev_boxgame': {
+    3: ['smile', 'normal', 'smile'],
+  },
+  'goods_ramen': {
+    1: ['smile'],
+  },
+  'col_amusementpark': {
+    1: ['smile'],
+  },
+  'ad_tvcm': {
+    2: ['smile', 'smile'],
+    3: ['normal', 'normal', 'smile'],
+    4: ['smile', 'normal', 'smile'],
+  },
+  'ev_onlinelive': {
+    1: ['smile'],
+    2: ['normal', 'smile'],
+    3: ['smile', 'smile'],
+    4: ['smile', 'normal', 'normal', 'smile'],
+  },
+  'pev_arenasoloshow': {
+    1: ['smile'],
+  },
+  'ev_mystery': {
+    2: ['sad'],
+    3: ['normal', 'smile'],
+    4: ['normal', 'normal', 'normal', 'smile'],
+  },
+};
 function showEvhostResult(isSuccess, ev, effectText, vtChannel) {
   const modal = document.getElementById('eventHostResultModal');
   // 既に表示中なら重複表示を防ぐ
@@ -14002,6 +15265,7 @@ function showEvhostResult(isSuccess, ev, effectText, vtChannel) {
   // ── イベント結果イメージバナー（複数イベント対応） ──
   const snsBanner  = document.getElementById('evhostSnsBanner');
   const snsBgImg   = document.getElementById('evhostSnsBgImg');
+  const snsBkImg   = document.getElementById('evhostSnsBkImg');
   const snsVtubers = document.getElementById('evhostSnsVtubers');
   const snsFgImg   = document.getElementById('evhostSnsFgImg');
   const snsLabel   = document.getElementById('evhostSnsLabel');
@@ -14015,9 +15279,9 @@ function showEvhostResult(isSuccess, ev, effectText, vtChannel) {
       vtSlots: (chs) => {
         const n = Math.min(chs.length, 3);
         const map = {
-          1: [['50%','translateX(-50%)','62%','100%','']],
-          2: [['2%','none','54%','100%',''],['44%','none','54%','100%','']],
-          3: [['0%','none','55%','100%',''],['50%','translateX(-50%)','58%','100%',''],['45%','none','55%','100%','']],
+          1: [['50%','translateX(-50%)','56%','100%','']],
+          2: [['6%','none','45%','98%',''],['50%','none','45%','98%','']],
+          3: [['-2%','none','37%','94%',''],['32%','none','37%','94%',''],['65%','none','37%','94%','']],
         };
         return (map[n] || map[3]).map((s,i) => ({ slot: s, ch: chs[i] }));
       },
@@ -14026,56 +15290,72 @@ function showEvhostResult(isSuccess, ev, effectText, vtChannel) {
       bg: 'images/event/箱内ゲーム大会_背景.png',
       fg: 'images/event/箱内ゲーム大会_手前.png', label: false,
       vtSlots: (chs) => {
-        const left  = { slot: ['2%','none','42%','98%',''], ch: chs[0] };
-        const right = { slot: ['56%','none','42%','98%',''], ch: chs[1] || chs[0] };
-        return chs.length >= 2 ? [left, right] : [{ slot: ['29%','none','42%','98%',''], ch: chs[0] }];
+        const left  = { slot: ['0%','none','44%','97%',''], ch: chs[0] };
+        const right = { slot: ['54%','none','44%','97%',''], ch: chs[1] || chs[0] };
+        return chs.length >= 2 ? [left, right] : [{ slot: ['28%','none','44%','97%',''], ch: chs[0] }];
       },
     },
     'pev_talksession': {
       bg: 'images/event/オンライントーク会_背景.png',
       fg: 'images/event/オンライントーク会_手前.png', label: false,
-      vtSlots: (chs) => [
-        { slot: ['50%','translateX(-50%)','38%','75%','bottom:16%'], ch: chs[0] },
-      ],
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        return [{ slot: ['50%','translateX(-50%)','52%','90%','top:5%;bottom:auto', imgS], ch: chs[0] }];
+      },
     },
     'col_influencer': {
       bg: 'images/event/インフルエンサーコラボ_背景.png', fg: null, label: false,
       vtSlots: (chs) => [
-        { slot: ['2%','none','46%','98%',''], ch: chs[0] },
+        { slot: ['-2%','none','46%','102%','bottom:-2%'], ch: chs[0] },
       ],
     },
     'goods_covercd': {
-      bg: 'images/event/カバー曲CD発売_背景.png',
+      bg: null,
+      bk: 'images/event/カバー曲CD発売_奥.png',
       fg: 'images/event/カバー曲CD発売_手前.png', label: false,
       vtSlots: (chs) => [
-        { slot: ['6%','rotate(-9deg)','50%','82%','bottom:4%'], ch: chs[0] },
+        { slot: ['2%','none','40%','88%','bottom:5%'], ch: chs[0] },
       ],
     },
 
-    // ── 以下、新規追加イベント ──
+    // ── 以下、各イベント ──
 
-    // ファンミーティング（個人）: 中央1人
+    // ファンミーティング（個人）: ステージ上で中央大きめ
     'pev_fanmeet': {
-      bg: 'images/event/ファンミーティング_背景.png', fg: null, label: false,
-      vtSlots: (chs) => [
-        { slot: ['50%','translateX(-50%)','52%','100%',''], ch: chs[0] },
-      ],
+      bg: 'images/event/ファンミーティング_背景.png',
+      fg: 'images/event/ファンミーティング_手前.png', label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        return [{ slot: ['50%','translateX(-50%)','72%','58%','top:2%;bottom:auto', imgS], ch: chs[0] }];
+      },
     },
 
-    // コラボカフェ（個人）: やや左寄りで1人
+    // コラボカフェ（個人）: 中央やや右寄りに1人
     'pev_colcafe': {
       bg: 'images/event/コラボカフェ_背景.png', fg: null, label: false,
       vtSlots: (chs) => [
-        { slot: ['28%','none','48%','96%',''], ch: chs[0] },
+        { slot: ['44%','none','46%','95%',''], ch: chs[0] },
       ],
     },
 
-    // テレビ番組にゲスト出演（個人）: スタジオ中央1人
+    // テレビ番組にゲスト出演（個人）: 右側モニター画面内にキャラを配置（手前で枠を重ねる）
     'col_tvguest': {
-      bg: 'images/event/テレビ番組にゲスト出演_背景.png', fg: null, label: false,
-      vtSlots: (chs) => [
-        { slot: ['50%','translateX(-50%)','44%','95%',''], ch: chs[0] },
-      ],
+      bg: 'images/event/テレビ番組にゲスト出演_背景.png',
+      fg: 'images/event/テレビ番組にゲスト出演_手前.png', label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        return [{ slot: ['62%','none','30%','72%','top:5%;bottom:auto', imgS], ch: chs[0] }];
+      },
+    },
+
+    // 街頭ビジョン広告（全体広告）: 円柱型大型ビジョン画面内に1人、手前レイヤーあり
+    'ad_vision': {
+      bg: 'images/event/街頭ビジョン_背景.png',
+      fg: 'images/event/街頭ビジョン_手前.png', label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        return [{ slot: ['47%','none','38%','115%','bottom:-15%', imgS], ch: chs[0] }];
+      },
     },
 
     // ラッピングバス（全体広告）: バス車体に大きく1人、バス前景あり
@@ -14083,115 +15363,122 @@ function showEvhostResult(isSuccess, ev, effectText, vtChannel) {
       bg: 'images/event/ラッピングバス_背景.png',
       fg: 'images/event/ラッピングバス_手前.png', label: false,
       vtSlots: (chs) => [
-        { slot: ['14%','none','72%','100%',''], ch: chs[0] },
+        { slot: ['18%','none','62%','100%',''], ch: chs[0] },
       ],
     },
 
-    // 大型ライブフェス（全体）: 最大4人横並び
+    // 大型ライブフェス（全体）: 3スクリーンに顔アップ、手前レイヤーあり
     'ev_livefes': {
-      bg: 'images/event/大型ライブフェス_背景.png', fg: null, label: false,
+      bg: 'images/event/大型ライブフェス_背景.png',
+      fg: 'images/event/大型ライブフェス_手前.png', label: false,
       vtSlots: (chs) => {
-        const n = Math.min(chs.length, 4);
-        const maps = {
-          1: [['50%','translateX(-50%)','30%','82%','bottom:0']],
-          2: [['14%','none','30%','80%','bottom:0'],['56%','none','30%','80%','bottom:0']],
-          3: [['3%','none','28%','78%','bottom:0'],['36%','none','28%','78%','bottom:0'],['68%','none','28%','78%','bottom:0']],
-          4: [['1%','none','24%','76%','bottom:0'],['26%','none','24%','76%','bottom:0'],['51%','none','24%','76%','bottom:0'],['75%','none','24%','76%','bottom:0']],
-        };
-        return (maps[n] || maps[4]).map((s,i) => ({ slot: s, ch: chs[i] }));
+        const n = Math.min(chs.length, 3);
+        const imgS = 'object-fit:cover;object-position:top center';
+        const screens = [
+          ['0%','none','33%','56%','top:2%;bottom:auto', imgS],
+          ['33%','none','34%','56%','top:3%;bottom:auto', imgS],
+          ['66%','none','34%','56%','top:2%;bottom:auto', imgS],
+        ];
+        const picks = n === 1 ? [1] : n === 2 ? [0,2] : [0,1,2];
+        return picks.map((si, i) => ({ slot: screens[si], ch: chs[i] }));
       },
     },
 
-    // 街ジャック広告（全体広告）: ビルの3か所の看板に配置、前景あり
+    // 街ジャック広告（全体広告）: 4つの広告スペースに配置、前景あり
     'ad_city': {
       bg: 'images/event/街ジャック広告_背景.png',
       fg: 'images/event/街ジャック広告_手前.png', label: false,
       vtSlots: (chs) => {
-        // 各看板の「＋」位置（左13%/24%, 中41%/17%, 右73%/21%）に顔中心を合わせる
-        // コンテナtop = ＋y - 10%*height（顔はスプライト上端から約10%の位置）
         const imgS = 'object-fit:cover;object-position:top center';
         const allSlots = [
-          ['13%', 'translateX(-50%)', '28%', '65%', 'top:18%;bottom:auto', imgS],  // 左看板
-          ['41%', 'translateX(-50%)', '36%', '65%', 'top:11%;bottom:auto', imgS],  // 中看板
-          ['73%', 'translateX(-50%)', '26%', '65%', 'top:15%;bottom:auto', imgS],  // 右看板
+          ['1%','none','25%','52%','top:0%;bottom:auto', imgS],     // 左上大看板
+          ['27%','none','18%','40%','top:12%;bottom:auto', imgS],   // 中央上看板
+          ['65%','none','35%','88%','top:0%;bottom:auto', imgS],    // 右円柱
+          ['23%','none','32%','36%','top:52%;bottom:auto', imgS],   // 左下看板
         ];
-        const n = Math.min(chs.length, 3);
-        // 1人→中, 2人→左右, 3人→全て
-        const picks = n === 1 ? [1] : n === 2 ? [0, 2] : [0, 1, 2];
+        const n = Math.min(chs.length, 4);
+        const picks = n === 1 ? [2] : n === 2 ? [0,2] : n === 3 ? [0,1,2] : [0,1,2,3];
         return picks.map((si, i) => ({ slot: allSlots[si], ch: chs[i] }));
       },
     },
 
-    // 遊園地コラボ（個人）: ゲート前中央1人（.jpg）
+    // 遊園地コラボ（個人）: 右寄りに大きく1人
     'col_amusementpark': {
-      bg: 'images/event/遊園地コラボ_背景.jpg', fg: null, label: false,
+      bg: 'images/event/遊園地コラボ_背景.png', fg: null, label: false,
       vtSlots: (chs) => [
-        { slot: ['50%','translateX(-50%)','50%','98%',''], ch: chs[0] },
+        { slot: ['47%','none','56%','108%','bottom:-5%'], ch: chs[0] },
       ],
     },
 
-    // VTuberバトルゲーム大会（全体）: 1〜3人横並び
+    // VTuberバトルゲーム大会（全体）: 1〜3人横並び（中央やや大きめ）
     'ev_battlegame': {
       bg: 'images/event/VTuberバトルゲーム大会_背景.png', fg: null, label: false,
       vtSlots: (chs) => {
         const n = Math.min(chs.length, 3);
         const maps = {
-          1: [['38%','none','26%','84%','']],
-          2: [['5%','none','26%','82%',''],['68%','none','26%','82%','']],
-          3: [['4%','none','25%','82%',''],['37%','none','26%','84%',''],['70%','none','25%','82%','']],
+          1: [['36%','none','28%','85%','']],
+          2: [['5%','none','27%','83%',''],['68%','none','27%','83%','']],
+          3: [['4%','none','26%','82%',''],['36%','none','28%','86%','bottom:0'],['68%','none','26%','82%','']],
         };
         return (maps[n] || maps[3]).map((s,i) => ({ slot: s, ch: chs[i] }));
       },
     },
 
-    // アニメにゲスト声優出演（個人）: 左寄り1人
+    // アニメにゲスト声優出演（個人）: 左寄り大きめ1人
     'col_anime': {
-      bg: 'images/event/アニメにゲスト声優出演_背景.png', fg: null, label: false,
+      bg: 'images/event/アニメにゲスト声優出演_背景.png', fg: 'images/event/アニメにゲスト声優出演_手前.png', label: false,
       vtSlots: (chs) => [
-        { slot: ['5%','none','36%','86%',''], ch: chs[0] },
+        { slot: ['5%','none','42%','95%',''], ch: chs[0] },
       ],
     },
 
-    // アリーナソロライブ（個人）: 中央大きめ1人
+    // アリーナソロライブ（個人）: 中央大きめ1人、手前レイヤーあり
     'pev_arenasoloshow': {
-      bg: 'images/event/アリーナソロライブ_背景.png', fg: null, label: false,
+      bg: 'images/event/アリーナソロライブ_背景.png',
+      fg: 'images/event/アリーナソロライブ_手前.png', label: false,
       vtSlots: (chs) => [
-        { slot: ['50%','translateX(-50%)','44%','96%',''], ch: chs[0] },
+        { slot: ['55%','translateX(-50%)','52%','100%','bottom:-5%'], ch: chs[0] },
       ],
     },
 
-    // オリジナル曲CD発売（グッズ）: CDジャケットの四角穴から顔アップ（手前レイヤーが穴をマスク）
+    // オリジナルCD発売（グッズ）: CDジャケット中央に顔アップ
     'goods_origcd': {
       bg: 'images/event/オリジナルCD発売_背景.png',
       fg: 'images/event/オリジナルCD発売_手前.png', label: false,
       vtSlots: (chs) => {
         const imgS = 'object-fit:cover;object-position:top center';
-        return [{ slot: ['66%','translateX(-50%)','34%','72%','top:8%;bottom:auto', imgS], ch: chs[0] }];
+        return [{ slot: ['50%','translateX(-50%)','54%','54%','top:6%;bottom:auto', imgS], ch: chs[0] }];
       },
     },
 
-    // オリジナルゲーム発売（グッズ）: 右寄り1人
+    // オリジナルゲーム発売（グッズ）: TVモニター画面内に配置、手前レイヤーあり
     'goods_origgame': {
-      bg: 'images/event/オリジナルゲーム発売_背景.png', fg: null, label: false,
-      vtSlots: (chs) => [
-        { slot: ['57%','none','38%','86%',''], ch: chs[0] },
-      ],
+      bg: 'images/event/オリジナルゲーム発売_背景.png',
+      fg: 'images/event/オリジナルゲーム発売_手前.png', label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        return [{ slot: ['10%','none','38%','75%','top:7%;bottom:auto', imgS], ch: chs[0] }];
+      },
     },
 
-    // オンラインソロライブ（個人）: 中央左寄り1人
+    // オンラインソロライブ（個人）: PCモニター画面内に配置、手前レイヤーあり
     'pev_onlinesoloshow': {
-      bg: 'images/event/オンラインソロライブ_背景.png', fg: null, label: false,
-      vtSlots: (chs) => [
-        { slot: ['18%','none','44%','90%',''], ch: chs[0] },
-      ],
+      bg: 'images/event/オンラインソロライブ_背景.png',
+      fg: 'images/event/オンラインソロライブ_手前.png', label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        return [{ slot: ['50%','translateX(-50%)','46%','85%','top:4%;bottom:auto', imgS], ch: chs[0] }];
+      },
     },
 
-    // ゲームにゲスト出演（個人）: 左寄り1人
+    // ゲームにゲスト出演（個人）: SSRカード枠内（右側・傾き約8°）にキャラを配置、手前レイヤーあり
     'col_gameguest': {
-      bg: 'images/event/ゲームにゲスト出演_背景.png', fg: null, label: false,
-      vtSlots: (chs) => [
-        { slot: ['5%','none','40%','88%',''], ch: chs[0] },
-      ],
+      bg: 'images/event/ゲームにゲスト出演_背景.png',
+      fg: 'images/event/ゲームにゲスト出演_手前.png', label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        return [{ slot: ['63%','rotate(8deg)','26%','52%','top:5%;bottom:auto', imgS], ch: chs[0] }];
+      },
     },
 
     // 謎解きイベント（全体）: 右寄りに1人
@@ -14202,20 +15489,50 @@ function showEvhostResult(isSuccess, ev, effectText, vtChannel) {
       ],
     },
 
-    // エッセイ本発売（グッズ）: 左寄りに1人
+    // エッセイ本発売（グッズ）: 本の右側に全身
     'goods_essay': {
-      bg: 'images/event/エッセイ本発売_背景.png', fg: null, label: false,
+      bg: 'images/event/エッセイ本発売_背景.png',
+      fg: 'images/event/エッセイ本発売_手前.png', label: false,
       vtSlots: (chs) => [
-        { slot: ['2%','none','38%','88%',''], ch: chs[0] },
+        { slot: ['42%','none','40%','90%','bottom:0'], ch: chs[0] },
       ],
     },
 
-    // オリジナルラーメン発売（グッズ）: 左寄りに1人
+    // オリジナルラーメン発売（グッズ）: 左端に大きめ1人
     'goods_ramen': {
       bg: 'images/event/オリジナルラーメン_背景.png', fg: null, label: false,
       vtSlots: (chs) => [
-        { slot: ['2%','none','38%','88%',''], ch: chs[0] },
+        { slot: ['-3%','none','52%','100%',''], ch: chs[0] },
       ],
+    },
+    'ev_onlinelive': {
+      bg: 'images/event/オンライン事務所ライブ_背景.png',
+      fg: 'images/event/オンライン事務所ライブ_手前.png', label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        const n = Math.min(chs.length, 4);
+        const screens = {
+          1: [['20%','none','57%','63%','top:9%;bottom:auto', imgS]],
+          2: [['20%','none','27%','60%','top:10%;bottom:auto', imgS], ['49%','none','27%','60%','top:10%;bottom:auto', imgS]],
+          3: [['19%','none','18%','56%','top:13%;bottom:auto', imgS], ['29%','none','32%','63%','top:9%;bottom:auto', imgS], ['63%','none','14%','56%','top:13%;bottom:auto', imgS]],
+          4: [['19%','none','13%','56%','top:12%;bottom:auto', imgS], ['33%','none','13%','58%','top:10%;bottom:auto', imgS], ['47%','none','14%','58%','top:10%;bottom:auto', imgS], ['62%','none','14%','56%','top:12%;bottom:auto', imgS]],
+        };
+        return (screens[n] || screens[3]).map((s,i) => ({ slot: s, ch: chs[i] }));
+      },
+    },
+    'ad_tvcm': {
+      bg: 'images/event/CM出演_背景.png', fg: null, label: false,
+      vtSlots: (chs) => {
+        const imgS = 'object-fit:cover;object-position:top center';
+        const n = Math.min(chs.length, 4);
+        const slots = {
+          1: [['50%','translateX(-50%)','60%','110%','bottom:-12%', imgS]],
+          2: [['3%','none','50%','100%','bottom:-8%', imgS], ['50%','none','48%','100%','bottom:-8%', imgS]],
+          3: [['0%','none','40%','95%','bottom:-5%', imgS], ['32%','translateX(-50%)','38%','105%','bottom:-10%', imgS], ['63%','none','38%','95%','bottom:-5%', imgS]],
+          4: [['0%','none','30%','90%','bottom:-5%', imgS], ['25%','none','30%','95%','bottom:-8%', imgS], ['52%','none','30%','95%','bottom:-8%', imgS], ['72%','none','30%','90%','bottom:-5%', imgS]],
+        };
+        return (slots[n] || slots[3]).map((s,i) => ({ slot: s, ch: chs[i] }));
+      },
     },
   };
 
@@ -14223,6 +15540,9 @@ function showEvhostResult(isSuccess, ev, effectText, vtChannel) {
   if (cfg) {
     // 背景
     snsBgImg.src = cfg.bg;
+    // 奥（キャラとbgの間）
+    if (cfg.bk) { snsBkImg.src = cfg.bk; snsBkImg.classList.add('show'); }
+    else         { snsBkImg.src = '';     snsBkImg.classList.remove('show'); }
     // 手前
     if (cfg.fg) { snsFgImg.src = cfg.fg; snsFgImg.classList.add('show'); }
     else         { snsFgImg.src = '';     snsFgImg.classList.remove('show'); }
@@ -14241,44 +15561,81 @@ function showEvhostResult(isSuccess, ev, effectText, vtChannel) {
       bannerChs = [vtChannel];
     } else {
       bannerChs = (gameState.channels || [])
-        .filter(c => !c.graduated)
-        .slice().sort(() => Math.random() - 0.5);
+        .filter(ch => !ch.graduated && (ch.vtuber?.hiatusRemaining ?? 0) === 0)
+        .sort(() => Math.random() - 0.5);
     }
+    // BANNER_SLOT_OVERRIDE による上書き
+    // bannerChs.length に完全一致がない場合、最大の定義済みキーにフォールバック
+    const _evOvr = BANNER_SLOT_OVERRIDE[ev.id];
+    let _ovr = _evOvr?.[bannerChs.length] || null;
+    if (!_ovr && _evOvr) {
+      const bestN = Math.max(0, ...Object.keys(_evOvr).map(Number).filter(k => k < bannerChs.length));
+      if (bestN > 0) _ovr = _evOvr[bestN];
+    }
+    const _slots = _ovr
+      ? _ovr.map((s, i) => ({ slot: s, ch: bannerChs[i] }))
+      : cfg.vtSlots(bannerChs);
+    // キャラ表情（BANNER_EXPR_OVERRIDE で指定。{N:[expr,...]} 形式でキャラごと指定可）
+    const _evExprOvr = BANNER_EXPR_OVERRIDE[ev.id];
+    let _exprArr = null;
+    if (_evExprOvr) {
+      if (typeof _evExprOvr === 'string') {
+        _exprArr = Array(_slots.length).fill(_evExprOvr);
+      } else {
+        _exprArr = _evExprOvr[bannerChs.length] || null;
+        if (!_exprArr) {
+          const _bestN = Math.max(0, ...Object.keys(_evExprOvr).map(Number).filter(k => +k <= bannerChs.length));
+          if (_bestN > 0) _exprArr = _evExprOvr[_bestN];
+        }
+      }
+    }
+    // VTuberレイヤーを描画
     snsVtubers.innerHTML = '';
-    if (bannerChs.length > 0) {
-      cfg.vtSlots(bannerChs).forEach(({ slot, ch }) => {
-        if (!ch) return;
-        const [left, transform, width, height, extra, imgStyle] = slot;
-        const file = gawaVariantToFile(ch.vtuber.gawaVariant);
-        const el = document.createElement('div');
-        el.className = 'evhost-sns-vt';
-        el.style.cssText = `left:${left};transform:${transform};width:${width};height:${height};${extra ? extra+';' : ''}`;
-        el.innerHTML = `<img src="images/gawa/${file}.png" alt="${ch.vtuber.name}"${imgStyle ? ` style="${imgStyle}"` : ''}>`;
-        snsVtubers.appendChild(el);
-      });
+    _slots.forEach(({ slot, ch }, _si) => {
+      if (!ch) return;
+      const [left, transform, width, height, extra, imgStyle] = slot;
+      const vDiv = document.createElement('div');
+      vDiv.className = 'evhost-sns-vt';
+      vDiv.style.cssText = `left:${left};transform:${transform};width:${width};height:${height};${extra ? extra + ';' : ''}`;
+      const img = document.createElement('img');
+      const _gv = ch.vtuber?.gawaVariant ?? ch.gawaVariant;
+      const _expr = _exprArr?.[_si] || 'normal';
+      img.src = `images/gawa/${gawaVariantToFile(_gv)}_${_expr}.png`;
+      img.alt = ch.vtuber?.name || ch.name || '';
+      if (imgStyle) img.style.cssText = `width:100%;height:100%;display:block;${imgStyle}`;
+      vDiv.appendChild(img);
+      snsVtubers.appendChild(vDiv);
+    });
+    // 結果レイヤー
+    const _snsRL = document.getElementById('evhostSnsResultLayer');
+    if (_snsRL) {
+      _snsRL.src = isSuccess
+        ? 'images/event/結果レイヤー_成功.png'
+        : 'images/event/結果レイヤー_失敗.png';
+      _snsRL.classList.add('show');
     }
-    // 履歴に保存
-    const _slots = cfg.vtSlots(bannerChs);
+    snsBanner.classList.add('show');
+    // イベントイメージ履歴に追加（最新30件）
+    const _histDateStr = (typeof gameDate !== 'undefined' && gameDate)
+      ? `${gameDate.getMonth()+1}/${gameDate.getDate()}`
+      : '';
     gameState.eventImageHistory = gameState.eventImageHistory || [];
     gameState.eventImageHistory.unshift({
       evId: ev.id, evName: ev.name, isSuccess,
-      dateStr: `${gameDate.getMonth()+1}/${gameDate.getDate()}`,
-      bg: cfg.bg, fg: cfg.fg || null,
+      dateStr: _histDateStr,
+      bg: cfg.bg, bk: cfg.bk || null, fg: cfg.fg || null,
+      exprs: _exprArr || null,
       label: cfg.label ? ((document.getElementById('hubOfficeName') || {}).textContent || '') : null,
       vts: _slots.map(({ slot, ch }) => ch ? {
-        slot, gawaVariant: ch.vtuber.gawaVariant,
-        imageColor: ch.vtuber.imageColor, name: ch.vtuber.name,
+        slot,
+        gawaVariant: ch.vtuber?.gawaVariant || ch.gawaVariant,
+        imageColor: ch.vtuber?.imageColor || ch.imageColor,
+        name: ch.vtuber?.name || ch.name,
       } : null).filter(Boolean),
     });
     if (gameState.eventImageHistory.length > 30) {
       gameState.eventImageHistory = gameState.eventImageHistory.slice(0, 30);
     }
-    const snsResultLayer = document.getElementById('evhostSnsResultLayer');
-    snsResultLayer.src = isSuccess
-      ? 'images/event/結果レイヤー_成功.png'
-      : 'images/event/結果レイヤー_失敗.png';
-    snsResultLayer.classList.add('show');
-    snsBanner.classList.add('show');
   } else {
     snsBanner.classList.remove('show');
     snsBgImg.src = '';
@@ -14299,7 +15656,7 @@ function showEvhostResult(isSuccess, ev, effectText, vtChannel) {
 
 // イベント実行キュー（準備完了イベントを順番に処理）
 let _eventExecQueue = [];
-let _execRunning = false;
+// _execRunning はすでに宣言済み
 function _drainEventExecQueue() {
   if (_execRunning || _eventExecQueue.length === 0) return;
   _execRunning = true;
@@ -14412,6 +15769,7 @@ function playEvhostSuccessSound() {
   } catch(e) {}
 }
 
+
 function playEvhostFailureSound() {
   if (!_seEnabled) return;
   try {
@@ -14425,7 +15783,6 @@ function playEvhostFailureSound() {
       d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ac.sampleRate * 0.05));
     }
     const bs = ac.createBufferSource();
-    bs.buffer = buf;
     const bg = ac.createGain();
     bg.gain.setValueAtTime(0.48, t0);
     bg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.2);
@@ -14439,8 +15796,6 @@ function playEvhostFailureSound() {
       const o = ac.createOscillator(), g = ac.createGain();
       o.type = 'sawtooth'; o.frequency.value = f;
       g.gain.setValueAtTime(0.07, t0 + dt);
-      g.gain.exponentialRampToValueAtTime(0.001, t0 + dt + 0.2);
-      o.connect(g); g.connect(ac.destination);
       o.start(t0 + dt); o.stop(t0 + dt + 0.25);
     });
   } catch(e) {}
@@ -14448,3 +15803,4 @@ function playEvhostFailureSound() {
 </script>
 </body>
 </html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               

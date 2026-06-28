@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>インフォメーション | VTuber事務所シミュレーション</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #04040e;
+      color: #fff;
+      font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Noto Sans JP', Meiryo, sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px 60px;
+    }
+    .container { max-width: 720px; margin: 0 auto; }
+    .page-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      color: #8070a8;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, #d080ff 0%, #80d0ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 40px;
+      filter: drop-shadow(0 0 18px rgba(176,96,255,0.5));
+    }
+    .news-item {
+      border-bottom: 1px solid rgba(176, 96, 255, 0.1);
+      padding: 22px 0;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    .news-item:first-of-type { padding-top: 0; }
+    .news-meta {
+      flex-shrink: 0;
+      width: 110px;
+    }
+    .news-date {
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      color: #a090c8;
+      margin-bottom: 6px;
+    }
+    .news-badge {
+      display: inline-block;
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      padding: 2px 8px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+    .badge-new {
+      background: rgba(176, 96, 255, 0.2);
+      border: 1px solid rgba(176, 96, 255, 0.4);
+      color: #c080ff;
+    }
+    .badge-update {
+      background: rgba(0, 200, 180, 0.15);
+      border: 1px solid rgba(0, 200, 180, 0.35);
+      color: #40d0c0;
+    }
+    .badge-fix {
+      background: rgba(255, 160, 60, 0.12);
+      border: 1px solid rgba(255, 160, 60, 0.3);
+      color: #ffb060;
+    }
+    .news-body h3 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #c8b8e8;
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    .news-body p {
+      font-size: 0.8rem;
+      color: #c0aee0;
+      line-height: 1.75;
+    }
+    .section-title {
+      font-size: 0.7rem;
+      letter-spacing: 0.35em;
+      color: #c080ff;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 48px;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      color: #8070a8;
+      text-decoration: none;
+      transition: color 0.25s;
+    }
+    .back-link:hover { color: #c080ff; }
+    hr { border: none; border-top: 1px solid rgba(176, 96, 255, 0.1); margin: 40px 0; }
+    @media (max-width: 480px) {
+      .news-item { flex-direction: column; gap: 8px; }
+      .news-meta { width: auto; display: flex; align-items: center; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="page-label">INFORMATION</div>
+    <h1>インフォメーション</h1>
+
+    <div class="section-title">── お知らせ ──</div>
+
+    <div class="news-item">
+      <div class="news-meta">
+        <div class="news-date">2024.xx.xx</div>
+        <span class="news-badge badge-new">NEW</span>
+      </div>
+      <div class="news-body">
+        <h3>ゲームを公開しました</h3>
+        <p>VTuber事務所シミュレーションのブラウザ版を公開しました。スマートフォン・PC どちらからでも遊べます。ぜひお楽しみください。</p>
+      </div>
+    </div>
+
+    <div class="news-item">
+      <div class="news-meta">
+        <div class="news-date">2024.xx.xx</div>
+        <span class="news-badge badge-update">UPDATE</span>
+      </div>
+      <div class="news-body">
+        <h3>Ver 1.x.x アップデート</h3>
+        <p>（仮）アップデート内容の詳細をここに記載します。新機能の追加や各種調整を行いました。</p>
+      </div>
+    </div>
+
+    <div class="news-item">
+      <div class="news-meta">
+        <div class="news-date">2024.xx.xx</div>
+        <span class="news-badge badge-fix">FIX</span>
+      </div>
+      <div class="news-body">
+        <h3>不具合修正のお知らせ</h3>
+        <p>（仮）修正した不具合の内容をここに記載します。ご不便をおかけしたことをお詫び申し上げます。</p>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="section-title">── 推奨環境 ──</div>
+
+    <div style="margin-top:20px; font-size:0.82rem; color:#c0aee0; line-height:2;">
+      <p>本ゲームは以下の環境での動作を推奨しています。</p>
+      <br>
+      <p>【PC】Chrome / Edge / Firefox / Safari（最新版）</p>
+      <p>【スマートフォン】iOS Safari / Android Chrome（最新版）</p>
+      <br>
+      <p>JavaScript・Web Audio API を使用しています。ブラウザの設定によっては一部機能が制限される場合があります。</p>
+    </div>
+
+    <hr>
+    <p style="font-size:0.72rem; color:#604870;">※ これは仮の内容です。正式リリース時に更新されます。</p>
+    <a href="index.html" class="back-link">← タイトルへ戻る</a>
+  </div>
+</body>
+</html>
