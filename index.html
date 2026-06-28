@@ -5351,6 +5351,10 @@
     <div class="event-badge" id="eventBadge"></div>
     <div class="event-icon" id="eventIcon"></div>
     <div class="event-title" id="eventTitle"></div>
+    <div class="event-ch-tag" id="eventChTag" style="display:none">
+      <div class="event-ch-gawa" id="eventChGawa"></div>
+      <span class="event-ch-vtname" id="eventChVtName"></span>
+    </div>
     <div id="eventThumb"></div>
     <div class="event-desc" id="eventDesc"></div>
     <div class="event-effect" id="eventEffect"></div>
@@ -5457,6 +5461,7 @@
 </div>
 
 <!-- 総登録者HUD -->
+</div>
 <div id="subsHUD">
   <div class="subs-hud-label">TOTAL SUBS</div>
   <div class="subs-hud-amount" id="subsHudAmount">0 人</div>
@@ -5889,6 +5894,9 @@ function showScreen(id){
 let twTimer = null;
 function typewrite(el, text, speed, done){
   if(twTimer){ clearInterval(twTimer); twTimer=null; }
+  // 最終テキストの高さを先に計測してウィンドウ縦幅を固定
+  el.textContent = text;
+  el.style.minHeight = el.offsetHeight + 'px';
   el.textContent='';
   let i=0;
   twTimer=setInterval(()=>{
@@ -7339,6 +7347,7 @@ function playSeOfficeOpen() {
 ════════════════════════════════════ */
 let _speedDouble = false;
 function getTickMs() { return _speedDouble ? GAME_TICK_MS / 2 : GAME_TICK_MS; }
+function getAutoCloseMs(baseMs) { return _speedDouble ? baseMs / 2 : baseMs; }
 
 (function initMenu() {
   const menuBtn   = document.getElementById('menuBtn');
@@ -10466,7 +10475,6 @@ function gameTick() {
 
   // ランダムイベント（1日あたり約4%、チャンネルがあるときのみ）
   if (gameState.channels.length > 0 && Math.random() < 0.04) {
-    // モーダルが既に開いていなければ発火
     if (!document.getElementById('eventModal').classList.contains('show')) {
       triggerRandomEvent();
     }
@@ -11821,8 +11829,15 @@ function triggerRandomEvent() {
   const moneyDelta = money.value - moneyBefore;
   if (moneyDelta !== 0) ledgerPush(ev.title || (ev.type === 'good' ? '好イベント' : '悪イベント'), moneyDelta);
   if (ev.paramDelta) changeOfficeParams(ev.paramDelta);
-  // イベントで登録者数が変動した場合にHUDとバッジを即時更新
-  updateSubsHUD();
+  // 登録者HUD・バッジのみ即時更新（マイルストーン判定は dailySubGrowth に一本化）
+  {
+    const _amtEl = document.getElementById('subsHudAmount');
+    if (_amtEl) {
+      const _t = (gameState.channels || []).reduce((s, c) => s + (c.subscribers || 0), 0);
+      _amtEl.textContent = fmtNum(_t) + ' 人';
+    }
+    updateOfficeRankDisplay();
+  }
 
   // メンタルに影響（チャンネルイベントはそのチャンネルのVTuber、全体イベントはランダムな1人に）
   let mentalTargetCh   = null;
@@ -11998,12 +12013,12 @@ function startEventCountdown() {
   fill.style.transition = 'none';
   fill.style.transform  = 'scaleX(1)';
   void fill.offsetWidth;  // reflow
-  fill.style.transition = `transform ${EVENT_AUTO_CLOSE_MS}ms linear`;
+  fill.style.transition = `transform ${getAutoCloseMs(EVENT_AUTO_CLOSE_MS)}ms linear`;
   fill.style.transform  = 'scaleX(0)';
 
   _eventAutoCloseTimer = setTimeout(() => {
     dismissEventModal();
-  }, EVENT_AUTO_CLOSE_MS);
+  }, getAutoCloseMs(EVENT_AUTO_CLOSE_MS));
 }
 
 function dismissEventModal() {
@@ -12899,9 +12914,9 @@ function _showDreamFulfilledModal(ch, dreamNum) {
   const fill = document.getElementById('dreamFulCountdownFill');
   fill.style.transition = 'none'; fill.style.transform = 'scaleX(1)';
   void fill.offsetWidth;
-  fill.style.transition = `transform ${DREAM_AUTO_CLOSE_MS}ms linear`;
+  fill.style.transition = `transform ${getAutoCloseMs(DREAM_AUTO_CLOSE_MS)}ms linear`;
   fill.style.transform = 'scaleX(0)';
-  _dreamAutoCloseTimer = setTimeout(() => closeDreamFulfilledModal(), DREAM_AUTO_CLOSE_MS);
+  _dreamAutoCloseTimer = setTimeout(() => closeDreamFulfilledModal(), getAutoCloseMs(DREAM_AUTO_CLOSE_MS));
 
   overlay.classList.add('show');
   try { playDreamFulfilledSound(); } catch(e) {}
@@ -13215,11 +13230,11 @@ function startVtLevelupCountdown() {
   fill.style.transition = 'none';
   fill.style.transform  = 'scaleX(1)';
   void fill.offsetWidth;
-  fill.style.transition = `transform ${VT_LEVELUP_AUTO_CLOSE_MS}ms linear`;
+  fill.style.transition = `transform ${getAutoCloseMs(VT_LEVELUP_AUTO_CLOSE_MS)}ms linear`;
   fill.style.transform  = 'scaleX(0)';
   _vtLevelupAutoCloseTimer = setTimeout(() => {
     dismissVtLevelupModal();
-  }, VT_LEVELUP_AUTO_CLOSE_MS);
+  }, getAutoCloseMs(VT_LEVELUP_AUTO_CLOSE_MS));
 }
 
 function dismissVtLevelupModal() {
@@ -13308,6 +13323,10 @@ function showDreamAnnounce(ch, dreamNum) {
   // タイプライター風でメッセージ表示
   let i = 0;
   const chars = [...msg];
+  // 最終テキストの高さを先に計測してウィンドウ縦幅を固定
+  msgEl.textContent = msg;
+  msgEl.style.minHeight = msgEl.offsetHeight + 'px';
+  msgEl.textContent = '';
   function typeNext() {
     if (i < chars.length) {
       msgEl.textContent += chars[i++];
@@ -13322,13 +13341,13 @@ function showDreamAnnounce(ch, dreamNum) {
   fill.style.width = '100%';
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      fill.style.transition = `width ${DREAM_ANNOUNCE_AUTO_CLOSE_MS}ms linear`;
+      fill.style.transition = `width ${getAutoCloseMs(DREAM_ANNOUNCE_AUTO_CLOSE_MS)}ms linear`;
       fill.style.width = '0%';
     });
   });
 
   clearTimeout(_dreamAnnounceAutoCloseTimer);
-  _dreamAnnounceAutoCloseTimer = setTimeout(() => closeDreamAnnounce(), DREAM_ANNOUNCE_AUTO_CLOSE_MS);
+  _dreamAnnounceAutoCloseTimer = setTimeout(() => closeDreamAnnounce(), getAutoCloseMs(DREAM_ANNOUNCE_AUTO_CLOSE_MS));
 }
 
 function closeDreamAnnounce() {
@@ -13872,6 +13891,8 @@ function showSpecialEventModal({ type, badge, icon, title, desc, effectText, ch,
     _thumbEl.style.display = 'none';
     _thumbEl.removeAttribute('style');
   }
+  // 誕生日・記念日モーダルではチャンネルタグ非表示
+  document.getElementById('eventChTag').style.display = 'none';
   if (ch) {
   }
   pushEventLog({
@@ -14016,8 +14037,8 @@ function _determineEndingType() {
   // 大成功エンディング：現役VTuberが12人以上 かつ 叶えた夢が30個以上
   const activeCount = allCh.filter(ch => !ch.graduated).length;
   if (activeCount >= 12 && fulfilledDreams >= 30) return 'good';
-  // 成功エンディング：現役VTuberが6人以上 かつ 叶えた夢が10個以上
-  if (activeCount >= 6 && fulfilledDreams >= 10) return 'normal';
+  // 成功エンディング：現役VTuberが6人以上 かつ 叶えた夢が20個以上
+  if (activeCount >= 6 && fulfilledDreams >= 20) return 'normal';
   // 魂カミングアウトエンド：事務所の一般知名度が最大値（≥490 / 最大500）
   const officeFame = gameState.fame ?? 0;
   if (officeFame >= 490) return 'soul';
@@ -15506,11 +15527,11 @@ function startEvhostResultCountdown() {
   fill.style.transition = 'none';
   fill.style.transform  = 'scaleX(1)';
   void fill.offsetWidth;
-  fill.style.transition = `transform ${EVHOST_RESULT_AUTO_CLOSE_MS}ms linear`;
+  fill.style.transition = `transform ${getAutoCloseMs(EVHOST_RESULT_AUTO_CLOSE_MS)}ms linear`;
   fill.style.transform  = 'scaleX(0)';
   _evhostResultAutoCloseTimer = setTimeout(() => {
     document.getElementById('btnEvhostResultOk').click();
-  }, EVHOST_RESULT_AUTO_CLOSE_MS);
+  }, getAutoCloseMs(EVHOST_RESULT_AUTO_CLOSE_MS));
 }
 // イベントバナー スロット位置上書き設定（dbg.htmlのキャラ配置調整で更新）
 // 大成功エンディング：世界征服シーンのVTuber配置スロット（人数別）
